@@ -7,5 +7,5 @@ export default defineConfig({
   base: '/',
   plugins: [vue(), UnoCSS()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
-  ssgOptions: { script: 'async', formatting: 'minify' },
+  ssgOptions: { script: 'async', formatting: 'minify', dirStyle: 'nested' },
 })
