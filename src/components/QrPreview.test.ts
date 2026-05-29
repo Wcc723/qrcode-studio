@@ -16,4 +16,21 @@ describe('QrPreview', () => {
     const wrapper = mount(QrPreview, { props: { data: '' } })
     expect(wrapper.text()).toContain('輸入內容')
   })
+
+  it('v-show: qr-container 在 data 非空時可見，在 data 為空時隱藏', () => {
+    const wrapperVisible = mount(QrPreview, { props: { data: 'https://x.com' } })
+    const containerVisible = wrapperVisible.find('[data-test="qr-container"]')
+    expect((containerVisible.element as HTMLElement).style.display).not.toBe('none')
+
+    const wrapperHidden = mount(QrPreview, { props: { data: '' } })
+    const containerHidden = wrapperHidden.find('[data-test="qr-container"]')
+    expect((containerHidden.element as HTMLElement).style.display).toBe('none')
+  })
+
+  it('defineExpose: download 是可呼叫的函式', async () => {
+    const wrapper = mount(QrPreview, { props: { data: 'https://x.com' } })
+    expect(typeof (wrapper.vm as any).download).toBe('function')
+    // 確認呼叫不拋出例外（qr-code-styling 已被 mock）
+    await expect((wrapper.vm as any).download('png')).resolves.not.toThrow()
+  })
 })
