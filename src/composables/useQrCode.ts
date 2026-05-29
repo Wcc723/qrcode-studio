@@ -64,6 +64,7 @@ export function useQrCode(data: Ref<string>, style: Ref<QrStyleOptions>) {
 
   async function download(extension: 'png' | 'svg' | 'jpeg') {
     await ensureInstance()
+    if (error.value) return
     instance?.download({ name: 'qrcode', extension })
   }
 

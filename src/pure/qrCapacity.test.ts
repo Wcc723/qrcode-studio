@@ -60,4 +60,24 @@ describe('exceedsQrCapacity', () => {
     const s = 'a'.repeat(2332)
     expect(exceedsQrCapacity(s, 'M')).toBe(true)
   })
+
+  it('剛好在 Q 等級上限（1663 位元組）不超出', () => {
+    const s = 'a'.repeat(1663)
+    expect(exceedsQrCapacity(s, 'Q')).toBe(false)
+  })
+
+  it('超過 Q 等級上限（1664 位元組）超出', () => {
+    const s = 'a'.repeat(1664)
+    expect(exceedsQrCapacity(s, 'Q')).toBe(true)
+  })
+
+  it('剛好在 H 等級上限（1273 位元組）不超出', () => {
+    const s = 'a'.repeat(1273)
+    expect(exceedsQrCapacity(s, 'H')).toBe(false)
+  })
+
+  it('超過 H 等級上限（1274 位元組）超出', () => {
+    const s = 'a'.repeat(1274)
+    expect(exceedsQrCapacity(s, 'H')).toBe(true)
+  })
 })
