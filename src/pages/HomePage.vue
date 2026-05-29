@@ -4,6 +4,11 @@ import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
 import { qrTypes } from '@/config/qr-types'
+import type { QrType } from '@/types'
+
+const emoji: Record<QrType, string> = {
+  url: '🔗', wifi: '📶', vcard: '👤', text: '📝', email: '✉️', phone: '📞', sms: '💬',
+}
 
 useSeoHead({
   title: '免費 QR Code 產生器｜可加 LOGO、不上傳、免費下載 PNG/SVG',
@@ -17,17 +22,27 @@ useSeoHead({
 </script>
 <template>
   <div class="py-8">
-    <header class="max-w-screen-lg mx-auto px-4 mb-5 text-center">
-      <h1 class="text-3xl md:text-4xl font-800 text-ink">免費 QR Code 產生器</h1>
-      <p class="text-muted mt-3">瀏覽器內即時生成、不上傳、可自訂顏色與 LOGO，免費下載 PNG / SVG。</p>
+    <header class="max-w-screen-lg mx-auto px-4 mb-7 text-center">
+      <span class="chip bg-pop-mint reveal reveal-1">✨ 免費・無浮水印・不上傳</span>
+      <h1 class="text-4xl md:text-5xl font-800 text-ink mt-4 reveal reveal-2">
+        免費
+        <span class="px-1 rounded" style="background:linear-gradient(transparent 58%, #FFD12E 58%)">QR Code</span>
+        產生器
+      </h1>
+      <p class="text-muted font-600 mt-4 max-w-xl mx-auto reveal reveal-3">瀏覽器內即時生成、不上傳、可自訂顏色與 LOGO，免費下載 PNG / SVG。</p>
     </header>
     <div class="max-w-screen-lg mx-auto px-4">
-      <GeneratorTool default-type="url" />
+      <div class="reveal reveal-4">
+        <GeneratorTool default-type="url" />
+      </div>
       <AdSlot slot-id="home-below-tool" />
-      <nav class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <RouterLink v-for="t in qrTypes" :key="t.type" :to="t.path" class="card p-4 hover:border-brand transition">
-          <div class="font-600 text-ink">{{ t.label }} QR Code</div>
-          <div class="text-xs text-muted mt-1">{{ t.intro.slice(0, 24) }}…</div>
+      <h2 class="text-center font-display font-700 text-xl text-ink mt-6 mb-4">挑一種，馬上做 👇</h2>
+      <nav class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <RouterLink v-for="(t, i) in qrTypes" :key="t.type" :to="t.path"
+          class="sticker p-4 block" :class="i % 2 ? 'rotate-1' : '-rotate-1'">
+          <div class="text-3xl">{{ emoji[t.type] }}</div>
+          <div class="font-display font-700 text-ink mt-1.5">{{ t.label }} QR</div>
+          <div class="text-xs text-muted mt-1 font-600 leading-snug">{{ t.intro.slice(0, 20) }}…</div>
         </RouterLink>
       </nav>
     </div>

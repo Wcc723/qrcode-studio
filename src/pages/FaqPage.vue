@@ -10,11 +10,11 @@ useSeoHead({ title: '常見問題 FAQ｜QR Code 產生器', description: '關於
 </script>
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
-    <h1 class="text-2xl font-700 text-ink">常見問題</h1>
+    <h1 class="text-3xl font-800 text-ink">💬 常見問題</h1>
     <div class="mt-6 space-y-3">
       <details v-for="(f, i) in faqs" :key="i" class="card p-4">
-        <summary class="font-600 cursor-pointer">{{ f.q }}</summary>
-        <p class="text-muted mt-2">{{ f.a }}</p>
+        <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
+        <p class="text-ink/75 font-600 mt-2 leading-relaxed">{{ f.a }}</p>
       </details>
     </div>
   </article>

@@ -1,10 +1,46 @@
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+  --ink: #16130f;
+  --paper: #fff7ea;
+}
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 body {
-  font-family: ui-sans-serif, system-ui, "Noto Sans TC", "PingFang TC", sans-serif;
-  color: #1e293b;
-  background: #ffffff;
+  font-family: "Nunito", ui-rounded, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  color: var(--ink);
+  background-color: var(--paper);
+  /* 童趣點點底紋 */
+  background-image: radial-gradient(rgba(22, 19, 15, 0.05) 1.4px, transparent 1.5px);
+  background-size: 22px 22px;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+h1, h2, h3, .font-display {
+  font-family: "Fredoka", "Baloo 2", ui-rounded, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  letter-spacing: -0.01em;
 }
 a { color: inherit; text-decoration: none; }
+::selection { background: #ffd12e; color: #16130f; }
+:focus-visible { outline: 3px solid #ff7a1a; outline-offset: 2px; border-radius: 6px; }
+
+/* 進場彈跳（首屏錯落顯示） */
+@keyframes pop-in {
+  0% { opacity: 0; transform: translateY(12px) scale(0.97); }
+  100% { opacity: 1; transform: none; }
+}
+.reveal { animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.reveal-1 { animation-delay: 0.04s; }
+.reveal-2 { animation-delay: 0.12s; }
+.reveal-3 { animation-delay: 0.20s; }
+.reveal-4 { animation-delay: 0.28s; }
+
+/* QR 貼紙輕微搖擺（hover 時） */
+@keyframes wobble {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .reveal { opacity: 1 !important; transform: none !important; }
+}

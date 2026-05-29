@@ -28,7 +28,7 @@ async function copy() { await previewRef.value?.copyImage() }
     <div class="grid md:grid-cols-[1fr_auto] gap-6 mt-5">
       <div class="space-y-5 min-w-0">
         <component :is="activeInput" :key="current" @update:payload="payload = $event" />
-        <hr class="border-line" />
+        <hr class="border-t-2 border-dashed border-ink/15" />
         <StylePanel v-model="style" />
       </div>
       <div class="md:w-72">
