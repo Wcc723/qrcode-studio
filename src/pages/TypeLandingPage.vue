@@ -6,12 +6,17 @@ import GeneratorTool from '@/components/GeneratorTool.vue'
 import SeoContent from '@/components/SeoContent.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
+import { site } from '@/config/site'
 
 const route = useRoute()
 const meta = computed(() => qrTypeByPath[route.path])
 useSeoHead({
   title: meta.value.title, description: meta.value.description,
   path: meta.value.path, faqs: meta.value.faqs,
+  breadcrumbs: [
+    { name: '首頁', url: `${site.url}/` },
+    { name: `${meta.value.label} QR Code`, url: `${site.url}${meta.value.path}/` },
+  ],
 })
 </script>
 <template>

@@ -22,7 +22,20 @@ export function buildFaqLd(faqs: FaqItem[]) {
   }
 }
 
-export function useSeoHead(opts: { title: string; description: string; path: string; faqs?: FaqItem[] }) {
+export function buildBreadcrumbLd(items: { name: string; url: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((it, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: it.name,
+      item: it.url,
+    })),
+  }
+}
+
+export function useSeoHead(opts: { title: string; description: string; path: string; faqs?: FaqItem[]; breadcrumbs?: { name: string; url: string }[] }) {
   const normalizedPath = opts.path === '/' ? '/' : `${opts.path.replace(/\/$/, '')}/`
   const url = `${site.url}${normalizedPath}`
   const scripts: Script[] = [
@@ -30,6 +43,9 @@ export function useSeoHead(opts: { title: string; description: string; path: str
   ]
   if (opts.faqs?.length) {
     scripts.push({ type: 'application/ld+json', innerHTML: JSON.stringify(buildFaqLd(opts.faqs)) })
+  }
+  if (opts.breadcrumbs?.length) {
+    scripts.push({ type: 'application/ld+json', innerHTML: JSON.stringify(buildBreadcrumbLd(opts.breadcrumbs)) })
   }
   useHead({
     title: opts.title,

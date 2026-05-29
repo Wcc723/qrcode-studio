@@ -3,9 +3,16 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { guideBySlug } from '@/content/guides'
 import { useSeoHead } from '@/composables/useSeoHead'
+import { site } from '@/config/site'
 const route = useRoute()
 const g = computed(() => guideBySlug[route.params.slug as string])
-useSeoHead({ title: g.value.title, description: g.value.description, path: `/guide/${g.value.slug}` })
+useSeoHead({
+  title: g.value.title, description: g.value.description, path: `/guide/${g.value.slug}`,
+  breadcrumbs: [
+    { name: '首頁', url: `${site.url}/` },
+    { name: g.value.title, url: `${site.url}/guide/${g.value.slug}/` },
+  ],
+})
 </script>
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
