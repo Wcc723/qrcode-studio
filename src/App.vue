@@ -4,5 +4,5 @@ import { useHead } from '@unhead/vue'
 useHead({ htmlAttrs: { lang: 'zh-Hant-TW' } })
 </script>
 <template>
-  <DefaultLayout><RouterView /></DefaultLayout>
+  <DefaultLayout><RouterView :key="$route.path" /></DefaultLayout>
 </template>
