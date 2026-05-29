@@ -23,7 +23,8 @@ export function buildFaqLd(faqs: FaqItem[]) {
 }
 
 export function useSeoHead(opts: { title: string; description: string; path: string; faqs?: FaqItem[] }) {
-  const url = `${site.url}${opts.path}`
+  const normalizedPath = opts.path === '/' ? '/' : `${opts.path.replace(/\/$/, '')}/`
+  const url = `${site.url}${normalizedPath}`
   const scripts: Script[] = [
     { type: 'application/ld+json', innerHTML: JSON.stringify(buildSoftwareAppLd({ name: opts.title, url, description: opts.description })) },
   ]
