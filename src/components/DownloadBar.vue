@@ -1,0 +1,10 @@
+<script setup lang="ts">
+defineProps<{ download: (ext: 'png' | 'svg' | 'jpeg') => void; disabled: boolean }>()
+</script>
+<template>
+  <div class="flex gap-2 mt-4">
+    <button data-test="dl-png" class="btn-primary flex-1" :disabled="disabled" @click="download('png')">⬇ PNG</button>
+    <button data-test="dl-svg" class="btn-primary flex-1" :disabled="disabled" @click="download('svg')">⬇ SVG</button>
+    <button data-test="dl-jpg" class="btn-primary flex-1" :disabled="disabled" @click="download('jpeg')">⬇ JPG</button>
+  </div>
+</template>
