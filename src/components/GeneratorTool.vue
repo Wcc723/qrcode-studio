@@ -17,6 +17,7 @@ const previewRef = ref<InstanceType<typeof QrPreview> | null>(null)
 const activeInput = computed(() => inputComponents[current.value])
 function onType(t: QrType) { current.value = t; payload.value = '' }
 function download(ext: 'png' | 'svg' | 'jpeg') { previewRef.value?.download(ext) }
+async function copy() { await previewRef.value?.copyImage() }
 </script>
 
 <template>
@@ -30,7 +31,7 @@ function download(ext: 'png' | 'svg' | 'jpeg') { previewRef.value?.download(ext)
       </div>
       <div class="md:w-72">
         <QrPreview ref="previewRef" :data="payload" :style="style" />
-        <DownloadBar :download="download" :disabled="!payload" />
+        <DownloadBar :download="download" :copy="copy" :disabled="!payload" />
       </div>
     </div>
   </div>

@@ -31,4 +31,26 @@ describe('DownloadBar', () => {
     expect(wrapper.find('[data-test="dl-svg"]').attributes('disabled')).toBeDefined()
     expect(wrapper.find('[data-test="dl-jpg"]').attributes('disabled')).toBeDefined()
   })
+
+  it('dl-copy 按鈕存在', () => {
+    const wrapper = mount(DownloadBar, { props: { download: vi.fn(), disabled: false } })
+    expect(wrapper.find('[data-test="dl-copy"]').exists()).toBe(true)
+  })
+
+  it('點 dl-copy 時呼叫 copy()', async () => {
+    const copy = vi.fn()
+    const wrapper = mount(DownloadBar, { props: { download: vi.fn(), disabled: false, copy } })
+    await wrapper.find('[data-test="dl-copy"]').trigger('click')
+    expect(copy).toHaveBeenCalledOnce()
+  })
+
+  it('dl-copy disabled 時停用', () => {
+    const wrapper = mount(DownloadBar, { props: { download: vi.fn(), disabled: true } })
+    expect(wrapper.find('[data-test="dl-copy"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('不傳 copy prop 時 dl-copy 按鈕仍正常顯示（不拋出例外）', () => {
+    const wrapper = mount(DownloadBar, { props: { download: vi.fn(), disabled: false } })
+    expect(wrapper.find('[data-test="dl-copy"]').exists()).toBe(true)
+  })
 })
