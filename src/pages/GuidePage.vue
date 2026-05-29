@@ -16,8 +16,9 @@ useSeoHead({
 </script>
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
-    <h1 class="text-2xl md:text-3xl font-700 text-ink">{{ g.title }}</h1>
-    <div class="mt-4 text-muted leading-7" v-html="g.bodyHtml" />
-    <RouterLink to="/" class="btn-primary inline-block mt-8">開始製作 QR Code</RouterLink>
+    <span class="chip bg-pop-sun">📖 教學</span>
+    <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3">{{ g.title }}</h1>
+    <div class="mt-5 text-ink/80 font-600 leading-7 [&_p]:my-3 [&_h2]:(text-xl font-700 text-ink mt-7 mb-2) [&_h3]:(text-lg font-700 text-ink mt-5 mb-1) [&_ul]:(list-disc pl-5 my-3) [&_ol]:(list-decimal pl-5 my-3) [&_li]:my-1" v-html="g.bodyHtml" />
+    <RouterLink to="/" class="btn-primary inline-flex mt-8">開始製作 QR Code</RouterLink>
   </article>
 </template>

@@ -21,6 +21,18 @@ h1, h2, h3, .font-display {
 }
 a { color: inherit; text-decoration: none; }
 ::selection { background: #ffd12e; color: #16130f; }
+
+/* 修正瀏覽器預設樣式衝突（本專案無全域 reset） */
+h1, h2, h3, h4, p, figure, blockquote { margin: 0; }
+ul, ol { margin: 0; }
+/* 移除 <details> 預設三角箭頭，改用卡片本身當提示 */
+summary { list-style: none; cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+/* 色票填滿、無內距，呼應外層粗框 */
+input[type="color"] { -webkit-appearance: none; appearance: none; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: 7px; }
+input[type="color"]::-moz-color-swatch { border: none; border-radius: 7px; }
 :focus-visible { outline: 3px solid #ff7a1a; outline-offset: 2px; border-radius: 6px; }
 
 /* 進場彈跳（首屏錯落顯示） */

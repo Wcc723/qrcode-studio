@@ -8,7 +8,7 @@ defineProps<{ meta: QrTypeMeta }>()
     <p class="text-ink/80 font-600 mt-3 leading-relaxed">{{ meta.intro }}</p>
 
     <h3 class="text-xl font-700 text-ink mt-8 flex items-center gap-2">🪄 使用步驟</h3>
-    <ol class="mt-4 grid gap-3 sm:grid-cols-3">
+    <ol class="list-none pl-0 mt-4 grid gap-3 sm:grid-cols-3">
       <li v-for="(s, i) in meta.steps" :key="i" class="card p-4 flex gap-3 items-start">
         <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">{{ i + 1 }}</span>
         <span class="font-600 text-ink/85 leading-snug">{{ s }}</span>
