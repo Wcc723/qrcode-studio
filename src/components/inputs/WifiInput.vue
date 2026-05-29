@@ -11,12 +11,12 @@ watch(f, () => emit('update:payload', buildWifi({ ...f })), { immediate: true, d
       <input v-model="f.ssid" data-test="ssid" class="input-base mt-1" /></label>
     <label class="block"><span class="text-sm text-muted">密碼</span>
       <input v-model="f.password" data-test="password" class="input-base mt-1" :disabled="f.encryption === 'nopass'" /></label>
-    <div class="flex gap-3">
-      <label class="block flex-1"><span class="text-sm text-muted">加密</span>
+    <div class="flex gap-3 flex-wrap items-end">
+      <label class="block flex-1 min-w-[160px]"><span class="text-sm font-700 text-ink">加密</span>
         <select v-model="f.encryption" class="input-base mt-1">
           <option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">無密碼</option>
         </select></label>
-      <label class="flex items-end gap-2 pb-2"><input v-model="f.hidden" type="checkbox" /><span class="text-sm text-muted">隱藏網路</span></label>
+      <label class="flex items-center gap-2 pb-2.5 cursor-pointer"><input v-model="f.hidden" type="checkbox" class="accent-brand w-4 h-4" /><span class="text-sm font-600 text-ink whitespace-nowrap">隱藏網路</span></label>
     </div>
   </div>
 </template>
