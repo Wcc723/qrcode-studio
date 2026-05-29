@@ -31,7 +31,7 @@ async function copy() { await previewRef.value?.copyImage() }
         <hr class="border-t-2 border-dashed border-ink/15" />
         <StylePanel v-model="style" />
       </div>
-      <div class="md:w-72">
+      <div class="md:w-72 min-w-0">
         <QrPreview ref="previewRef" :data="payload" :style="style" />
         <DownloadBar :download="download" :copy="copy" :disabled="!payload || overCapacity" />
       </div>
