@@ -97,5 +97,9 @@ export const qrTypes: QrTypeMeta[] = [
   },
 ]
 
-export const qrTypeByPath = Object.fromEntries(qrTypes.map(t => [t.path, t]))
+// 同時收錄無斜線(/wifi，SSG 預渲染)與帶斜線(/wifi/，dirStyle:nested 實際服務網址)兩種 key，
+// 避免 client 端在 /wifi/ 載入時查表 undefined 導致頁面空白
+export const qrTypeByPath = Object.fromEntries(
+  qrTypes.flatMap(t => [[t.path, t], [`${t.path}/`, t]]),
+)
 export const qrTypeByType = Object.fromEntries(qrTypes.map(t => [t.type, t])) as Record<QrType, QrTypeMeta>

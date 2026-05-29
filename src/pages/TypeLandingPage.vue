@@ -9,6 +9,7 @@ import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
 
 const route = useRoute()
+// qrTypeByPath 同時收錄有/無結尾斜線的 key，故 /wifi 與 /wifi/ 皆可解析
 const meta = computed(() => qrTypeByPath[route.path])
 useSeoHead({
   title: meta.value.title, description: meta.value.description,

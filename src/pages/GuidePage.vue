@@ -5,7 +5,7 @@ import { guideBySlug } from '@/content/guides'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
 const route = useRoute()
-const g = computed(() => guideBySlug[route.params.slug as string])
+const g = computed(() => guideBySlug[String(route.params.slug).replace(/\/+$/, '')])
 useSeoHead({
   title: g.value.title, description: g.value.description, path: `/guide/${g.value.slug}`,
   breadcrumbs: [
