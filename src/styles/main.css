@@ -28,6 +28,9 @@ ul, ol { margin: 0; }
 /* 移除 <details> 預設三角箭頭，改用卡片本身當提示 */
 summary { list-style: none; cursor: pointer; }
 summary::-webkit-details-marker { display: none; }
+/* 所有按鈕的游標（原生 button 預設非 pointer） */
+button:not(:disabled), label:has(> input[type="checkbox"]), input[type="color"]:not(:disabled) { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
 /* 色票填滿、無內距，呼應外層粗框 */
 input[type="color"] { -webkit-appearance: none; appearance: none; }
 input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
