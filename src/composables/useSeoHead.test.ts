@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildSoftwareAppLd, buildFaqLd, buildBreadcrumbLd } from './useSeoHead'
+import { buildSoftwareAppLd, buildFaqLd, buildBreadcrumbLd, buildArticleLd } from './useSeoHead'
 
 describe('JSON-LD builders', () => {
   it('SoftwareApplication 結構正確', () => {
@@ -25,5 +25,12 @@ describe('JSON-LD builders', () => {
     expect(ld.itemListElement[1].position).toBe(2)
     expect(ld.itemListElement[1].name).toBe('WiFi QR Code')
     expect(ld.itemListElement[1].item).toBe('https://qrtool.example/wifi/')
+  })
+  it('Article 結構正確', () => {
+    const ld = buildArticleLd({ title: '什麼是 QR Code', url: 'https://qrtool.example/guide/what-is-qr-code/', description: 'desc' })
+    expect(ld['@type']).toBe('Article')
+    expect(ld.headline).toBe('什麼是 QR Code')
+    expect(ld.mainEntityOfPage['@id']).toBe('https://qrtool.example/guide/what-is-qr-code/')
+    expect(ld.inLanguage).toBe('zh-Hant-TW')
   })
 })

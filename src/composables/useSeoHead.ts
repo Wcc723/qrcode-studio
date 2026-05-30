@@ -22,6 +22,17 @@ export function buildFaqLd(faqs: FaqItem[]) {
   }
 }
 
+export function buildArticleLd(p: { title: string; url: string; description: string }) {
+  return {
+    '@context': 'https://schema.org', '@type': 'Article',
+    headline: p.title, description: p.description,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': p.url },
+    author: { '@type': 'Organization', name: site.name },
+    publisher: { '@type': 'Organization', name: site.name },
+    inLanguage: 'zh-Hant-TW',
+  }
+}
+
 export function buildBreadcrumbLd(items: { name: string; url: string }[]) {
   return {
     '@context': 'https://schema.org',
@@ -35,11 +46,15 @@ export function buildBreadcrumbLd(items: { name: string; url: string }[]) {
   }
 }
 
-export function useSeoHead(opts: { title: string; description: string; path: string; faqs?: FaqItem[]; breadcrumbs?: { name: string; url: string }[] }) {
+export function useSeoHead(opts: { title: string; description: string; path: string; faqs?: FaqItem[]; breadcrumbs?: { name: string; url: string }[]; article?: boolean }) {
   const normalizedPath = opts.path === '/' ? '/' : `${opts.path.replace(/\/$/, '')}/`
   const url = `${site.url}${normalizedPath}`
+  // 教學文章用 Article schema；工具頁用 SoftwareApplication
+  const primaryLd = opts.article
+    ? buildArticleLd({ title: opts.title, url, description: opts.description })
+    : buildSoftwareAppLd({ name: opts.title, url, description: opts.description })
   const scripts: Script[] = [
-    { type: 'application/ld+json', innerHTML: JSON.stringify(buildSoftwareAppLd({ name: opts.title, url, description: opts.description })) },
+    { type: 'application/ld+json', innerHTML: JSON.stringify(primaryLd) },
   ]
   if (opts.faqs?.length) {
     scripts.push({ type: 'application/ld+json', innerHTML: JSON.stringify(buildFaqLd(opts.faqs)) })
@@ -54,7 +69,7 @@ export function useSeoHead(opts: { title: string; description: string; path: str
       { property: 'og:title', content: opts.title },
       { property: 'og:description', content: opts.description },
       { property: 'og:url', content: url },
-      { property: 'og:type', content: 'website' },
+      { property: 'og:type', content: opts.article ? 'article' : 'website' },
       { name: 'twitter:card', content: 'summary_large_image' },
     ],
     link: [
