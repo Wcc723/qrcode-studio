@@ -20,7 +20,7 @@ import { site } from '@/config/site'
     <main class="flex-1"><slot /></main>
     <footer class="border-t-3 border-ink mt-16 bg-white">
       <div class="max-w-screen-lg mx-auto px-4 py-8 text-sm text-muted flex flex-wrap gap-x-6 gap-y-2 justify-between items-center">
-        <span class="font-600">© {{ site.name }} · 🔒 瀏覽器內生成，不上傳你的資料</span>
+        <span class="font-600">© {{ site.name }} · 🔒 瀏覽器內生成，內容不傳雲端</span>
         <span class="flex flex-wrap gap-x-4 gap-y-1 font-700">
           <RouterLink to="/guide/scan-qr-code/" class="hover:text-brand transition">如何掃描 QR Code</RouterLink>
           <RouterLink to="/guide/line-qr-code/" class="hover:text-brand transition">LINE QR Code</RouterLink>

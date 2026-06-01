@@ -16,7 +16,7 @@ export const guides: Guide[] = [
       '<p>網址導流、<a href="/wifi/">WiFi 掃碼連線</a>、<a href="/vcard/">電子名片</a>、行動支付、餐廳點餐、活動報名、產品溯源等，生活中幾乎隨處可見。</p>' +
       '<h2>掃描 QR Code 安全嗎？</h2>' +
       '<p>QR Code 本身只是資料，風險來自「掃到後連去的網站」。掃描前可先看預覽網址、不隨意在不明頁面輸入帳密或付款，就能避開多數釣魚風險。延伸閱讀：<a href="/guide/scan-qr-code/">如何掃描 QR Code</a>。</p>' +
-      '<p>想自己做一張？<a href="/">免費 QR Code 產生器</a>不上傳、無浮水印，馬上開始。</p>',
+      '<p>想自己做一張？<a href="/">免費 QR Code 產生器</a>不傳雲端、無浮水印，馬上開始。</p>',
   },
   {
     slug: 'error-correction',
@@ -44,7 +44,7 @@ export const guides: Guide[] = [
       '<p>前景（方塊）與背景要有足夠對比，建議深色方塊配淺色背景；避免淺色方塊配深背景，否則相機不易辨識。可在<a href="/">產生器</a>中自訂顏色或漸層，但別讓顏色太淺。容錯細節可參考<a href="/guide/error-correction/">容錯等級怎麼選</a>。</p>' +
       '<h2>務必實機測試</h2>' +
       '<p>加 LOGO、改顏色後，<strong>一定要用手機相機實際掃過一次</strong>再拿去印刷，確認在預定的尺寸與距離下都掃得到。需要印刷請下載 <a href="/guide/qr-code-svg/">SVG 向量檔</a>，放大不失真。</p>' +
-      '<p><a href="/">免費製作可加 LOGO 的 QR Code</a>，不上傳、無浮水印。</p>',
+      '<p><a href="/">免費製作可加 LOGO 的 QR Code</a>，不傳雲端、無浮水印。</p>',
   },
   {
     slug: 'scan-qr-code',
@@ -62,7 +62,7 @@ export const guides: Guide[] = [
       '<ul><li><strong>螢幕上的 QR Code</strong>：用手機相機直接對螢幕掃即可。</li><li><strong>圖片檔中的 QR Code</strong>：可用線上 QR 讀取工具上傳圖片解碼，或用手機相簿「實況文字／Google Lens」辨識。</li></ul>' +
       '<h2>掃描安全提醒</h2>' +
       '<p>掃描前先看清楚跳出的網址，<strong>不要在不明頁面輸入帳密或刷卡</strong>，即可避開多數釣魚風險。</p>' +
-      '<p>想自己<strong>製作</strong> QR Code？用<a href="/">免費 QR Code 產生器</a>，不上傳、可加 LOGO、下載 PNG/SVG。</p>',
+      '<p>想自己<strong>製作</strong> QR Code？用<a href="/">免費 QR Code 產生器</a>，不傳雲端、可加 LOGO、下載 PNG/SVG。</p>',
   },
   {
     slug: 'line-qr-code',
@@ -92,7 +92,7 @@ export const guides: Guide[] = [
       '<p>只要會<strong>印刷或可能放大</strong>——名片、傳單、海報、招牌、產品包裝、大型看板——都建議用 SVG。許多工具把 SVG 鎖在付費方案，<a href="/">本站則完全免費提供 SVG 下載</a>、無浮水印。</p>' +
       '<h2>印刷前的小技巧</h2>' +
       '<ul><li>保留四周白邊（安靜區），別讓圖案貼著裁切線。</li><li>前景深、背景淺，維持足夠對比。</li><li><a href="/guide/qr-with-logo/">加 LOGO</a> 時把容錯升到 H，並實機掃描測試。</li></ul>' +
-      '<p><a href="/">免費製作並下載 SVG QR Code</a>，瀏覽器內生成、不上傳。</p>',
+      '<p><a href="/">免費製作並下載 SVG QR Code</a>，瀏覽器內生成、不傳雲端。</p>',
   },
 ]
 export const guideBySlug = Object.fromEntries(guides.map(g => [g.slug, g]))

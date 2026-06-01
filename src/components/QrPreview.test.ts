@@ -14,7 +14,7 @@ vi.mock('qr-code-styling', () => ({
 describe('QrPreview', () => {
   it('顯示信任徽章與預覽容器', () => {
     const wrapper = mount(QrPreview, { props: { data: 'https://x.com' } })
-    expect(wrapper.text()).toContain('不上傳')
+    expect(wrapper.text()).toContain('不傳雲端')
     expect(wrapper.find('[data-test="qr-container"]').exists()).toBe(true)
   })
   it('data 為空時顯示提示', () => {

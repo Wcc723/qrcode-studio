@@ -14,7 +14,7 @@ defineExpose({ download, copyImage })
 <template>
   <div class="card p-5 sticky top-4">
     <div class="mb-3">
-      <span class="chip bg-pop-mint">🔒 不上傳・瀏覽器內生成</span>
+      <span class="chip bg-pop-mint">🔒 不傳雲端・瀏覽器內生成</span>
     </div>
     <div class="relative aspect-square w-full bg-[#FFF7EA] rounded-2xl border-2 border-ink flex items-center justify-center overflow-hidden">
       <div v-if="data && error" class="flex flex-col items-center justify-center gap-2 p-4 text-center">
