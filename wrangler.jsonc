@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "qrcode-studio",
+  "compatibility_date": "2026-06-01",
+
+  // 純靜態預渲染站（vite-ssg）：不需要 Worker 進入點，只靠 Static Assets 服務 dist/。
+  "assets": {
+    "directory": "./dist",
+    // 站內 canonical / sitemap 都用「帶尾斜線」形式（/wifi/、/guide/xxx/），
+    // 強制尾斜線讓對外網址與 canonical 一致（/wifi → 308 → /wifi/）。
+    "html_handling": "force-trailing-slash",
+    // 找不到的路徑回傳預渲染的 dist/404.html（HTTP 404），交給 Vue 的 NotFoundPage 接手。
+    "not_found_handling": "404-page"
+  },
+
+  // 綁自訂網域；zone pocketool.app 需在同一個 Cloudflare 帳號下，
+  // custom_domain: true 會自動建立 DNS 記錄與憑證。
+  "routes": [
+    { "pattern": "qrcode-studio.pocketool.app", "custom_domain": true }
+  ],
+
+  // 關掉 *.workers.dev 子網域，避免同站內容出現在兩個主機名造成重複內容。
+  // 若想在 DNS 生效前先測試，可暫時改成 true。
+  "workers_dev": false
+}

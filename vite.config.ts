@@ -14,7 +14,8 @@ export default defineConfig({
     async includedRoutes(paths) {
       const { guides } = await import('./src/content/guides')
       const dynamic = guides.map((g: { slug: string }) => `/guide/${g.slug}`)
-      return [...paths.filter((p: string) => !p.includes(':')), ...dynamic]
+      // /404 由 catch-all 路由渲染 NotFoundPage，build 後由 gen-sitemap.mjs 提升成 dist/404.html
+      return [...paths.filter((p: string) => !p.includes(':')), ...dynamic, '/404']
     },
   },
 })

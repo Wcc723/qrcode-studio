@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://qrtool.example/sitemap.xml
+Sitemap: https://qrcode-studio.pocketool.app/sitemap.xml
