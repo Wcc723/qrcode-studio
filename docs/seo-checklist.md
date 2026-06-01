@@ -12,7 +12,7 @@
 - [x] ✅ 每頁有 `<link rel="canonical">`（帶尾斜線、無 query）
 - [x] ✅ noindex 掃描乾淨（僅 404 頁有 `noindex, follow`，公開頁皆無）
 - [x] ✅ Open Graph（og:title/description/url/type/site_name/locale）與 Twitter 卡（card/title/description）
-- [ ] ⚠️ **og:image / twitter:image**：程式已接好，但 `site.ogImage` 留空、尚無圖檔 → 見 B 區
+- [x] ✅ **og:image / twitter:image**：`public/og-default.png`（1200×630）已就位，`site.ogImage` 已啟用
 - [x] ✅ JSON-LD：每頁 SoftwareApplication（工具頁）/ Article（教學文）+ BreadcrumbList；全站一份 Organization（App.vue）
 - [x] ✅ 隱私權政策頁存在（`/privacy`；AdSlot 目前停用，仍預留）
 
@@ -21,7 +21,7 @@
 - [x] ✅ 正式網域已拍板：`qrcode-studio.pocketool.app`，Cloudflare 自動憑證（全站 HTTPS）
 - [ ] ⚠️ www / 非 www：本站為三級子網域，無 www 變體，免處理（如未來綁裸網域再設 301）
 - [x] ✅ Cloudflare `html_handling: "force-trailing-slash"` 與 canonical 的尾斜線寫法一致
-- [ ] ⚠️ **預設分享圖 `public/og-default.png`（建議 1200×630）尚未就位**。做好後在 `src/config/site.ts` 把 `ogImage` 設為 `'/og-default.png'`，og:image / twitter:image / Organization.logo 會自動輸出。
+- [x] ✅ 預設分享圖 `public/og-default.png`（1200×630，糖果風）已就位，`site.ogImage` 已設定，og:image / twitter:image / Organization.logo 皆輸出。
 
 ## C. 外部平台操作（⚠️ 無法自動化，逐項手動完成）
 
