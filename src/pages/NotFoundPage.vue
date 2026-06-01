@@ -1,3 +1,10 @@
+<script setup lang="ts">
+import { useHead } from '@unhead/vue'
+useHead({
+  title: '找不到頁面 404｜QR Code 產生器',
+  meta: [{ name: 'robots', content: 'noindex, follow' }],
+})
+</script>
 <template>
   <section class="max-w-screen-lg mx-auto px-4 py-20 text-center">
     <div class="text-6xl mb-4">🙈</div>

@@ -11,16 +11,17 @@ const emoji: Record<QrType, string> = {
   url: '🔗', wifi: '📶', vcard: '👤', text: '📝', email: '✉️', phone: '📞', sms: '💬',
 }
 
+const faqs = [
+  { q: 'QR Code 產生器要錢嗎？需要註冊嗎？', a: '完全免費、免註冊、無浮水印，可直接下載 PNG 與 SVG，商用與印刷皆可。' },
+  { q: 'QR Code 會過期嗎？', a: '不會。本工具產生的是靜態 QR Code，內容直接編碼在圖中，永久有效、不需聯網、不會失效。' },
+  { q: '我的資料會被上傳嗎？安全嗎？', a: '不會。所有產生過程都在你的瀏覽器內完成，不會送到任何伺服器，隱私安全。' },
+  { q: '可以加入 LOGO 和自訂顏色嗎？', a: '可以。支援自訂前景／背景顏色、漸層，以及上傳 LOGO；上傳 LOGO 時會自動提高容錯等級以確保可掃描。' },
+  { q: '可以下載 SVG 向量檔印刷用嗎？', a: '可以。免費提供 SVG 向量檔，放大不失真，適合名片、海報與大圖輸出。' },
+]
+
 useSeoHead({
   title: '免費 QR Code 產生器｜線上製作、可加 LOGO、下載 PNG/SVG（不上傳）',
   description: site.description, path: '/',
-  faqs: [
-    { q: 'QR Code 產生器要錢嗎？需要註冊嗎？', a: '完全免費、免註冊、無浮水印，可直接下載 PNG 與 SVG，商用與印刷皆可。' },
-    { q: 'QR Code 會過期嗎？', a: '不會。本工具產生的是靜態 QR Code，內容直接編碼在圖中，永久有效、不需聯網、不會失效。' },
-    { q: '我的資料會被上傳嗎？安全嗎？', a: '不會。所有產生過程都在你的瀏覽器內完成，不會送到任何伺服器，隱私安全。' },
-    { q: '可以加入 LOGO 和自訂顏色嗎？', a: '可以。支援自訂前景／背景顏色、漸層，以及上傳 LOGO；上傳 LOGO 時會自動提高容錯等級以確保可掃描。' },
-    { q: '可以下載 SVG 向量檔印刷用嗎？', a: '可以。免費提供 SVG 向量檔，放大不失真，適合名片、海報與大圖輸出。' },
-  ],
 })
 </script>
 <template>
@@ -65,6 +66,17 @@ useSeoHead({
             <div class="font-display font-700 text-ink">{{ g.title }}</div>
             <div class="text-xs text-muted mt-1.5 font-600 leading-snug">{{ g.description.slice(0, 40) }}…</div>
           </RouterLink>
+        </div>
+      </section>
+
+      <!-- 常見問題 -->
+      <section class="mt-12 max-w-3xl mx-auto">
+        <h2 class="text-center font-display font-800 text-2xl text-ink mb-5">💬 常見問題</h2>
+        <div class="space-y-3">
+          <details v-for="(f, i) in faqs" :key="i" class="card p-4">
+            <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
+            <p class="text-ink/75 font-600 mt-2 leading-relaxed">{{ f.a }}</p>
+          </details>
         </div>
       </section>
     </div>
