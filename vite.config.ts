@@ -4,7 +4,11 @@ import UnoCSS from 'unocss/vite'
 import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
-  base: '/',
+  // 掛在 hub 網域的子路徑 www.pocketool.app/qrcode-studio/。
+  // build.outDir 一起搬，讓 dist 內檔案路徑與線上 URL 路徑一一對齊，
+  // wrangler 的 assets.directory 才能維持 ./dist。
+  base: '/qrcode-studio/',
+  build: { outDir: 'dist/qrcode-studio' },
   plugins: [vue(), UnoCSS()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   ssgOptions: {

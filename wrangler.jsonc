@@ -7,16 +7,25 @@
   "assets": {
     "directory": "./dist",
     // 站內 canonical / sitemap 都用「帶尾斜線」形式（/wifi/、/guide/xxx/），
-    // 強制尾斜線讓對外網址與 canonical 一致（/wifi → 308 → /wifi/）。
+    // 強制尾斜線讓對外網址與 canonical 一致（/wifi → 307 → /wifi/）。
     "html_handling": "force-trailing-slash",
     // 找不到的路徑回傳預渲染的 dist/404.html（HTTP 404），交給 Vue 的 NotFoundPage 接手。
     "not_found_handling": "404-page"
   },
 
-  // 綁自訂網域；zone pocketool.app 需在同一個 Cloudflare 帳號下，
-  // custom_domain: true 會自動建立 DNS 記錄與憑證。
+  // 掛在 hub 網域的子路徑 www.pocketool.app/qrcode-studio/。
+  // 第一條必須以 * 結尾：Cloudflare 的 route pattern 比對整條 URL（含 query string），
+  // 而 pattern 內不能寫 query 參數，精確寫法會讓 /qrcode-studio?utm_source=x 匹配不到
+  // 而落到 hub 的 404。代價是 /qrcode-studio-foo 這類前綴路徑也會被本 Worker 接走，
+  // 所以 gen-sitemap.mjs 會另外在 assets 根目錄放一份 404.html 接住它們。
+  //
+  // 刻意「不放」舊子網域 qrcode-studio.pocketool.app 的 custom_domain 條目：
+  // wrangler 只有在陣列裡出現 custom_domain 時才會呼叫 PUT /domains/records
+  // （override_scope，宣告式全量覆蓋），沒有就完全不碰既有綁定。舊網域的綁定與
+  // proxied DNS 記錄必須留著，Cloudflare Bulk Redirect 才有流量可攔。
   "routes": [
-    { "pattern": "qrcode-studio.pocketool.app", "custom_domain": true }
+    { "pattern": "www.pocketool.app/qrcode-studio*", "zone_name": "pocketool.app" },
+    { "pattern": "www.pocketool.app/qrcode-studio/*", "zone_name": "pocketool.app" }
   ],
 
   // 關掉 *.workers.dev 子網域，避免同站內容出現在兩個主機名造成重複內容。

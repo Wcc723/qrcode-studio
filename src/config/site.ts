@@ -1,7 +1,8 @@
 export const site = {
   name: 'QRTool',
-  // 正式網域（無結尾斜線）；用於 canonical / og:url / sitemap / 結構化資料
-  url: 'https://qrcode-studio.pocketool.app',
+  // 正式網址（含子路徑、無結尾斜線）；用於 canonical / og:url / sitemap / 結構化資料。
+  // 舊子網域 qrcode-studio.pocketool.app 由 Cloudflare Bulk Redirect 301 過來。
+  url: 'https://www.pocketool.app/qrcode-studio',
   defaultLocale: 'zh-TW',
   // 預設社群分享圖（站內路徑，1200×630）。輸出 og:image / twitter:image / Organization.logo。
   ogImage: '/og-default.png',

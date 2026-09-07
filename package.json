@@ -8,8 +8,8 @@
     "build": "vite-ssg build && node scripts/gen-sitemap.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
-    "seo:audit": "node scripts/seo/audit.mjs",
-    "deploy": "npm run build && wrangler deploy",
+    "seo:audit": "node scripts/seo/audit.mjs --dist dist/qrcode-studio",
+    "deploy": "rm -rf dist && npm run build && wrangler deploy",
     "cf:preview": "npm run build && wrangler dev"
   },
   "keywords": [],

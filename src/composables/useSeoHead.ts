@@ -26,7 +26,9 @@ export function buildArticleLd(p: { title: string; url: string; description: str
 export function buildOrganizationLd() {
   return {
     '@context': 'https://schema.org', '@type': 'Organization',
-    name: site.name, url: site.url,
+    // 補尾斜線：wrangler 的 html_handling 是 force-trailing-slash，
+    // 無尾斜線的 https://www.pocketool.app/qrcode-studio 會 307。
+    name: site.name, url: `${site.url}/`,
     ...(site.ogImage ? { logo: `${site.url}${site.ogImage}` } : {}),
   }
 }

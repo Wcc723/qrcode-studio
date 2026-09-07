@@ -15,9 +15,10 @@ jobs:
         with: { node-version: 20, cache: npm }
       - run: npm ci
       - run: npm run test
+      # 子路徑網址的唯一事實來源在 scripts/gen-sitemap.mjs，這裡刻意不再用
+      # SITE_URL 覆蓋（兩個事實來源時，改了檔案卻沒改 CI 會靜默產出舊網域的 sitemap）。
       - run: npm run build
-        env:
-          SITE_URL: https://qrcode-studio.pocketool.app
+      - run: npm run seo:audit
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
         with:

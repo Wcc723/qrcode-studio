@@ -41,10 +41,26 @@ const results = []
 const add = (name, passed, detail = '') => results.push({ name, passed, detail })
 
 // 站台層級
-add('robots.txt 存在', existsSync(join(distDir, 'robots.txt')))
-const robots = existsSync(join(distDir, 'robots.txt')) ? readFileSync(join(distDir, 'robots.txt'), 'utf8') : ''
-add('robots.txt 含 Sitemap 行', /sitemap:\s*https?:\/\//i.test(robots))
+// 本站掛在 www.pocketool.app/qrcode-studio/ 子路徑，爬蟲只讀根網域的 robots.txt，
+// 由 hub（pocketool-技術文 repo）統一提供，dist 內不再有這個檔。
+if (existsSync(join(distDir, 'robots.txt'))) {
+  const robots = readFileSync(join(distDir, 'robots.txt'), 'utf8')
+  add('robots.txt 含 Sitemap 行', /sitemap:\s*https?:\/\//i.test(robots))
+}
 add('sitemap.xml 存在', existsSync(join(distDir, 'sitemap.xml')))
+
+// 子路徑站台的兩個致命失誤，build 與單元測試都抓不到，只能在產物上驗：
+//   ① canonical 少了 /qrcode-studio 前綴（site.ts 漏改）
+//   ② 內鏈 href="/..." 沒補前綴（v-html 富文字繞過 Vite base 與 vue-router）
+// 期望前綴不另立常數，改由 sitemap 的第一條 <loc> 推導——sitemap 來自
+// gen-sitemap.mjs、canonical 來自 site.ts，兩個獨立來源互相對帳才有意義。
+const sitemapXml = existsSync(join(distDir, 'sitemap.xml'))
+  ? readFileSync(join(distDir, 'sitemap.xml'), 'utf8')
+  : ''
+const firstLoc = pick(sitemapXml, /<loc>([^<]+)<\/loc>/i)
+const siteBase = firstLoc ? firstLoc.replace(/\/$/, '') : null
+const basePath = siteBase ? `${new URL(siteBase).pathname}/`.replace(/\/{2,}/g, '/') : null
+add('sitemap 第一條 loc 可解析出站台前綴', !!siteBase, siteBase || '')
 
 // 逐頁
 const titles = new Map()
@@ -55,6 +71,7 @@ for (const f of pages) {
   const name = rel(f)
   const title = pick(html, /<title[^>]*>([\s\S]*?)<\/title>/i)
   const desc = pick(html, /<meta[^>]+name=["']description["'][^>]+content=["']([\s\S]*?)["']/i)
+  const canonicalHref = pick(html, /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)
   const canonical = /<link[^>]+rel=["']canonical["']/i.test(html)
   const noindex = /<meta[^>]+name=["']robots["'][^>]+content=["'][^"']*noindex/i.test(html)
   if (/adsbygoogle|googlesyndication|googletagmanager|gtag\/js/i.test(html)) hasAds = true
@@ -62,6 +79,15 @@ for (const f of pages) {
   add(`[${name}] 有 <title>`, !!title, title || '')
   add(`[${name}] 有 meta description`, !!desc)
   add(`[${name}] 有 canonical`, canonical)
+  if (siteBase) {
+    add(`[${name}] canonical 帶正確站台前綴`, !!canonicalHref && canonicalHref.startsWith(`${siteBase}/`), canonicalHref || '')
+  }
+  if (basePath && basePath !== '/') {
+    const badHrefs = [...html.matchAll(/href="(\/[^"']*)"/g)]
+      .map((m) => m[1])
+      .filter((h) => !h.startsWith(basePath))
+    add(`[${name}] 內鏈皆帶 ${basePath} 前綴`, badHrefs.length === 0, badHrefs.slice(0, 5).join(' '))
+  }
   add(`[${name}] 無 noindex`, !noindex)
   if (title) titles.set(name, title)
   if (desc) descs.set(name, desc)

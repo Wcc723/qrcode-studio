@@ -4,8 +4,11 @@ import { useRoute } from 'vue-router'
 import { guideBySlug } from '@/content/guides'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
+import { withBase } from '@/utils/with-base'
 const route = useRoute()
 const g = computed(() => guideBySlug[String(route.params.slug).replace(/\/+$/, '')])
+// bodyHtml 是原生 <a href="/...">，不經 Vite base 也不經 vue-router，必須自行補前綴。
+const bodyHtml = computed(() => withBase(g.value.bodyHtml))
 useSeoHead({
   title: g.value.title, description: g.value.description, path: `/guide/${g.value.slug}`,
   article: true,
@@ -20,7 +23,7 @@ useSeoHead({
   <article class="max-w-screen-md mx-auto px-4 py-10">
     <span class="chip bg-pop-sun">📖 教學</span>
     <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3">{{ g.title }}</h1>
-    <div class="mt-5 text-ink/80 font-600 leading-7 [&_p]:my-3 [&_h2]:(text-xl font-800 text-ink mt-7 mb-2) [&_h3]:(text-lg font-700 text-ink mt-5 mb-1) [&_ul]:(list-disc pl-5 my-3 space-y-1) [&_ol]:(list-decimal pl-5 my-3) [&_li]:my-1 [&_a]:(text-brand underline underline-offset-2 font-700 hover:text-brand-700) [&_strong]:text-ink [&_code]:(bg-pop-sun/30 px-1 rounded font-mono text-sm)" v-html="g.bodyHtml" />
+    <div class="mt-5 text-ink/80 font-600 leading-7 [&_p]:my-3 [&_h2]:(text-xl font-800 text-ink mt-7 mb-2) [&_h3]:(text-lg font-700 text-ink mt-5 mb-1) [&_ul]:(list-disc pl-5 my-3 space-y-1) [&_ol]:(list-decimal pl-5 my-3) [&_li]:my-1 [&_a]:(text-brand underline underline-offset-2 font-700 hover:text-brand-700) [&_strong]:text-ink [&_code]:(bg-pop-sun/30 px-1 rounded font-mono text-sm)" v-html="bodyHtml" />
     <RouterLink to="/" class="btn-primary inline-flex mt-8">開始製作 QR Code</RouterLink>
   </article>
 </template>

@@ -1,12 +1,15 @@
 # SEO 上線檢核清單 — QRTool
 
-> 網域：`https://qrcode-studio.pocketool.app`　·　產生日期：2026-06-01
+> 網址：`https://www.pocketool.app/qrcode-studio/`　·　產生日期：2026-06-01，2026-09 更新
+> 2026-09 由子網域 `qrcode-studio.pocketool.app` 搬到 www 主網域子路徑，舊網址以 Cloudflare Bulk Redirect 301 過來。
 > 標記：✅ 完成　❌ 未完成　⚠️ 需手動（外部平台 / 待補資產，無法由程式驗證）
 
-## A. 技術基礎（程式可驗 — `npm run seo:audit`，目前 73/73 PASS）
+## A. 技術基礎（程式可驗 — `npm run seo:audit`，目前 107/107 PASS，CI 每次 build 後自動跑）
 
-- [x] ✅ robots.txt 存在且含 `Sitemap:` 絕對網址
-- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（17 條，build 時自動產生並排除 404）
+- [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
+- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（17 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
+- [x] ✅ 每頁 canonical 值帶正確子路徑前綴（audit 逐頁斷言，非只檢查標籤存在）
+- [x] ✅ 每頁內鏈皆帶 `/qrcode-studio/` 前綴（audit 逐頁斷言，擋住 v-html 富文字繞過 Vite base 的漏網之魚）
 - [x] ✅ 每頁有唯一 `<title>`（非空、跨頁不重複）
 - [x] ✅ 每頁有唯一 `<meta name="description">`
 - [x] ✅ 每頁有 `<link rel="canonical">`（帶尾斜線、無 query）
@@ -18,16 +21,18 @@
 
 ## B. 一次性決策（人工確認）
 
-- [x] ✅ 正式網域已拍板：`qrcode-studio.pocketool.app`，Cloudflare 自動憑證（全站 HTTPS）
+- [x] ✅ 正式網址已拍板：`https://www.pocketool.app/qrcode-studio/`（舊 `qrcode-studio.pocketool.app` 以 Cloudflare Bulk Redirect 301 過來）
+- [x] ✅ 子路徑前綴只存在於三處：`vite.config.ts` 的 `base` 與 `build.outDir`、`src/main.ts` 的 router base、`scripts/gen-sitemap.mjs` 的 `BASE`／`dist`。頁面層與 `src/router.ts` 一律不得硬編前綴；CI 也不再用 `SITE_URL` 覆蓋
 - [ ] ⚠️ www / 非 www：本站為三級子網域，無 www 變體，免處理（如未來綁裸網域再設 301）
 - [x] ✅ Cloudflare `html_handling: "force-trailing-slash"` 與 canonical 的尾斜線寫法一致
 - [x] ✅ 預設分享圖 `public/og-default.png`（1200×630，糖果風）已就位，`site.ogImage` 已設定，og:image / twitter:image / Organization.logo 皆輸出。
 
 ## C. 外部平台操作（⚠️ 無法自動化，逐項手動完成）
 
-- [ ] ⚠️ Google Search Console：驗證網站擁有權
-- [ ] ⚠️ GSC：提交 `https://qrcode-studio.pocketool.app/sitemap.xml`
+- [x] ✅ Google Search Console：本站涵蓋於 domain property `sc-domain:pocketool.app`，**不需**另建 property，也**不要**用「網址變更」工具（同一個 domain property 內的 host 變更不適用該工具）
+- [ ] ⚠️ GSC：在 `sc-domain:pocketool.app` 提交 `https://www.pocketool.app/qrcode-studio/sitemap.xml`。**等它顯示成功之後**，才移除舊的 `https://qrcode-studio.pocketool.app/sitemap.xml` 提交紀錄
 - [ ] ⚠️ GSC：對首頁與各類型核心頁（/wifi/、/url/、/vcard/…）做 URL Inspection → 要求建立索引
+- [ ] ⚠️ GA4（`G-WX9VS8GGBZ`）：資料串流網址改成 `https://www.pocketool.app`，並檢查所有以 hostname 或 page_path 為條件的關鍵事件／目標對象／自訂定義（`page_path` 由 `/wifi/` 變成 `/qrcode-studio/wifi/`，GA4 不會警告，只會比對到零列）
 - [ ] ⚠️ Bing Webmaster Tools：驗證 + 提交 sitemap（可從 GSC 匯入）
 - [ ] ⚠️ 外部入口：個人站 / GitHub README / 社群至少放一條連結指向本站（避免孤島）
 - [ ] ⚠️ （若日後啟用 AdSense）隱私權政策頁內容齊備、符合 Google 廣告政策
