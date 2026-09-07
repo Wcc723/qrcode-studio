@@ -5,7 +5,9 @@
   "scripts": {
     "test": "vitest run",
     "dev": "vite",
+    "prebuild": "npm run test",
     "build": "vite-ssg build && node scripts/gen-sitemap.mjs",
+    "postbuild": "npm run seo:audit",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "seo:audit": "node scripts/seo/audit.mjs --dist dist/qrcode-studio",
