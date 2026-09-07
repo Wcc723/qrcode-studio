@@ -24,5 +24,10 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # 必須釘版本：wrangler-action@v3 預設會自己裝 wrangler 3.90.0，而 3.x 不支援
+          # 「只有靜態資產、沒有 main 進入點」的 Worker，會直接報 Missing entry-point。
+          # 這個 repo 從 2026-06-01 起每次 CI 部署都因此失敗（線上跑的是更早的手動部署）。
+          # 版本與 package-lock.json 鎖的 wrangler 對齊，升級時兩處要一起改。
+          wranglerVersion: '4.95.0'
           # build 已在前一步跑過，這裡只做部署
           command: deploy
