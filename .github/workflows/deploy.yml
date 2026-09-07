@@ -12,7 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: npm }
+        # 版本讀 .nvmrc，避免第二個事實來源。不能低於 22：wrangler 4 要求 Node >= 22，
+        # 用 20 會在部署那步直接被擋下（build 與測試卻是綠的，很難察覺）。
+        with: { node-version-file: .nvmrc, cache: npm }
       - run: npm ci
       - run: npm run test
       # 子路徑網址的唯一事實來源在 scripts/gen-sitemap.mjs，這裡刻意不再用
