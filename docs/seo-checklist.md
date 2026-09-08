@@ -4,7 +4,7 @@
 > 2026-09 由子網域 `qrcode-studio.pocketool.app` 搬到 www 主網域子路徑，舊網址以 Cloudflare Bulk Redirect 301 過來。
 > 標記：✅ 完成　❌ 未完成　⚠️ 需手動（外部平台 / 待補資產，無法由程式驗證）
 
-## A. 技術基礎（程式可驗 — `npm run seo:audit`，目前 107/107 PASS，CI 每次 build 後自動跑）
+## A. 技術基礎（程式可驗 — `npm run seo:audit`，目前 107/107 PASS，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
 - [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（17 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
@@ -23,7 +23,7 @@
 
 - [x] ✅ 正式網址已拍板：`https://www.pocketool.app/qrcode-studio/`（舊 `qrcode-studio.pocketool.app` 以 Cloudflare Bulk Redirect 301 過來）
 - [x] ✅ 子路徑前綴只存在於三處：`vite.config.ts` 的 `base` 與 `build.outDir`、`src/main.ts` 的 router base、`scripts/gen-sitemap.mjs` 的 `BASE`／`dist`。頁面層與 `src/router.ts` 一律不得硬編前綴；CI 也不再用 `SITE_URL` 覆蓋
-- [ ] ⚠️ www / 非 www：本站為三級子網域，無 www 變體，免處理（如未來綁裸網域再設 301）
+- [x] ✅ www / 非 www：本站已掛在 `www.pocketool.app` 底下，apex `pocketool.app` 由 zone 層級的 Single Redirect 301 到 www，本站不需另外處理
 - [x] ✅ Cloudflare `html_handling: "force-trailing-slash"` 與 canonical 的尾斜線寫法一致
 - [x] ✅ 預設分享圖 `public/og-default.png`（1200×630，糖果風）已就位，`site.ogImage` 已設定，og:image / twitter:image / Organization.logo 皆輸出。
 
