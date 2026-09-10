@@ -42,7 +42,7 @@ const add = (name, passed, detail = '') => results.push({ name, passed, detail }
 
 // 站台層級
 // 本站掛在 www.pocketool.app/qrcode-studio/ 子路徑，爬蟲只讀根網域的 robots.txt，
-// 由 hub（pocketool-技術文 repo）統一提供，dist 內不再有這個檔。
+// 由 hub（pocket-tool-blog repo）統一提供，dist 內不再有這個檔。
 if (existsSync(join(distDir, 'robots.txt'))) {
   const robots = readFileSync(join(distDir, 'robots.txt'), 'utf8')
   add('robots.txt 含 Sitemap 行', /sitemap:\s*https?:\/\//i.test(robots))

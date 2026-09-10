@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(wrangler deploy)",
+      "Bash(wrangler deploy *)",
+      "Bash(npx wrangler deploy)",
+      "Bash(npx wrangler deploy *)",
+      "Bash(pnpm deploy)",
+      "Bash(pnpm run deploy)",
+      "Bash(npm run deploy)"
+    ],
+    "ask": [
+      "Bash(git push)",
+      "Bash(git push *)"
+    ]
+  }
+}
