@@ -8,6 +8,15 @@ describe('JSON-LD builders', () => {
     expect(ld.offers.price).toBe('0')
     expect(ld.applicationCategory).toBe('UtilitiesApplication')
   })
+  it('appType 可改成 WebApplication（/barcode/ 用）', () => {
+    const ld = buildSoftwareAppLd({ name: '一維條碼產生器', url: 'https://x.tw/barcode/', description: 'desc', appType: 'WebApplication' })
+    expect(ld['@type']).toBe('WebApplication')
+    expect(ld.offers.price).toBe('0')
+  })
+  it('未指定 appType 時維持 SoftwareApplication（既有 7 頁不得改變）', () => {
+    const ld = buildSoftwareAppLd({ name: 'QRTool', url: 'https://x.tw/url', description: 'desc' })
+    expect(ld['@type']).toBe('SoftwareApplication')
+  })
   it('BreadcrumbList 結構正確', () => {
     const ld = buildBreadcrumbLd([
       { name: '首頁', url: 'https://qrtool.example/' },

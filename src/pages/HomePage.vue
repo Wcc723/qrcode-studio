@@ -55,6 +55,7 @@ useSeoHead({
         <h2 class="text-2xl font-800 text-ink">免費線上 QR Code 產生器，3 步驟製作完成</h2>
         <p class="mt-3">這是一款<strong>免費、不傳雲端、無浮水印</strong>的線上 QR Code（行動條碼）產生器。輸入內容、自訂外觀、按下下載，整個過程都在你的瀏覽器內完成，你輸入的內容不會上傳至雲端儲存空間。支援<RouterLink to="/url/" class="text-brand underline font-700">網址</RouterLink>、<RouterLink to="/wifi/" class="text-brand underline font-700">WiFi</RouterLink>、<RouterLink to="/vcard/" class="text-brand underline font-700">電子名片</RouterLink>、文字、Email、電話、簡訊等多種類型。</p>
         <p class="mt-3">可自訂前景與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或<RouterLink to="/guide/qr-code-svg/" class="text-brand underline font-700">SVG 向量檔</RouterLink>（印刷不失真）。產生的是<strong>靜態 QR Code</strong>，永久有效、不會過期，可放心印在名片、海報、產品包裝或店家招牌上。</p>
+        <p class="mt-3">要做的是商品包裝上那種直條的<strong>一維條碼</strong>（EAN-13、Code 128）嗎？請改用<RouterLink to="/barcode/" class="text-brand underline font-700">一維條碼產生器</RouterLink>。兩者用途不同：QR Code 是二維條碼，可直接存網址與長文字；一維條碼主要對應商品編號，用於零售結帳與庫存管理。</p>
       </section>
 
       <!-- 教學文章 -->

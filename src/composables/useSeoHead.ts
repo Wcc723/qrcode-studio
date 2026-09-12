@@ -2,9 +2,13 @@ import { useHead } from '@unhead/vue'
 import type { Script } from '@unhead/vue'
 import { site } from '@/config/site'
 
-export function buildSoftwareAppLd(p: { name: string; url: string; description: string }) {
+export type AppLdType = 'SoftwareApplication' | 'WebApplication'
+
+export function buildSoftwareAppLd(p: { name: string; url: string; description: string; appType?: AppLdType }) {
   return {
-    '@context': 'https://schema.org', '@type': 'SoftwareApplication',
+    // WebApplication 是 SoftwareApplication 的子類別，同一組屬性完全通用。
+    // 預設維持 SoftwareApplication，既有 7 個工具頁的輸出因此不變。
+    '@context': 'https://schema.org', '@type': p.appType ?? 'SoftwareApplication',
     name: p.name, url: p.url, description: p.description,
     applicationCategory: 'UtilitiesApplication', operatingSystem: 'Any',
     offers: { '@type': 'Offer', price: '0', priceCurrency: 'TWD' },
@@ -48,14 +52,14 @@ export function buildBreadcrumbLd(items: { name: string; url: string }[]) {
 
 // 注意：刻意不產 FAQPage。Google 於 2026-05-07 起停止顯示 FAQ rich results，
 // 該 schema 已無可見 SERP 收益；頁面上的 FAQ 文字內容照常保留（對長尾與 UX 仍有用）。
-export function useSeoHead(opts: { title: string; description: string; path: string; breadcrumbs?: { name: string; url: string }[]; article?: boolean }) {
+export function useSeoHead(opts: { title: string; description: string; path: string; breadcrumbs?: { name: string; url: string }[]; article?: boolean; appType?: AppLdType }) {
   const normalizedPath = opts.path === '/' ? '/' : `${opts.path.replace(/\/$/, '')}/`
   const url = `${site.url}${normalizedPath}`
   const ogImage = site.ogImage ? `${site.url}${site.ogImage}` : ''
   // 教學文章用 Article schema；工具頁用 SoftwareApplication
   const primaryLd = opts.article
     ? buildArticleLd({ title: opts.title, url, description: opts.description })
-    : buildSoftwareAppLd({ name: opts.title, url, description: opts.description })
+    : buildSoftwareAppLd({ name: opts.title, url, description: opts.description, appType: opts.appType })
   const scripts: Script[] = [
     { type: 'application/ld+json', innerHTML: JSON.stringify(primaryLd) },
   ]

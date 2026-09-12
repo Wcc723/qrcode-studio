@@ -4,10 +4,10 @@
 > 2026-09 由子網域 `qrcode-studio.pocketool.app` 搬到 www 主網域子路徑，舊網址以 Cloudflare Bulk Redirect 301 過來。
 > 標記：✅ 完成　❌ 未完成　⚠️ 需手動（外部平台 / 待補資產，無法由程式驗證）
 
-## A. 技術基礎（程式可驗 — `npm run seo:audit`，目前 107/107 PASS，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
+## A. 技術基礎（程式可驗 — `npm run seo:audit`，目前 113/113 PASS，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
-- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（17 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
+- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（18 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
 - [x] ✅ 每頁 canonical 值帶正確子路徑前綴（audit 逐頁斷言，非只檢查標籤存在）
 - [x] ✅ 每頁內鏈皆帶 `/qrcode-studio/` 前綴（audit 逐頁斷言，擋住 v-html 富文字繞過 Vite base 的漏網之魚）
 - [x] ✅ 每頁有唯一 `<title>`（非空、跨頁不重複）
@@ -16,7 +16,7 @@
 - [x] ✅ noindex 掃描乾淨（僅 404 頁有 `noindex, follow`，公開頁皆無）
 - [x] ✅ Open Graph（og:title/description/url/type/site_name/locale）與 Twitter 卡（card/title/description）
 - [x] ✅ **og:image / twitter:image**：`public/og-default.png`（1200×630）已就位，`site.ogImage` 已啟用
-- [x] ✅ JSON-LD：每頁 SoftwareApplication（工具頁）/ Article（教學文）+ BreadcrumbList；全站一份 Organization（App.vue）
+- [x] ✅ JSON-LD：每頁 SoftwareApplication（QR 工具頁）/ WebApplication（`/barcode/` 一維條碼）/ Article（教學文）+ BreadcrumbList；全站一份 Organization（App.vue）
 - [x] ✅ 隱私權政策頁存在（`/privacy`；AdSlot 目前停用，仍預留）
 
 ## B. 一次性決策（人工確認）

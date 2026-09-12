@@ -6,7 +6,7 @@ export const guides: Guide[] = [
     title: '什麼是 QR Code？原理、用途與安全性完整介紹',
     description: 'QR Code（行動條碼）是什麼？一次看懂二維條碼的運作原理、容量、靜態與動態差異、常見用途與掃描安全注意事項。',
     bodyHtml:
-      '<p>QR Code（Quick Response Code，快速回應碼）是一種<strong>二維條碼／行動條碼</strong>，由日本 Denso Wave 公司於 1994 年發明。它用黑白方塊矩陣儲存資料，相機一掃即可讀出，能存放網址、文字、聯絡資訊、WiFi 帳密等內容，比傳統一維條碼容量更大、容錯更強。</p>' +
+      '<p>QR Code（Quick Response Code，快速回應碼）是一種<strong>二維條碼／行動條碼</strong>，由日本 Denso Wave 公司於 1994 年發明。它用黑白方塊矩陣儲存資料，相機一掃即可讀出，能存放網址、文字、聯絡資訊、WiFi 帳密等內容，比傳統一維條碼容量更大、容錯更強。若你要做的是商品包裝上那種直條條碼（EAN-13、Code 128），請改用<a href="/barcode/">一維條碼產生器</a>。</p>' +
       '<h2>QR Code 的運作原理</h2>' +
       '<p>圖案四角的三個「回」字形是<strong>定位點</strong>，讓相機從任何角度都能辨識方向；其餘方塊則編碼實際資料與糾錯碼。即使圖案有部分髒污或被遮擋，也能靠糾錯機制還原，這也是為什麼能在中間放 LOGO 仍可掃描。</p>' +
       '<h2>靜態 QR Code 與動態 QR Code 的差別</h2>' +

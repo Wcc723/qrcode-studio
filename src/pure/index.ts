@@ -23,3 +23,5 @@ export function buildPayload<T extends QrType>(type: T, data: PayloadInputMap[T]
 
 export * from './buildUrl'; export * from './buildText'; export * from './buildWifi'
 export * from './buildVCard'; export * from './buildEmail'; export * from './buildPhone'; export * from './buildSms'
+
+export * from './validateBarcode'

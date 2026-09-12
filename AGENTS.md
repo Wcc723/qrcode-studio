@@ -30,8 +30,8 @@
 npm run dev         # 本機開發，網址會帶 /qrcode-studio/ 前綴
 npm run build       # 測試 → vite-ssg build → SEO 稽核（見下方「把關」）
 npm run preview     # 預覽 build 結果
-npm run test        # vitest（74 個）
-npm run seo:audit   # 稽核 dist/qrcode-studio（107 條）
+npm run test        # vitest（237 個）
+npm run seo:audit   # 稽核 dist/qrcode-studio（113 條）
 npm run deploy      # 緊急備用：rm -rf dist && build && wrangler deploy
 ```
 
