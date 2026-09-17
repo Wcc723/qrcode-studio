@@ -32,7 +32,7 @@
 - [x] ✅ Google Search Console：本站涵蓋於 domain property `sc-domain:pocketool.app`，**不需**另建 property，也**不要**用「網址變更」工具（同一個 domain property 內的 host 變更不適用該工具）
 - [ ] ⚠️ GSC：在 `sc-domain:pocketool.app` 提交 `https://www.pocketool.app/qrcode-studio/sitemap.xml`。**等它顯示成功之後**，才移除舊的 `https://qrcode-studio.pocketool.app/sitemap.xml` 提交紀錄
 - [ ] ⚠️ GSC：對首頁與各類型核心頁（/wifi/、/url/、/vcard/…）做 URL Inspection → 要求建立索引
-- [ ] ⚠️ GA4（`G-WX9VS8GGBZ`）：資料串流網址改成 `https://www.pocketool.app`，並檢查所有以 hostname 或 page_path 為條件的關鍵事件／目標對象／自訂定義（`page_path` 由 `/wifi/` 變成 `/qrcode-studio/wifi/`，GA4 不會警告，只會比對到零列）
+- [ ] ⚠️ GA4：2026-09-17 起本站改送站群共用 property（量測 ID `G-4FJ6KE3R2V`，`content_group: 'qrcode-studio'`），舊 property `G-WX9VS8GGBZ` 只留歷史。共用 property 的資料串流網址是 `https://www.pocketool.app`；所有以 hostname 或 page_path 為條件的關鍵事件／目標對象／自訂定義都要改用 `content_group`（`page_path` 由 `/wifi/` 變成 `/qrcode-studio/wifi/`，GA4 不會警告，只會比對到零列）
 - [ ] ⚠️ Bing Webmaster Tools：驗證 + 提交 sitemap（可從 GSC 匯入）
 - [ ] ⚠️ 外部入口：個人站 / GitHub README / 社群至少放一條連結指向本站（避免孤島）
 - [ ] ⚠️ （若日後啟用 AdSense）隱私權政策頁內容齊備、符合 Google 廣告政策
