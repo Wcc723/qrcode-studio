@@ -59,7 +59,7 @@ export const guides: Guide[] = [
       '<h2>用 LINE 掃描 QR Code（最方便）</h2>' +
       '<p>LINE 內建行動條碼掃描器，免裝額外 App：打開 LINE → 點主頁搜尋列旁的<strong>掃描圖示</strong>（或「加入好友 → 行動條碼」）→ 對準即可。LINE 掃描也能用來開啟一般網址 QR Code，是台灣最多人用的掃描方式之一。延伸閱讀：<a href="/guide/line-qr-code/">LINE QR Code 怎麼做</a>。</p>' +
       '<h2>電腦（Windows / Mac）怎麼掃 QR Code</h2>' +
-      '<ul><li><strong>螢幕上的 QR Code</strong>：用手機相機直接對螢幕掃即可。</li><li><strong>圖片檔中的 QR Code</strong>：可用線上 QR 讀取工具上傳圖片解碼，或用手機相簿「實況文字／Google Lens」辨識。</li></ul>' +
+      '<ul><li><strong>螢幕上的 QR Code</strong>：用手機相機直接對螢幕掃即可。</li><li><strong>圖片檔中的 QR Code</strong>：用本站的<a href="/scan/">QR Code 掃描器</a>把圖片拖進去或直接貼上截圖，在瀏覽器內解碼，圖片不會上傳；也可以用手機相簿的「實況文字／Google Lens」辨識。</li></ul>' +
       '<h2>掃描安全提醒</h2>' +
       '<p>掃描前先看清楚跳出的網址，<strong>不要在不明頁面輸入帳密或刷卡</strong>，即可避開多數釣魚風險。</p>' +
       '<p>想自己<strong>製作</strong> QR Code？用<a href="/">免費 QR Code 產生器</a>，不傳雲端、可加 LOGO、下載 PNG/SVG。</p>',

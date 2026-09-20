@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { useSeoHead } from '@/composables/useSeoHead'
-useSeoHead({ title: '隱私權政策｜你的內容不傳雲端', description: '本工具在你的瀏覽器內生成 QR Code，你輸入的內容不會上傳至雲端儲存空間；網站使用 Google Analytics 收集匿名使用統計。', path: '/privacy' })
+useSeoHead({ title: '隱私權政策｜你的內容不傳雲端', description: '本工具在你的瀏覽器內生成與解讀 QR Code，你輸入或上傳的內容不會上傳至雲端儲存空間；網站使用 Google Analytics 收集匿名使用統計。', path: '/privacy' })
 </script>
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
     <h1 class="text-2xl font-700 text-ink">隱私權政策</h1>
     <p class="text-muted mt-4 leading-7">你輸入的所有內容（網址、密碼、聯絡資訊等）都只在你的瀏覽器內處理並生成 QR Code 圖片，<strong>不會上傳至雲端儲存空間，我們也不會儲存這些內容</strong>。</p>
+    <h2 class="text-lg font-700 text-ink mt-7">圖片解碼（QR Code 掃描器）</h2>
+    <p class="text-muted mt-3 leading-7">在<RouterLink to="/scan/" class="text-brand underline font-700">QR Code 掃描器</RouterLink>選擇、拖放或貼上的圖片，<strong>不會上傳到任何伺服器</strong>。解碼是由本站提供的 WebAssembly（WASM）模組在你的瀏覽器內執行的，該模組本身也由本站網域提供，不從第三方 CDN 載入。</p>
+    <p class="text-muted mt-3 leading-7">圖片內容與解讀出來的結果（含網址、WiFi 密碼、名片資訊等）只存在於該分頁的記憶體中：<strong>不會寫入網址、Cookie、localStorage、sessionStorage 或任何瀏覽紀錄</strong>，也不會出現在使用數據分析的事件裡。關閉或重新整理分頁後就不會保留。按下「用此內容重新產生」把內容帶回產生器時，同樣只在記憶體中傳遞，且只會被取用一次。</p>
+
     <h2 class="text-lg font-700 text-ink mt-7">使用數據分析（Google Analytics）</h2>
     <p class="text-muted mt-3 leading-7">為了解網站使用情況並持續改善，本站使用 Google Analytics（GA4）收集匿名的使用統計，例如瀏覽的頁面、停留時間、裝置與瀏覽器類型、概略地區（依 IP 推估）等。這些資料透過 Cookie 蒐集，<strong>不包含你輸入到產生器中的任何內容</strong>，也無法用來辨識你的身分。相關資料由 Google 依其<a href="https://policies.google.com/privacy" target="_blank" rel="noopener" class="text-brand underline font-700">隱私權政策</a>處理；你可安裝 <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener" class="text-brand underline font-700">Google Analytics 停用外掛</a>或於瀏覽器封鎖 Cookie 來拒絕追蹤。</p>
     <h2 class="text-lg font-700 text-ink mt-7">第三方廣告</h2>

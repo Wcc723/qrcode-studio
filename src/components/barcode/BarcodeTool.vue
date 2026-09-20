@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
+import { takeScanHandoff } from '@/utils/scan-handoff'
 import { pngPresets } from '@/config/symbologies'
 import { useBarcode } from '@/composables/useBarcode'
 import SymbologyPicker from './SymbologyPicker.vue'
@@ -15,6 +16,15 @@ const {
   error, notice, pattern, previewSvg, printInfo, pngSize,
   downloadSvg, downloadPng, liveMessage, flushMessage, meta, canDownload,
 } = useBarcode(raw, sym)
+
+// /scan/ 交棒過來的一維碼。只在瀏覽器端取、取一次就清掉；
+// QR 的交棒不歸這裡管，直接丟掉而不是硬塞進條碼輸入框。
+onMounted(() => {
+  const handoff = takeScanHandoff()
+  if (handoff?.kind !== 'barcode') return
+  sym.value = handoff.symbology
+  raw.value = handoff.value
+})
 
 const png = computed(() => pngSize(scale.value))
 </script>

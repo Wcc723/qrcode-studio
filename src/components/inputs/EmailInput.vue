@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-import { buildEmail } from '@/pure/buildEmail'
+import { buildEmail, type EmailInputData } from '@/pure/buildEmail'
 const emit = defineEmits<{ 'update:payload': [string] }>()
-const f = reactive({ to: '', subject: '', body: '' })
+const props = defineProps<{ initial?: EmailInputData }>()
+const f = reactive<EmailInputData>({ to: '', subject: '', body: '', ...props.initial })
 watch(f, () => emit('update:payload', buildEmail({ ...f })), { immediate: true, deep: true })
 </script>
 <template>

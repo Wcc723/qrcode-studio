@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { buildText } from '@/pure/buildText'
+import { buildText, type TextInputData } from '@/pure/buildText'
 const emit = defineEmits<{ 'update:payload': [string] }>()
-const text = ref('')
+const props = defineProps<{ initial?: TextInputData }>()
+const text = ref(props.initial?.text ?? '')
 watch(text, () => emit('update:payload', buildText({ text: text.value })), { immediate: true })
 </script>
 <template>

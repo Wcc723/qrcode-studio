@@ -9,6 +9,8 @@
 - push `main` 前須經站長同意；push 即觸發 Cloudflare Workers Builds 部署，不要手動 `wrangler deploy`
 - `wrangler.jsonc` 的 `name` 必須是 `qrcode-studio`（線上 Worker 名）
 - 子路徑相關設定（base、routes、assets 目錄、`_headers`、`404.html`）改動前，先讀本檔的子路徑章節與 workspace 的 `docs/runbooks/subpath-migration.md`
+- `/scan/` 的解碼器 WASM 一律自架，不得改回第三方 CDN；`zxing-wasm` 必須精確鎖版（見「圖片解碼」章節）
+- 新增或移除路由時，要同步更新 `scripts/seo/audit.mjs` 的 `EXPECTED_PATHS`，否則 build 會擋下來
 
 ## 這個 repo 是什麼
 
@@ -30,9 +32,12 @@
 npm run dev         # 本機開發，網址會帶 /qrcode-studio/ 前綴
 npm run build       # 測試 → vite-ssg build → SEO 稽核（見下方「把關」）
 npm run preview     # 預覽 build 結果
-npm run test        # vitest（237 個）
-npm run seo:audit   # 稽核 dist/qrcode-studio（113 條）
+npm run test        # vitest
+npm run seo:audit   # 稽核 dist/qrcode-studio
 npm run deploy      # 緊急備用：rm -rf dist && build && wrangler deploy
+
+# 只有要重新產生 /scan/ 的黃金測試圖時才跑（產物已進版控）
+node scripts/fixtures/gen-scan-fixtures.mjs
 ```
 
 ## 部署
@@ -101,6 +106,40 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 `src/config/site.ts` 的 `url` 是 canonical / og:url / JSON-LD 的來源，**無尾斜線**
 （`useSeoHead.ts` 會自己補）。CI 刻意不再用 `SITE_URL` 環境變數覆蓋 sitemap 的 BASE，
 避免出現第二個事實來源。
+
+## 圖片解碼（`/scan/`）的四條規則
+
+解碼用 `zxing-wasm`，以 WebAssembly 在使用者的瀏覽器內執行。以下四件事改錯都不會
+有錯誤訊息，只會安靜地壞掉或把使用者的圖片內容送到不該去的地方。
+
+- **WASM 自架，且與 JS 同版。** 套件預設的 `locateFile` 會去 `fastly.jsdelivr` 抓檔，
+  那會讓「圖片不離開瀏覽器」多一個第三方依賴。做法是 `import ... from
+  'zxing-wasm/reader/zxing_reader.wasm?url'` 讓 Vite 收成本站資產，再用
+  `prepareZXingModule({ overrides: { locateFile } })` 覆寫。`package.json` 精確鎖版
+  （不用 `^`），測試以套件 export 的 `ZXING_WASM_SHA256` 對帳 `node_modules` 那一份，
+  稽核再比對 `dist` 那一份，混版就會紅。
+- **只用 `zxing-wasm/reader`，而且只能動態 import。** `zxing-wasm` 與 `/full`、`/writer`
+  會多帶編碼器進來。靜態 import 會把解碼器拖進 entry chunk，變成全站每一頁都付這個
+  成本；`/scan` 這條 route 本身也必須是 `() => import(...)`。稽核會驗 entry chunk 裡
+  沒有 `zxing`。
+- **一律先解成 `ImageData` 再交給解碼器。** zxing-wasm 內建的影像解碼器讀得懂 PNG 與
+  JPEG，但**讀不懂 WebP**（會回一筆空結果，看起來就像「這張圖沒有條碼」）。所以走
+  `createImageBitmap` → canvas → `ImageData`，三種容器共用一條路；順便在配置 canvas
+  之前就能擋掉解壓縮炸彈。
+- **圖片與解碼內容只能留在記憶體。** 不得寫入網址（query／hash）、Cookie、
+  localStorage、sessionStorage、IndexedDB、Cache Storage，也不得進 GA 事件。
+  「用此內容重新產生」用 `src/utils/scan-handoff.ts` 的模組層級變數交棒，取用一次就清掉。
+  解碼結果一律以文字節點渲染，**不得用 `v-html` 或 `innerHTML`**：那是別人做的 QR，
+  內容完全不可信。`src/scan-gates.test.ts` 會掃原始碼擋下這些出口。
+
+黃金解碼測試（`src/utils/zxing-reader.test.ts`）用的圖固定在 `test/fixtures/scan/`，
+由 `scripts/fixtures/gen-scan-fixtures.mjs` 以同版 zxing-wasm writer 離線產生，
+**不得從網路抓來路不明的測試圖**。測試期間會把 `fetch` 換成會拋錯的版本，
+確保解碼真的沒有連網。
+
+新增 `zxing-wasm` 版本時要一起更新 repo 根目錄的 `NOTICE.md`：那份記的是上游四份授權
+（zxing-cpp 與 ZXingWasm.cpp 的 Apache-2.0、zint 的 BSD-3-Clause、zxing-wasm 自有碼的 MIT）
+與實際安裝的版本、WASM 雜湊、zxing-cpp commit，站上的對應說明在 `/about/`。
 
 ## v-html 的富文字連結要自己補前綴
 

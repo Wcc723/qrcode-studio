@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { nextTick } from 'vue'
 import { mount } from '@vue/test-utils'
 import BarcodeTool from './BarcodeTool.vue'
+import { putScanHandoff, takeScanHandoff, clearScanHandoff } from '@/utils/scan-handoff'
 
 async function type(wrapper: ReturnType<typeof mount>, value: string) {
   await wrapper.find('[data-test="bc-value"]').setValue(value)
@@ -183,5 +184,52 @@ describe('BarcodeTool 下載', () => {
     expect(clicks).toEqual(['barcode.svg'])
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+  })
+})
+
+describe('從 /scan/ 交棒過來的一維碼', () => {
+  beforeEach(() => clearScanHandoff())
+
+  it('會設定符號學並填入原始值', async () => {
+    putScanHandoff({ kind: 'barcode', symbology: 'ean13', value: '4710088331236' })
+    const w = mount(BarcodeTool)
+    await nextTick()
+    await nextTick()
+    expect((w.find('[data-test="bc-radio-ean13"]').element as HTMLInputElement).checked).toBe(true)
+    expect((w.find('[data-test="bc-value"]').element as HTMLInputElement).value).toBe('4710088331236')
+  })
+
+  it('交棒之後預覽就是同一個號碼', async () => {
+    putScanHandoff({ kind: 'barcode', symbology: 'itf14', value: '15400141288763' })
+    const w = mount(BarcodeTool)
+    await nextTick()
+    await nextTick()
+    expect(w.find('[data-test="bc-svg"]').exists()).toBe(true)
+    expect(w.html()).toContain('15400141288763')
+  })
+
+  it('只吃一次', async () => {
+    putScanHandoff({ kind: 'barcode', symbology: 'ean13', value: '4710088331236' })
+    mount(BarcodeTool)
+    await nextTick()
+    const second = mount(BarcodeTool)
+    await nextTick()
+    await nextTick()
+    expect((second.find('[data-test="bc-value"]').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('QR 的交棒不歸它管，會被丟掉而不是硬塞', async () => {
+    putScanHandoff({ kind: 'qr', type: 'url', data: { url: 'https://example.com/a' } })
+    const w = mount(BarcodeTool)
+    await nextTick()
+    await nextTick()
+    expect((w.find('[data-test="bc-value"]').element as HTMLInputElement).value).toBe('')
+    expect(takeScanHandoff()).toBeNull()
+  })
+
+  it('沒有交棒時維持原本的空白行為', async () => {
+    const w = mount(BarcodeTool)
+    await nextTick()
+    expect((w.find('[data-test="bc-value"]').element as HTMLInputElement).value).toBe('')
   })
 })

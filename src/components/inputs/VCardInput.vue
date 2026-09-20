@@ -1,8 +1,12 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-import { buildVCard } from '@/pure/buildVCard'
+import { buildVCard, type VCardInputData } from '@/pure/buildVCard'
 const emit = defineEmits<{ 'update:payload': [string] }>()
-const f = reactive({ firstName: '', lastName: '', phone: '', email: '', org: '', title: '', address: '', website: '' })
+const props = defineProps<{ initial?: VCardInputData }>()
+const f = reactive<VCardInputData>({
+  firstName: '', lastName: '', phone: '', email: '', org: '', title: '', address: '', website: '',
+  ...props.initial,
+})
 watch(f, () => emit('update:payload', buildVCard({ ...f })), { immediate: true, deep: true })
 </script>
 <template>

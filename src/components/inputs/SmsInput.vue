@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-import { buildSms } from '@/pure/buildSms'
+import { buildSms, type SmsInputData } from '@/pure/buildSms'
 const emit = defineEmits<{ 'update:payload': [string] }>()
-const f = reactive({ number: '', message: '' })
+const props = defineProps<{ initial?: SmsInputData }>()
+const f = reactive<SmsInputData>({ number: '', message: '', ...props.initial })
 watch(f, () => emit('update:payload', buildSms({ ...f })), { immediate: true, deep: true })
 </script>
 <template>

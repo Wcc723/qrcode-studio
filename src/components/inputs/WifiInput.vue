@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue'
-import { buildWifi, type WifiEncryption } from '@/pure/buildWifi'
+import { buildWifi, type WifiEncryption, type WifiInputData } from '@/pure/buildWifi'
 const emit = defineEmits<{ 'update:payload': [string] }>()
-const f = reactive({ ssid: '', password: '', encryption: 'WPA' as WifiEncryption, hidden: false })
+const props = defineProps<{ initial?: WifiInputData }>()
+const f = reactive<WifiInputData>({
+  ssid: '', password: '', encryption: 'WPA' as WifiEncryption, hidden: false, ...props.initial,
+})
 watch(f, () => emit('update:payload', buildWifi({ ...f })), { immediate: true, deep: true })
 </script>
 <template>

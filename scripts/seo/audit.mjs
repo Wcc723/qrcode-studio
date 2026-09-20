@@ -5,6 +5,7 @@
 
 import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
+import { createHash } from 'node:crypto'
 
 const argv = process.argv.slice(2)
 const distDir = (() => {
@@ -103,6 +104,110 @@ add('所有頁 description 唯一', new Set(descs.values()).size === descs.size)
 if (hasAds) {
   const hasPrivacy = htmlFiles.some((f) => /^privacy(\/index)?\.html$/.test(rel(f)))
   add('偵測到廣告/分析 → 隱私權頁存在', hasPrivacy)
+}
+
+// ───────────────────────────────────────────────────────────────────
+// 網址集合：新增路由時這份清單要跟著改，那正是這條稽核的用意。
+// 沒有它，「某頁預渲染失敗因此從 sitemap 消失」或「不小心多出一條路由」
+// 都不會有任何錯誤訊息，只會安靜地少收錄／多收錄。
+// ───────────────────────────────────────────────────────────────────
+const EXPECTED_PATHS = [
+  '/',
+  '/about/', '/barcode/', '/email/', '/faq/', '/phone/', '/privacy/', '/scan/',
+  '/sms/', '/text/', '/url/', '/vcard/', '/wifi/',
+  '/guide/error-correction/', '/guide/line-qr-code/', '/guide/qr-code-svg/',
+  '/guide/qr-with-logo/', '/guide/scan-qr-code/', '/guide/what-is-qr-code/',
+].sort()
+
+const sitemapPaths = [...sitemapXml.matchAll(/<loc>([^<]+)<\/loc>/g)]
+  .map((m) => new URL(m[1]).pathname.replace(basePath ? basePath.replace(/\/$/, '') : '', '') || '/')
+  .sort()
+const missing = EXPECTED_PATHS.filter((p) => !sitemapPaths.includes(p))
+const extra = sitemapPaths.filter((p) => !EXPECTED_PATHS.includes(p))
+add('sitemap 的網址集合與預期一致', missing.length === 0 && extra.length === 0,
+  [missing.length ? `缺少：${missing.join(' ')}` : '', extra.length ? `多出：${extra.join(' ')}` : ''].filter(Boolean).join('　'))
+add('404 頁沒有被收進 sitemap', !sitemapPaths.some((p) => p.includes('404')))
+
+// ───────────────────────────────────────────────────────────────────
+// /scan/：SSR 就要有的內容。這幾件事在單元測試裡看不到，只能驗產物。
+// 刻意只驗「不靠 hydration 也會出現」的東西，解碼結果那類 client-only 的
+// 畫面本來就不該出現在預渲染 HTML 裡。
+// ───────────────────────────────────────────────────────────────────
+const scanHtmlPath = join(distDir, 'scan', 'index.html')
+add('/scan/ 已預渲染', existsSync(scanHtmlPath))
+if (existsSync(scanHtmlPath)) {
+  const html = readFileSync(scanHtmlPath, 'utf8')
+  add('[scan] SSR HTML 已有 <h1>', /<h1[^>]*>[\s\S]*?掃描器[\s\S]*?<\/h1>/.test(html))
+  add('[scan] SSR HTML 已有說明段落', /拖放|貼上/.test(html))
+  add('[scan] SSR HTML 已有隱私與限制說明', /不會上傳/.test(html) && /SVG/.test(html) && /12 MB/.test(html))
+  add('[scan] 有 WebApplication JSON-LD', /"@type":"WebApplication"/.test(html))
+  add('[scan] 有 BreadcrumbList JSON-LD', /"@type":"BreadcrumbList"/.test(html))
+  if (basePath) add('[scan] 互鏈到既有掃描教學', html.includes(`${basePath}guide/scan-qr-code/`))
+  add('[scan] 解碼結果不該出現在預渲染 HTML（那是 client-only）',
+    !/data-test="scan-result-text"/.test(html))
+}
+
+const guideScanPath = join(distDir, 'guide', 'scan-qr-code', 'index.html')
+if (existsSync(guideScanPath) && basePath) {
+  const html = readFileSync(guideScanPath, 'utf8')
+  add('[guide/scan-qr-code] 互鏈到 /scan/', html.includes(`${basePath}scan/`))
+  add('[guide/scan-qr-code] 仍然以手機操作為主，沒被改成圖片解碼頁', /iPhone/.test(html) && /Android/.test(html))
+}
+
+for (const [page, needles] of [
+  ['privacy', ['WebAssembly', 'localStorage']],
+  ['about', ['zxing-wasm', 'Apache License', 'BSD-3-Clause']],
+]) {
+  const file = join(distDir, page, 'index.html')
+  if (!existsSync(file)) continue
+  const html = readFileSync(file, 'utf8')
+  for (const needle of needles) add(`[${page}] 含「${needle}」`, html.includes(needle))
+}
+
+// ───────────────────────────────────────────────────────────────────
+// 解碼器的資產邊界
+// ───────────────────────────────────────────────────────────────────
+const assetsDir = join(distDir, 'assets')
+const assetFiles = existsSync(assetsDir) ? readdirSync(assetsDir) : []
+const wasmFiles = assetFiles.filter((f) => f.endsWith('.wasm'))
+add('reader WASM 收進本站資產（恰好一份）', wasmFiles.length === 1, wasmFiles.join(' '))
+
+if (wasmFiles.length === 1) {
+  const distWasm = readFileSync(join(assetsDir, wasmFiles[0]))
+  const pinned = 'node_modules/zxing-wasm/dist/reader/zxing_reader.wasm'
+  if (existsSync(pinned)) {
+    const same = createHash('sha256').update(distWasm).digest('hex')
+      === createHash('sha256').update(readFileSync(pinned)).digest('hex')
+    // JS 與 WASM 混版是難查的執行期爆炸，所以直接比對鎖定版本那一份的雜湊。
+    add('本站 WASM 與 package.json 鎖定的版本是同一個檔', same)
+  }
+
+  const wasmUrl = `${basePath ?? '/'}assets/${wasmFiles[0]}`
+  const jsFiles = assetFiles.filter((f) => f.endsWith('.js'))
+  const jsSources = jsFiles.map((f) => [f, readFileSync(join(assetsDir, f), 'utf8')])
+  add('有 chunk 指向本站的 WASM 位址（locateFile 覆寫確實有進到產物）',
+    jsSources.some(([, s]) => s.includes(wasmUrl)), wasmUrl)
+
+  // entry chunk 由首頁的 <script type="module"> 決定，名字有 hash 不能寫死。
+  const homeHtml = readFileSync(join(distDir, 'index.html'), 'utf8')
+  const entryName = (homeHtml.match(/<script[^>]+type="module"[^>]+src="[^"]*\/assets\/([^"]+\.js)"/) || [])[1]
+  add('找得到 entry chunk', !!entryName, entryName || '')
+  if (entryName) {
+    const entrySource = jsSources.find(([f]) => f === entryName)?.[1] ?? ''
+    // 解碼器只在 /scan/ 有人真的丟圖時才下載；進了 entry 就是全站每一頁都付這個成本。
+    add('entry chunk 不含解碼器', !/zxing/i.test(entrySource))
+    add('entry chunk 不含第三方 CDN 位址', !/jsdelivr|unpkg\.com/.test(entrySource))
+    add('entry chunk 不直接參照 WASM', !entrySource.includes(wasmUrl))
+  }
+
+  // 上游 zxing-wasm 的 bundle 裡帶著它預設的 jsDelivr 位址字串（我們以 locateFile
+  // 覆寫掉，執行期不會用到）。能驗的是：那個字串只出現在被動態載入的 chunk 裡，
+  // 而且沒有任何 HTML 去 preload／preconnect 那個網域。
+  const cdnPages = pages.filter((f) => /jsdelivr|unpkg\.com/.test(readFileSync(f, 'utf8')))
+  add('沒有任何頁面 preload／連到第三方 CDN', cdnPages.length === 0, cdnPages.map(rel).join(' '))
+  const wasmInHtml = pages.filter((f) => readFileSync(f, 'utf8').includes(wasmUrl))
+  add('WASM 不在任何頁面被預先載入（只在使用者丟圖時才下載）', wasmInHtml.length === 0,
+    wasmInHtml.map(rel).join(' '))
 }
 
 // 輸出
