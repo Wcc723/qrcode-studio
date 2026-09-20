@@ -9,7 +9,7 @@
       "Bash(pnpm run deploy)",
       "Bash(npm run deploy)"
     ],
-    "ask": [
+    "allow": [
       "Bash(git push)",
       "Bash(git push *)"
     ]
