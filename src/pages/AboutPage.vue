@@ -7,7 +7,7 @@ const changelog = [
   { date: '2026 年 9 月 7 日', text: '從 qrcode-studio.pocketool.app 搬到口袋工具主網域 www.pocketool.app/qrcode-studio/，舊網址自動轉過來。' },
   { date: '2026 年 9 月 13 日', text: '新增一維條碼產生器：EAN-13、EAN-8、Code 128、Code 39、ITF-14，自動計算檢查碼。' },
   { date: '2026 年 9 月 20 日', text: '新增 QR Code 掃描器：把截圖或圖檔丟進來，在瀏覽器內解碼。' },
-  { date: '2026 年 9 月 21 日', text: '修正中文、emoji 內容產生的 QR Code 掃出來是亂碼的問題；教學文章全面改寫並新增教學總覽。' },
+  { date: '2026 年 9 月 21 日', text: '修正中文、emoji 內容產生的 QR Code 掃出來是亂碼的問題，之前做好、內容含中文或 emoji 的 QR Code 請重新產生一張替換；教學文章全面改寫並新增教學總覽。' },
 ]
 
 useSeoHead({
