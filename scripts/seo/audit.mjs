@@ -90,6 +90,8 @@ for (const f of pages) {
     add(`[${name}] 內鏈皆帶 ${basePath} 前綴`, badHrefs.length === 0, badHrefs.slice(0, 5).join(' '))
   }
   add(`[${name}] 無 noindex`, !noindex)
+  // 「廣告版位（待 AdSense 審核啟用）」這類佔位框會讓頁面看起來像沒做完，審核會扣分。
+  add(`[${name}] 沒有廣告佔位框`, !html.includes('廣告版位'))
   if (title) titles.set(name, title)
   if (desc) descs.set(name, desc)
 }
