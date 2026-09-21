@@ -20,8 +20,9 @@ const faqs = [
 ]
 
 useSeoHead({
-  title: '免費 QR Code 產生器｜線上製作、可加 LOGO、下載 PNG/SVG（不傳雲端）',
+  title: '免費 QR Code 產生器｜可加 LOGO、下載 SVG，不傳雲端',
   description: site.description, path: '/',
+  appName: site.name,
 })
 </script>
 <template>

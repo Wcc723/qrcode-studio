@@ -63,6 +63,11 @@ const siteBase = firstLoc ? firstLoc.replace(/\/$/, '') : null
 const basePath = siteBase ? `${new URL(siteBase).pathname}/`.replace(/\/{2,}/g, '/') : null
 add('sitemap 第一條 loc 可解析出站台前綴', !!siteBase, siteBase || '')
 
+const SITE_NAME = 'QR Code Studio｜口袋工具'
+const metaContent = (html, prop) =>
+  pick(html, new RegExp(`<meta[^>]+(?:property|name)=["']${prop.replace(/[:.]/g, '\\$&')}["'][^>]+content=["']([^"']*)["']`, 'i'))
+const ogImages = new Set()
+
 // 逐頁
 const titles = new Map()
 const descs = new Map()
@@ -92,6 +97,16 @@ for (const f of pages) {
   add(`[${name}] 無 noindex`, !noindex)
   // 「廣告版位（待 AdSense 審核啟用）」這類佔位框會讓頁面看起來像沒做完，審核會扣分。
   add(`[${name}] 沒有廣告佔位框`, !html.includes('廣告版位'))
+  add(`[${name}] 沒有舊品牌名 QRTool`, !html.includes('QRTool'))
+  add(`[${name}] og:site_name 是「${SITE_NAME}」`, metaContent(html, 'og:site_name') === SITE_NAME)
+  const ogImage = metaContent(html, 'og:image')
+  if (siteBase) {
+    const ogFile = ogImage && ogImage.startsWith(`${siteBase}/`) ? join(distDir, ogImage.slice(siteBase.length)) : null
+    add(`[${name}] og:image 指向 dist 內存在的檔案`, !!ogFile && existsSync(ogFile), ogImage || '')
+    if (ogFile && existsSync(ogFile)) ogImages.add(ogFile)
+  }
+  add(`[${name}] og:image 帶寬、高、類型與替代文字`,
+    ['og:image:width', 'og:image:height', 'og:image:type', 'og:image:alt'].every((p) => !!metaContent(html, p)))
   if (title) titles.set(name, title)
   if (desc) descs.set(name, desc)
 }
@@ -101,6 +116,37 @@ const dupTitles = [...titles.values()].filter((v, _i, a) => a.indexOf(v) !== a.l
 add('所有頁 title 唯一', new Set(titles.values()).size === titles.size,
   dupTitles.length ? `重複：${[...new Set(dupTitles)].join(' / ')}` : '')
 add('所有頁 description 唯一', new Set(descs.values()).size === descs.size)
+
+// 分享圖：社群平台對大檔會逾時或直接不抓，全部壓在 300 KB 以下。
+for (const f of ogImages) {
+  const size = statSync(f).size
+  add(`[og] ${rel(f)} 小於 300 KB`, size < 300 * 1024, `${Math.round(size / 1024)} KB`)
+}
+
+// Organization logo：Google 要求至少 112×112，這裡固定用 512×512 的方形 PNG。
+const logoFile = join(distDir, 'pocketool-logo.png')
+if (existsSync(logoFile)) {
+  const head = readFileSync(logoFile).subarray(0, 24)
+  const w = head.readUInt32BE(16), h = head.readUInt32BE(20)
+  add('Organization logo 是方形且至少 112px 的 PNG', head.toString('latin1', 1, 4) === 'PNG' && w === h && w >= 112, `${w}×${h}`)
+} else {
+  add('Organization logo 存在（pocketool-logo.png）', false)
+}
+
+// 頁面類型：JSON-LD 的主類型要跟頁面性質一致。
+for (const [page, type] of [['about', 'AboutPage'], ['privacy', 'WebPage'], ['faq', 'WebPage']]) {
+  const file = join(distDir, page, 'index.html')
+  if (!existsSync(file)) continue
+  add(`[${page}] JSON-LD 主類型是 ${type}`, readFileSync(file, 'utf8').includes(`"@type":"${type}"`))
+}
+for (const f of pages.filter((f) => /^guide\/[^/]+\/index\.html$/.test(rel(f)))) {
+  const html = readFileSync(f, 'utf8')
+  const name = rel(f)
+  add(`[${name}] Article 帶 datePublished 與 dateModified`,
+    /"@type":"Article"/.test(html) && /"datePublished":"\d{4}-\d{2}-\d{2}/.test(html) && /"dateModified":"\d{4}-\d{2}-\d{2}/.test(html))
+  add(`[${name}] 有 article:modified_time`, !!metaContent(html, 'article:modified_time'))
+  add(`[${name}] 作者是真人（Person）`, /"author":\{"@type":"Person"/.test(html))
+}
 
 // 隱私權頁（只有偵測到廣告/分析才要求）
 if (hasAds) {

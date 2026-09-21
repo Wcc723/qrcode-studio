@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useHead } from '@unhead/vue'
 useHead({
-  title: '找不到頁面 404｜QR Code 產生器',
+  title: '找不到頁面｜QR Code Studio',
   meta: [{ name: 'robots', content: 'noindex, follow' }],
 })
 </script>

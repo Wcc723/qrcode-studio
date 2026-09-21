@@ -19,7 +19,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'url', path: '/url', routeName: 'url', label: '網址',
     h1: '網址 QR Code 產生器',
-    title: '網址 QR Code 產生器｜免費線上製作、可加 LOGO、下載 PNG/SVG',
+    title: '網址轉 QR Code｜把連結變成 QR Code，免費下載 PNG/SVG',
     description: '免費線上把網址轉成 QR Code，瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不會過期。',
     intro: '輸入任何網址，立即在線上製作可掃描的網址 QR Code。整個過程在你的瀏覽器內完成、不傳雲端，完全免費、無浮水印，還能自訂顏色、加入品牌 LOGO，並下載高解析 PNG 或 SVG 向量檔。',
     body: '<p>網址 QR Code 是最常見的行動條碼用途：把官網、活動頁、Google 表單、線上菜單或社群連結變成一張圖，讓人用手機相機一掃就開啟，省去手動輸入長網址的麻煩。</p><h3>常見應用情境</h3><ul><li><strong>名片與簡報</strong>：把個人網站或作品集放上名片，掃碼直接打開。</li><li><strong>海報與 DM</strong>：活動報名、優惠頁面導流，線下導到線上。</li><li><strong>產品包裝</strong>：說明書、保固登錄、使用教學影片。</li><li><strong>店家點餐</strong>：桌邊掃碼開啟線上菜單或點餐系統。</li></ul><p>本工具產生的是<strong>靜態 QR Code</strong>，網址直接編碼在圖中，永久有效、不需聯網、不會被收回或失效；想印在包裝或招牌上長期使用也沒問題。需要長期重複使用時，建議搭配自己的<strong>短網址</strong>，圖會更簡潔、更好掃。</p>',

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { useSeoHead } from '@/composables/useSeoHead'
-useSeoHead({ title: '隱私權政策｜你的內容不傳雲端', description: '本工具在你的瀏覽器內生成與解讀 QR Code，你輸入或上傳的內容不會上傳至雲端儲存空間；網站使用 Google Analytics 收集匿名使用統計。', path: '/privacy' })
+useSeoHead({
+  title: '隱私權政策｜QR Code Studio',
+  description: 'QR Code Studio 的隱私權政策：QR Code 在你的瀏覽器內產生與解讀，輸入的內容與上傳的圖片不會離開你的裝置；網站以 Google Analytics 收集匿名使用統計，並說明廣告 Cookie 與你的選擇權。',
+  path: '/privacy',
+  kind: 'page',
+})
 </script>
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">

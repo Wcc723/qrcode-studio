@@ -14,6 +14,7 @@ const meta = computed(() => qrTypeByPath[route.path])
 useSeoHead({
   title: meta.value.title, description: meta.value.description,
   path: meta.value.path,
+  appName: meta.value.h1,
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: `${meta.value.label} QR Code`, url: `${site.url}${meta.value.path}/` },

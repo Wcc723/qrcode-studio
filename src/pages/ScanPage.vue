@@ -50,6 +50,7 @@ useSeoHead({
   title: 'QR Code 掃描器｜上傳圖片或貼上截圖，線上解碼 QR 與條碼',
   description: '免費線上 QR Code 掃描器與條碼解碼器：上傳圖片、拖放或直接貼上截圖，在瀏覽器內讀取 QR Code 與 Code 128、EAN-13 等一維條碼。圖片不上傳雲端，結果先安全預覽再決定是否開啟。',
   path: '/scan',
+  appName: 'QR Code 掃描器',
   appType: 'WebApplication',
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },

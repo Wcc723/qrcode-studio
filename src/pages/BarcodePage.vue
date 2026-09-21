@@ -23,6 +23,7 @@ useSeoHead({
   title: '一維條碼產生器｜EAN-13、Code 128 商品條碼線上免費製作',
   description: '免費線上一維條碼產生器，支援 EAN-13 商品條碼與 Code 128 等格式：輸入數字即時產生條碼，瀏覽器內生成、不傳雲端，自動計算檢查碼，免費下載 PNG 與 SVG 向量檔。',
   path: '/barcode',
+  appName: '一維條碼產生器',
   appType: 'WebApplication',
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },

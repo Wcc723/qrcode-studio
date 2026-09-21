@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
-useSeoHead({ title: `關於 ${site.name}`, description: `${site.name} 是免費、不傳雲端、保護隱私的線上 QR Code 產生器。`, path: '/about' })
+useSeoHead({
+  title: `關於 ${site.name}｜口袋工具`,
+  description: `${site.name} 是免費、不傳雲端、保護隱私的線上 QR Code 產生器。`,
+  path: '/about',
+  kind: 'page',
+  pageType: 'AboutPage',
+})
 </script>
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
