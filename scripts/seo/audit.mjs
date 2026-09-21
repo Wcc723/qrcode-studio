@@ -163,7 +163,7 @@ const EXPECTED_PATHS = [
   '/',
   '/about/', '/barcode/', '/email/', '/faq/', '/phone/', '/privacy/', '/scan/',
   '/sms/', '/text/', '/url/', '/vcard/', '/wifi/',
-  '/guide/error-correction/', '/guide/line-qr-code/', '/guide/qr-code-svg/',
+  '/guide/', '/guide/error-correction/', '/guide/line-qr-code/', '/guide/qr-code-svg/',
   '/guide/qr-with-logo/', '/guide/scan-qr-code/', '/guide/what-is-qr-code/',
 ].sort()
 

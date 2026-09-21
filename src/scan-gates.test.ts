@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
+import { guideBodies } from './content/guide-bodies'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const read = (rel: string) => readFileSync(join(root, rel), 'utf8')
@@ -142,13 +143,13 @@ describe('站內入口與互鏈', () => {
   })
 
   it('既有的「如何掃描」教學指得到新工具', () => {
-    expect(read('src/content/guides.ts')).toContain('href="/scan/"')
+    expect(guideBodies['scan-qr-code']).toContain('href="/scan/"')
   })
 
   it('教學仍然以手機操作為主，沒有被改成圖片解碼', () => {
-    const guides = read('src/content/guides.ts')
-    expect(guides).toContain('iPhone 怎麼掃 QR Code')
-    expect(guides).toContain('Android 怎麼掃 QR Code')
+    const body = guideBodies['scan-qr-code']
+    expect(body).toContain('iPhone 怎麼掃 QR Code')
+    expect(body).toContain('Android 怎麼掃 QR Code')
   })
 
   it('工具頁反向指回教學，兩邊定位不同不互相競食', () => {
