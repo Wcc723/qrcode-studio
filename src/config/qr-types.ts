@@ -12,7 +12,8 @@ export interface QrTypeMeta {
   intro: string           // landing 頁開頭段落
   body?: string           // 富內容區（HTML，鋪關鍵字與使用情境）
   steps: string[]         // 使用步驟
-  faqs: FaqItem[]
+  faqs: FaqItem[]         // 類型專屬的問題；通用問題（要錢嗎、會過期嗎）放 /faq/，不要每頁重複
+  guides: string[]        // 「延伸閱讀」的教學 slug（src/content/guides.ts），有測試把關存在
 }
 
 export const qrTypes: QrTypeMeta[] = [
@@ -27,10 +28,11 @@ export const qrTypes: QrTypeMeta[] = [
     faqs: [
       { q: '產生的網址 QR Code 會過期嗎？', a: '不會。這是靜態 QR Code，網址直接編碼在圖中，永久有效、不需聯網、不會失效，可放心印在名片、海報或產品包裝上長期使用。' },
       { q: '我輸入的網址會被上傳嗎？', a: '你輸入的網址只在你的瀏覽器內編碼成 QR Code 圖片，不會上傳至雲端儲存空間。' },
-      { q: '要付費或註冊嗎？有浮水印嗎？', a: '完全免費、免註冊、無浮水印，可直接下載 PNG 與 SVG，商用、印刷皆可。' },
+      { q: '可以在網址後面加追蹤參數（UTM）嗎？', a: '可以。網址裡的 ?utm_source=poster 這類參數會原樣編進 QR Code，搭配 Google Analytics 等工具，就能分辨流量來自海報、傳單還是名片。參數越長圖案越密，印得小時記得實際掃一次。' },
       { q: '可以下載向量 SVG 印刷用嗎？', a: '可以。除了 PNG／JPG，也免費提供 SVG 向量檔，無限放大不失真，適合大圖輸出與印刷。' },
       { q: '網址很長會不會掃不到？', a: '網址越長，QR Code 圖案越密。建議使用短網址，或在工具中把容錯等級調低、尺寸調大，都能提升掃描成功率。' },
     ],
+    guides: ['line-qr-code', 'qr-with-logo', 'qr-code-svg'],
   },
   {
     type: 'wifi', path: '/wifi', routeName: 'wifi', label: 'WiFi',
@@ -47,6 +49,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: 'WiFi 密碼會被上傳嗎？', a: '密碼只在你的瀏覽器內編碼成 QR Code 圖片，不會上傳至雲端儲存空間。但請注意，任何掃到該圖的人都能連線，建議張貼於可控場所。' },
       { q: '換了密碼怎麼辦？', a: '靜態 QR Code 無法事後修改，更換密碼後重新產生一張、替換張貼的圖即可。' },
     ],
+    guides: ['qr-code-svg', 'scan-qr-code', 'error-correction'],
   },
   {
     type: 'vcard', path: '/vcard', routeName: 'vcard', label: '電子名片',
@@ -59,9 +62,10 @@ export const qrTypes: QrTypeMeta[] = [
     faqs: [
       { q: '掃描後能直接存進通訊錄嗎？', a: '可以。採用標準 vCard 3.0 格式，iOS 與 Android 相機掃描後皆可一鍵加入聯絡人，無需安裝 App。' },
       { q: '可以放公司、職稱與地址嗎？', a: '可以。支援姓名、電話、Email、公司、職稱、地址與網站等欄位，留空的欄位會自動省略。' },
-      { q: '電子名片 QR Code 要錢嗎？', a: '完全免費、免註冊、無浮水印，可下載 PNG 與 SVG 用於名片印刷或數位簽名檔。' },
+      { q: '可以放 LINE ID 或社群帳號嗎？', a: '目前的欄位沒有 LINE ID 與社群帳號。可以把 LINE 加好友網址或個人網站填在「網站」欄，對方存進通訊錄後就能點開。欄位填得越多，QR Code 越密，印在名片上時建議只留最常用的幾項。' },
       { q: '我的聯絡資訊會外洩嗎？', a: '你的聯絡資訊只在你的瀏覽器內編碼成 QR Code 圖片，不會上傳至雲端儲存空間。' },
     ],
+    guides: ['qr-with-logo', 'qr-code-svg', 'what-is-qr-code'],
   },
   {
     type: 'text', path: '/text', routeName: 'text', label: '純文字',
@@ -75,8 +79,9 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '可以放多長的文字？', a: 'QR Code 容量有限，文字越長圖案越密。過長時建議縮短內容、調大尺寸或降低容錯等級；超出容量時工具會提示。' },
       { q: '掃描後會開啟網頁嗎？', a: '不會。純文字 QR Code 掃描後只會顯示文字內容，不會連到任何網站，單純又安全。' },
       { q: '支援中文與表情符號嗎？', a: '支援。可輸入中文、英數與符號；中文等多位元字元會佔較多容量，內容請盡量精簡。' },
-      { q: '要付費嗎？', a: '完全免費、免註冊、無浮水印，可自由下載 PNG 與 SVG。' },
+      { q: '文字 QR Code 和網址 QR Code 差在哪？', a: '文字 QR Code 掃描後只顯示文字，不會連到任何地方，適合序號、提示卡與闖關暗號。內容很長或之後可能修改時，建議把內容放在網頁上改用網址 QR Code，圖案會簡單很多，也能隨時更新內容。' },
     ],
+    guides: ['what-is-qr-code', 'error-correction', 'scan-qr-code'],
   },
   {
     type: 'email', path: '/email', routeName: 'email', label: 'Email',
@@ -89,8 +94,9 @@ export const qrTypes: QrTypeMeta[] = [
     faqs: [
       { q: '掃描後會自動寄出嗎？', a: '不會。只會開啟郵件 App 並帶入收件者、主旨與內文，由使用者確認後手動送出，不會擅自寄信。' },
       { q: '可以預先填好主旨和內文嗎？', a: '可以。填寫主旨與內文後即會一併編碼，掃描後郵件 App 會自動帶入，方便分類與快速回覆。' },
-      { q: 'Email QR Code 要錢嗎？', a: '完全免費、免註冊、無浮水印，可下載 PNG 與 SVG。' },
+      { q: '可以加副本（CC）嗎？', a: '目前只提供收件者、主旨與內文三個欄位，沒有副本與密件副本。需要讓多人收到時，建議收件者填一個共用的群組信箱。' },
     ],
+    guides: ['scan-qr-code', 'qr-with-logo', 'qr-code-svg'],
   },
   {
     type: 'phone', path: '/phone', routeName: 'phone', label: '電話',
@@ -103,8 +109,9 @@ export const qrTypes: QrTypeMeta[] = [
     faqs: [
       { q: '掃描後會自動撥打嗎？', a: '不會自動撥出。掃描後手機會跳到撥號畫面並帶好號碼，由使用者按下才撥打。' },
       { q: '支援市話、手機與分機嗎？', a: '支援含區碼的市話與手機號碼；部分裝置支援分機（如 02-1234-5678,123），建議實機測試。' },
-      { q: '電話 QR Code 免費嗎？', a: '完全免費、免註冊、無浮水印，可下載 PNG 與 SVG。' },
+      { q: '要給國外的人掃，號碼怎麼寫？', a: '用國際格式：+886 加上去掉開頭 0 的號碼。例如市話 02-1234-5678 寫成 +886212345678，手機 0912-345-678 寫成 +886912345678。只在台灣使用的話直接輸入 0912345678 即可，空格與連字號會自動去掉。' },
     ],
+    guides: ['scan-qr-code', 'qr-code-svg', 'qr-with-logo'],
   },
   {
     type: 'sms', path: '/sms', routeName: 'sms', label: '簡訊',
@@ -117,8 +124,9 @@ export const qrTypes: QrTypeMeta[] = [
     faqs: [
       { q: '掃描後會自動送出簡訊嗎？', a: '不會。只會開啟簡訊 App 並帶入號碼與內容，由使用者確認後手動送出，不會擅自發送。' },
       { q: '可以預先填好訊息內容嗎？', a: '可以。填寫訊息後即一併編碼，特別適合活動「回覆指定關鍵字」的玩法。' },
-      { q: '簡訊 QR Code 要錢嗎？', a: '完全免費、免註冊、無浮水印，可下載 PNG 與 SVG。' },
+      { q: 'iPhone 和 Android 掃出來一樣嗎？要付簡訊費嗎？', a: '本工具採用 SMSTO:號碼:內容 這個通用格式，iPhone 與 Android 的內建相機都能開啟簡訊並帶入內容，但各機型帶入的方式可能略有差異，印刷前請兩種手機各掃一次。QR Code 本身免費，按下送出時的簡訊費用依傳送者自己的電信方案計算。' },
     ],
+    guides: ['scan-qr-code', 'what-is-qr-code', 'qr-code-svg'],
   },
 ]
 

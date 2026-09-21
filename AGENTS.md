@@ -143,14 +143,20 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 
 ## v-html 的富文字連結要自己補前綴
 
-`src/content/guides.ts` 的 `bodyHtml` 與 `src/config/qr-types.ts` 的 `body` 是原生
-`<a href="/...">`，用 `v-html` 塞進 DOM，**既不經 Vite base 也不經 vue-router**，
-在子路徑下會連到 hub 的 404。兩個 sink（`GuidePage.vue`、`SeoContent.vue`）都套用
-`src/utils/with-base.ts` 的 `withBase()`。新增同型的 `v-html` 出口時記得一起套。
+`src/content/guide-bodies.ts` 的教學本文與 `src/config/qr-types.ts` 的 `body` 是原生
+`<a href="/...">`、`<img src="/...">`，用 `v-html` 塞進 DOM，**既不經 Vite base 也不經 vue-router**，
+在子路徑下會連到 hub 的 404。這類 sink（`GuidePage.vue`、`SeoContent.vue`、`FaqPage.vue`）都套用
+`src/utils/with-base.ts` 的 `withBase()`，它同時補 `href` 與 `src`。新增同型的 `v-html` 出口時記得一起套。
+
+教學的中繼資料（標題、日期、分組）在 `src/content/guides.ts`，會進 entry chunk；本文在
+`guide-bodies.ts`，只有動態載入的文章頁會用到，不要把本文搬回 `guides.ts`。文章裡的示意圖
+由 `scripts/figures/gen-guide-figures.mjs` 產生到 `public/guides/`（產物進版控），圖裡的版本與
+模組數要和文章寫的一致。`published` 是 git 歷史上的首次上線日，不要改；`updated` 只在實質改寫時更新，
+sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 
 模板內的站內連結一律用 `RouterLink`，不要用原生 `<a href="/...">`。
 
-`npm run seo:audit` 有一條逐頁斷言會擋下漏補的情況：dist 內所有 `href="/..."`
+`npm run seo:audit` 有一條逐頁斷言會擋下漏補的情況：dist 內所有 `href="/..."` 與 `src="/..."`
 必須以 `/qrcode-studio/` 開頭。期望前綴由 sitemap 的第一條 `<loc>` 推導，
 讓 `gen-sitemap.mjs` 與 `site.ts` 兩個獨立來源互相對帳。
 

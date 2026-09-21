@@ -70,6 +70,7 @@ useSeoHead({
             <div class="text-xs text-muted mt-1.5 font-600 leading-snug">{{ g.description.slice(0, 40) }}…</div>
           </RouterLink>
         </div>
+        <p class="text-center mt-5 font-600"><RouterLink to="/guide/" class="text-brand underline underline-offset-2 font-700">看全部 QR Code 教學 →</RouterLink></p>
       </section>
 
       <!-- 常見問題 -->
@@ -81,6 +82,7 @@ useSeoHead({
             <p class="text-ink/75 font-600 mt-2 leading-relaxed">{{ f.a }}</p>
           </details>
         </div>
+        <p class="text-center mt-5 font-600"><RouterLink to="/faq/" class="text-brand underline underline-offset-2 font-700">更多常見問題 →</RouterLink></p>
       </section>
     </div>
   </div>
