@@ -1,7 +1,11 @@
-import { defineConfig, presetUno, presetIcons } from 'unocss'
+import { defineConfig, presetUno, presetIcons, transformerVariantGroup } from 'unocss'
 
 export default defineConfig({
   presets: [presetUno(), presetIcons()],
+  // 讓 `[&_a]:(text-brand underline)`、`file:(mr-2 px-3)` 這類 variant group 在 build 時展開。
+  // 少了它，括號裡的 class 會被瀏覽器當成一般 class 套在外層元素上：教學與類型頁的本文
+  // 整段變成底線＋等寬字，上傳 LOGO 的檔案欄位整個變黃。
+  transformers: [transformerVariantGroup()],
   theme: {
     colors: {
       // 主色：糖果橘

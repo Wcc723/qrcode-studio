@@ -98,6 +98,10 @@ for (const f of pages) {
   // 「廣告版位（待 AdSense 審核啟用）」這類佔位框會讓頁面看起來像沒做完，審核會扣分。
   add(`[${name}] 沒有廣告佔位框`, !html.includes('廣告版位'))
   add(`[${name}] 沒有舊品牌名 QRTool`, !html.includes('QRTool'))
+  // `[&_a]:(text-brand underline)` 沒被 transformerVariantGroup 展開的話，括號裡的 class 會
+  // 直接套到外層元素（整段本文變底線＋等寬字），畫面壞了但 build 不會報錯。
+  const rawGroups = [...html.matchAll(/class="([^"]*)"/g)].map((m) => m[1]).filter((c) => /:\(/.test(c))
+  add(`[${name}] class 裡沒有未展開的 variant group`, rawGroups.length === 0, rawGroups.slice(0, 1).join(''))
   add(`[${name}] og:site_name 是「${SITE_NAME}」`, metaContent(html, 'og:site_name') === SITE_NAME)
   const ogImage = metaContent(html, 'og:image')
   if (siteBase) {
