@@ -1,4 +1,4 @@
-import { writeFileSync, readdirSync, statSync, cpSync, rmSync, existsSync } from 'node:fs'
+import { writeFileSync, readdirSync, readFileSync, statSync, cpSync, rmSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
 // 站台掛在 www.pocketool.app/qrcode-studio/ 子路徑：實體檔案在 dist/qrcode-studio/，
@@ -37,10 +37,23 @@ function walk(dir, prefix = '') {
   return urls
 }
 
+// <lastmod> 只給教學文章：它們有真實的「最後更新」日期（src/content/guides.ts，頁面上輸出成
+// article:modified_time）。工具頁沒有可靠的內容更新日，寫 build 日期等於每次部署都謊報
+// 「有更新」，Google 會因此不再信任這個欄位，所以乾脆不寫。
+function lastmodOf(url) {
+  const html = readFileSync(join(dist, url === '/' ? '' : url, 'index.html'), 'utf8')
+  const m = html.match(/<meta[^>]+property="article:modified_time"[^>]+content="(\d{4}-\d{2}-\d{2})/)
+  return m ? m[1] : null
+}
+
 const urls = [...new Set(walk(dist))].sort()
+const entry = (u) => {
+  const lastmod = lastmodOf(u)
+  return `  <url><loc>${BASE}${u === '/' ? '/' : u + '/'}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`
+}
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url><loc>${BASE}${u === '/' ? '/' : u + '/'}</loc></url>`).join('\n')}
+${urls.map(entry).join('\n')}
 </urlset>
 `
 writeFileSync(join(dist, 'sitemap.xml'), xml)

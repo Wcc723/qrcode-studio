@@ -89,15 +89,18 @@ for (const f of pages) {
     add(`[${name}] canonical 帶正確站台前綴`, !!canonicalHref && canonicalHref.startsWith(`${siteBase}/`), canonicalHref || '')
   }
   if (basePath && basePath !== '/') {
-    const badHrefs = [...html.matchAll(/href="(\/[^"']*)"/g)]
+    // src 也要驗：教學本文的 <img src="/guides/..."> 同樣繞過 Vite base，漏補就是破圖。
+    const badHrefs = [...html.matchAll(/\s(?:href|src)="(\/(?!\/)[^"']*)"/g)]
       .map((m) => m[1])
       .filter((h) => !h.startsWith(basePath))
-    add(`[${name}] 內鏈皆帶 ${basePath} 前綴`, badHrefs.length === 0, badHrefs.slice(0, 5).join(' '))
+    add(`[${name}] 內鏈與圖片皆帶 ${basePath} 前綴`, badHrefs.length === 0, badHrefs.slice(0, 5).join(' '))
   }
   add(`[${name}] 無 noindex`, !noindex)
   // 「廣告版位（待 AdSense 審核啟用）」這類佔位框會讓頁面看起來像沒做完，審核會扣分。
   add(`[${name}] 沒有廣告佔位框`, !html.includes('廣告版位'))
   add(`[${name}] 沒有舊品牌名 QRTool`, !html.includes('QRTool'))
+  // 站長的文案規則：中文不用破折號，補充說明改用冒號、逗號或括號。
+  add(`[${name}] 沒有破折號「——」`, !html.includes('——'))
   // `[&_a]:(text-brand underline)` 沒被 transformerVariantGroup 展開的話，括號裡的 class 會
   // 直接套到外層元素（整段本文變底線＋等寬字），畫面壞了但 build 不會報錯。
   const rawGroups = [...html.matchAll(/class="([^"]*)"/g)].map((m) => m[1]).filter((c) => /:\(/.test(c))
@@ -179,6 +182,20 @@ const extra = sitemapPaths.filter((p) => !EXPECTED_PATHS.includes(p))
 add('sitemap 的網址集合與預期一致', missing.length === 0 && extra.length === 0,
   [missing.length ? `缺少：${missing.join(' ')}` : '', extra.length ? `多出：${extra.join(' ')}` : ''].filter(Boolean).join('　'))
 add('404 頁沒有被收進 sitemap', !sitemapPaths.some((p) => p.includes('404')))
+
+// <lastmod>：只有教學文章有，而且必須等於頁面上的 article:modified_time（同一個事實來源）。
+for (const m of sitemapXml.matchAll(/<url><loc>([^<]+)<\/loc>(?:<lastmod>([^<]+)<\/lastmod>)?<\/url>/g)) {
+  const [, loc, lastmod] = m
+  const path = new URL(loc).pathname.replace(basePath ? basePath.replace(/\/$/, '') : '', '') || '/'
+  const isGuide = /^\/guide\/[^/]+\/$/.test(path)
+  if (!isGuide) {
+    add(`[sitemap] ${path} 沒有 lastmod（只有教學文章有真實更新日）`, !lastmod, lastmod || '')
+    continue
+  }
+  const file = join(distDir, path, 'index.html')
+  const modified = existsSync(file) ? metaContent(readFileSync(file, 'utf8'), 'article:modified_time') : null
+  add(`[sitemap] ${path} 的 lastmod 等於文章的最後更新日`, !!lastmod && lastmod === modified, `${lastmod} / ${modified}`)
+}
 
 // ───────────────────────────────────────────────────────────────────
 // /scan/：SSR 就要有的內容。這幾件事在單元測試裡看不到，只能驗產物。

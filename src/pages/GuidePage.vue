@@ -9,6 +9,7 @@ import { withBase } from '@/utils/with-base'
 const route = useRoute()
 // router 的 guideGuard 已擋掉不存在的 slug，這裡一定找得到。
 const g = computed(() => findGuide(String(route.params.slug).replace(/\/+$/, ''))!)
+const related = computed(() => g.value.related.map(slug => findGuide(slug)!))
 // 本文是原生 <a href="/...">、<img src="/...">，不經 Vite base 也不經 vue-router，必須自行補前綴。
 const bodyHtml = computed(() => withBase(guideBodies[g.value.slug]))
 // 顯示用日期：2026-09-21 → 2026 年 9 月 21 日
@@ -42,7 +43,21 @@ useSeoHead({
       <span class="mx-1.5">·</span>
       首次發布：<time :datetime="g.published">{{ zhDate(g.published) }}</time>
     </p>
-    <div class="mt-5 text-ink/80 font-600 leading-7 [&_p]:my-3 [&_h2]:(text-xl font-800 text-ink mt-7 mb-2) [&_h3]:(text-lg font-700 text-ink mt-5 mb-1) [&_ul]:(list-disc pl-5 my-3 space-y-1) [&_ol]:(list-decimal pl-5 my-3) [&_li]:my-1 [&_a]:(text-brand underline underline-offset-2 font-700 hover:text-brand-700) [&_strong]:text-ink [&_code]:(bg-pop-sun/30 px-1 rounded font-mono text-sm)" v-html="bodyHtml" />
+    <div class="guide-body mt-5 text-ink/80 font-600 leading-7 [&_p]:my-3 [&_h2]:(text-xl font-800 text-ink mt-8 mb-2) [&_h3]:(text-lg font-700 text-ink mt-5 mb-1) [&_ul]:(list-disc pl-5 my-3 space-y-1) [&_ol]:(list-decimal pl-5 my-3) [&_li]:my-1 [&_a]:(text-brand underline underline-offset-2 font-700 hover:text-brand-700) [&_strong]:text-ink [&_code]:(bg-pop-sun/30 px-1 rounded font-mono text-sm break-all)" v-html="bodyHtml" />
+
+    <section class="mt-10" data-test="related-guides">
+      <h2 class="text-xl font-800 text-ink">相關教學</h2>
+      <ul class="mt-4 grid gap-3 sm:grid-cols-3 list-none p-0">
+        <li v-for="r in related" :key="r.slug">
+          <RouterLink :to="`/guide/${r.slug}/`" class="sticker p-4 block h-full">
+            <div class="font-display font-700 text-ink">{{ r.shortTitle }}</div>
+            <div class="text-xs text-muted font-600 mt-1.5 leading-snug">{{ r.title }}</div>
+          </RouterLink>
+        </li>
+      </ul>
+      <p class="mt-4 text-sm font-600 text-muted"><RouterLink to="/guide/" class="text-brand underline underline-offset-2 font-700">看全部 QR Code 教學</RouterLink></p>
+    </section>
+
     <RouterLink to="/" class="btn-primary inline-flex mt-8">開始製作 QR Code</RouterLink>
   </article>
 </template>

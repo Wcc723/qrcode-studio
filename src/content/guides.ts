@@ -22,6 +22,8 @@ export interface Guide {
   updated: string
   /** 教學總覽頁的分組 */
   category: GuideCategory
+  /** 文末「相關教學」，依閱讀順序排；只能填存在的 slug、不能填自己（有測試把關） */
+  related: string[]
 }
 
 export const guides: Guide[] = [
@@ -29,55 +31,61 @@ export const guides: Guide[] = [
     slug: 'what-is-qr-code',
     shortTitle: 'QR Code 是什麼',
     published: '2026-05-29',
-    updated: '2026-09-13',
-    title: '什麼是 QR Code？原理、用途與安全性完整介紹',
-    description: 'QR Code（行動條碼）是什麼？一次看懂二維條碼的運作原理、容量、靜態與動態差異、常見用途與掃描安全注意事項。',
+    updated: '2026-09-21',
+    title: '什麼是 QR Code？原理、版本容量與安全性完整介紹',
+    description: 'QR Code（行動條碼）是什麼？用一張分色構造圖看懂定位、時序與校正圖形，查表了解 40 個版本能放多少數字、網址與中文，並說明靜態與動態 QR Code 的差別與掃描安全。',
     category: 'basics',
+    related: ['scan-qr-code', 'error-correction', 'qr-code-svg'],
   },
   {
     slug: 'error-correction',
     shortTitle: '容錯等級怎麼選',
     published: '2026-05-29',
-    updated: '2026-05-30',
+    updated: '2026-09-21',
     title: 'QR Code 容錯等級怎麼選？L/M/Q/H 一次搞懂',
-    description: '容錯等級（L/M/Q/H）影響 QR Code 的抗污損能力與圖案密度。本文教你依用途與是否加 LOGO 正確挑選容錯等級。',
+    description: '容錯等級 L/M/Q/H 各能還原多少？同一個網址四種等級的實際版本與模組數對照、依情境挑選的建議表，以及本站加 LOGO 時如何自動調整容錯與 LOGO 大小。',
     category: 'design',
+    related: ['qr-with-logo', 'qr-code-svg', 'what-is-qr-code'],
   },
   {
     slug: 'qr-with-logo',
     shortTitle: '加 LOGO 也掃得到',
     published: '2026-05-29',
-    updated: '2026-06-01',
+    updated: '2026-09-21',
     title: '如何在 QR Code 中加入 LOGO 又能正常掃描？',
-    description: '在 QR Code 加 LOGO 會影響掃描嗎？教你用容錯等級、覆蓋比例與留白做出可正常掃描的品牌造型 QR Code。',
+    description: 'QR Code 加 LOGO 會不會掃不到？說明本站如何依容錯等級自動控制 LOGO 大小、LOGO 圖檔怎麼準備、顏色對比與透明背景的注意事項，以及印刷前的檢查清單。',
     category: 'design',
+    related: ['error-correction', 'qr-code-svg', 'line-qr-code'],
   },
   {
     slug: 'scan-qr-code',
     shortTitle: '手機與電腦怎麼掃',
     published: '2026-05-30',
-    updated: '2026-09-20',
+    updated: '2026-09-21',
     title: '如何掃描 QR Code？手機相機、LINE、電腦掃描教學',
-    description: 'QR Code 怎麼掃？教你用 iPhone／Android 內建相機、LINE 行動條碼掃描器，以及在電腦（Windows/Mac）掃描或讀取 QR Code 的方法。',
+    description: 'QR Code 怎麼掃？整理 iPhone 相機與控制中心、Android 相機與 Google 智慧鏡頭、LINE 掃描器的官方步驟，電腦裡的截圖怎麼解碼，以及掃不到時的排除方法。',
     category: 'basics',
+    related: ['what-is-qr-code', 'line-qr-code', 'qr-code-svg'],
   },
   {
     slug: 'line-qr-code',
     shortTitle: 'LINE QR Code',
     published: '2026-05-30',
-    updated: '2026-05-30',
+    updated: '2026-09-21',
     title: 'LINE QR Code 怎麼做？製作與分享行動條碼教學',
-    description: 'LINE QR Code 怎麼產生與分享？教你取得個人 LINE 行動條碼、把官網或活動連結做成 QR Code，以及用 LINE 掃描 QR Code 的方法。',
+    description: 'LINE QR Code 怎麼產生？個人行動條碼與官方帳號加好友 QR Code 的取得步驟與差異，lin.ee 與 line.me 網址格式，以及把 LINE 連結做成可加 LOGO、可印刷的 QR Code。',
     category: 'use',
+    related: ['qr-with-logo', 'scan-qr-code', 'qr-code-svg'],
   },
   {
     slug: 'qr-code-svg',
     shortTitle: 'SVG 與印刷尺寸',
     published: '2026-05-30',
-    updated: '2026-06-01',
+    updated: '2026-09-21',
     title: 'QR Code 下載 SVG 向量檔：印刷不失真完整教學',
-    description: '需要印刷用的 QR Code？本文說明 SVG 向量與 PNG 點陣的差別、何時該用 SVG，以及如何免費下載高解析、放大不失真的 QR Code。',
+    description: '印刷用 QR Code 該用 SVG 還是 PNG？用實際數字換算 2 到 30 公分需要的像素、每格模組大小與掃描距離，並說明四周靜區、簡報投影與送印前的檢查。',
     category: 'design',
+    related: ['qr-with-logo', 'error-correction', 'what-is-qr-code'],
   },
 ]
 export const guideBySlug: Record<string, Guide> = Object.fromEntries(guides.map(g => [g.slug, g]))
