@@ -34,3 +34,13 @@ describe('mapToQrOptions', () => {
     expect(o.image).toBeUndefined()
   })
 })
+
+describe('mapToQrOptions 的文字編碼', () => {
+  it('中文內容以 UTF-8 位元組字串交給 qr-code-styling', () => {
+    const o = mapToQrOptions('你好', defaultStyle)
+    expect(o.data).toBe('\xe4\xbd\xa0\xe5\xa5\xbd')
+  })
+  it('純 ASCII 內容原樣交出', () => {
+    expect(mapToQrOptions('https://x.com/?q=1', defaultStyle).data).toBe('https://x.com/?q=1')
+  })
+})

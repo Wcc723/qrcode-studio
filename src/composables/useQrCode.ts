@@ -2,6 +2,7 @@ import { ref, watch, onMounted, onBeforeUnmount, type Ref } from 'vue'
 import type { Options as QrOptions } from 'qr-code-styling'
 import type { QrStyleOptions } from '@/types'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
+import { toQrByteString } from '@/pure/qrByteString'
 
 export function mapToQrOptions(data: string, s: QrStyleOptions): QrOptions {
   const bg = s.bgColor === 'transparent' ? 'rgba(0,0,0,0)' : s.bgColor
@@ -9,7 +10,8 @@ export function mapToQrOptions(data: string, s: QrStyleOptions): QrOptions {
     width: s.width,
     height: s.width,
     type: 'canvas',
-    data: data || ' ',
+    // 非 ASCII（中文、emoji）要先轉成 UTF-8 位元組字串，原因見 qrByteString.ts。
+    data: toQrByteString(data || ' '),
     margin: s.margin,
     qrOptions: { errorCorrectionLevel: s.errorCorrectionLevel },
     dotsOptions: { color: s.dotColor, type: 'square' },
