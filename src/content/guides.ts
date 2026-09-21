@@ -13,6 +13,8 @@ export const guideCategories: { id: GuideCategory; label: string }[] = [
 export interface Guide {
   slug: string
   title: string
+  /** 頁尾、相關教學等空間小的地方用的短標題 */
+  shortTitle: string
   description: string
   /** 第一次上線的日期（YYYY-MM-DD），以 git 歷史為準，不要改成「看起來比較新」的日期 */
   published: string
@@ -25,6 +27,7 @@ export interface Guide {
 export const guides: Guide[] = [
   {
     slug: 'what-is-qr-code',
+    shortTitle: 'QR Code 是什麼',
     published: '2026-05-29',
     updated: '2026-09-13',
     title: '什麼是 QR Code？原理、用途與安全性完整介紹',
@@ -33,6 +36,7 @@ export const guides: Guide[] = [
   },
   {
     slug: 'error-correction',
+    shortTitle: '容錯等級怎麼選',
     published: '2026-05-29',
     updated: '2026-05-30',
     title: 'QR Code 容錯等級怎麼選？L/M/Q/H 一次搞懂',
@@ -41,6 +45,7 @@ export const guides: Guide[] = [
   },
   {
     slug: 'qr-with-logo',
+    shortTitle: '加 LOGO 也掃得到',
     published: '2026-05-29',
     updated: '2026-06-01',
     title: '如何在 QR Code 中加入 LOGO 又能正常掃描？',
@@ -49,6 +54,7 @@ export const guides: Guide[] = [
   },
   {
     slug: 'scan-qr-code',
+    shortTitle: '手機與電腦怎麼掃',
     published: '2026-05-30',
     updated: '2026-09-20',
     title: '如何掃描 QR Code？手機相機、LINE、電腦掃描教學',
@@ -57,6 +63,7 @@ export const guides: Guide[] = [
   },
   {
     slug: 'line-qr-code',
+    shortTitle: 'LINE QR Code',
     published: '2026-05-30',
     updated: '2026-05-30',
     title: 'LINE QR Code 怎麼做？製作與分享行動條碼教學',
@@ -65,6 +72,7 @@ export const guides: Guide[] = [
   },
   {
     slug: 'qr-code-svg',
+    shortTitle: 'SVG 與印刷尺寸',
     published: '2026-05-30',
     updated: '2026-06-01',
     title: 'QR Code 下載 SVG 向量檔：印刷不失真完整教學',
