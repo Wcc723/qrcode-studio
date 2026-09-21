@@ -12,8 +12,10 @@ import { writeFileSync, mkdirSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { deflateSync } from 'node:zlib'
 
+// qrcode-generator 是 qr-code-styling 的相依套件，不是本專案直接宣告的相依，
+// 所以從 qr-code-styling 的位置解析，不依賴 npm 把它提升到 node_modules 根目錄。
 const require = createRequire(import.meta.url)
-const qrcode = require('qrcode-generator')
+const qrcode = createRequire(require.resolve('qr-code-styling'))('qrcode-generator')
 
 const OUT = 'public/guides'
 mkdirSync(OUT, { recursive: true })
