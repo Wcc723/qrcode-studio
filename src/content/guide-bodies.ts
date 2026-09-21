@@ -202,7 +202,7 @@ export const guideBodies: Record<string, string> = {
 <h2>用 LINE 掃描 QR Code</h2>
 <p>在台灣，很多人習慣用 LINE 掃碼，因為 LINE 的掃描器除了加好友，也能開啟一般網址。依 LINE 官方說明，LINE 正逐步更新介面，入口有兩種：</p>
 <ul>
-<li><strong>新版介面</strong>：點「聊天」，再點畫面上方的加入好友圖示，選「掃描行動條碼」。</li>
+<li><strong>新版介面</strong>：點「聊天」，再點畫面上方的「＋」（加號選單），選「掃描行動條碼」。</li>
 <li><strong>舊版介面</strong>：在「主頁」或聊天列表，點搜尋欄位右側的掃描圖示。</li>
 </ul>
 <p>想讓別人掃你的 LINE，或把官方帳號做成 QR Code，請看<a href="/guide/line-qr-code/">LINE QR Code 怎麼做</a>。</p>
@@ -255,7 +255,7 @@ export const guideBodies: Record<string, string> = {
 <h2>分享個人 LINE：顯示你的行動條碼</h2>
 <p>對方就在你面前時，最快的方法是讓他掃你的行動條碼：</p>
 <ul>
-<li><strong>新版介面</strong>：點「聊天」，再點畫面上方的加入好友圖示，選「顯示行動條碼」。</li>
+<li><strong>新版介面</strong>：點「聊天」，再點畫面上方的「＋」（加號選單），選「顯示行動條碼」。</li>
 <li><strong>舊版介面</strong>：在「主頁」點加入好友的圖示，選「行動條碼」，再選「顯示行動條碼」。</li>
 </ul>
 <p>對方用 LINE 的掃描器掃你手機上的行動條碼後，會在他的畫面點「加入好友」。依 LINE 的說明，這時你這邊不會自動加回對方，而是可以在「您可能認識的人」名單裡找到他再加入（新版介面在「聊天」上方的圖示 >「加入好友」裡）。如果掃完之後傳個貼圖給你，你也能直接從聊天室把他加入。</p>
