@@ -140,6 +140,14 @@ if (existsSync(logoFile)) {
   add('Organization logo 存在（pocketool-logo.png）', false)
 }
 
+// favicon：沒有 <link rel="icon"> 的話瀏覽器會去抓根網域的 /favicon.ico（hub 的圖示）。
+{
+  const home = readFileSync(join(distDir, 'index.html'), 'utf8')
+  const icon = pick(home, /<link[^>]+rel=["']icon["'][^>]+href=["']([^"']+)["']/i)
+  add('首頁有 favicon 且指向本站前綴下存在的檔案',
+    !!icon && !!basePath && icon.startsWith(basePath) && existsSync(join(distDir, icon.slice(basePath.length))), icon || '')
+}
+
 // 頁面類型：JSON-LD 的主類型要跟頁面性質一致。
 for (const [page, type] of [['about', 'AboutPage'], ['privacy', 'WebPage'], ['faq', 'WebPage']]) {
   const file = join(distDir, page, 'index.html')

@@ -52,6 +52,7 @@ useSeoHead({
   path: '/scan',
   appName: 'QR Code 掃描器',
   appType: 'WebApplication',
+  ogImage: { path: '/og-scan.png', width: 1200, height: 630, alt: 'QR Code 掃描器：上傳圖片或貼上截圖就能解碼，圖片不上傳' },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: 'QR Code 掃描器', url: `${site.url}/scan/` },

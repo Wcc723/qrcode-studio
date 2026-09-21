@@ -22,6 +22,16 @@ describe('QrPreview', () => {
     expect(wrapper.text()).toContain('輸入內容')
   })
 
+  it('data 為空時顯示標著「示範」的裝飾圖（不是可下載的真內容）', () => {
+    const empty = mount(QrPreview, { props: { data: '' } })
+    const demo = empty.find('[data-test="qr-demo"]')
+    expect(demo.exists()).toBe(true)
+    expect(demo.text()).toContain('示範')
+    expect(demo.find('svg').attributes('aria-hidden')).toBe('true')
+    const filled = mount(QrPreview, { props: { data: 'https://x.com' } })
+    expect(filled.find('[data-test="qr-demo"]').exists()).toBe(false)
+  })
+
   it('v-show: qr-container 在 data 非空時可見，在 data 為空時隱藏', () => {
     const wrapperVisible = mount(QrPreview, { props: { data: 'https://x.com' } })
     const containerVisible = wrapperVisible.find('[data-test="qr-container"]')
