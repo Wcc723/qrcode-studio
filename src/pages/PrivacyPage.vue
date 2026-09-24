@@ -3,11 +3,11 @@ import { useSeoHead } from '@/composables/useSeoHead'
 import { site, publisher } from '@/config/site'
 
 // 內容有實質變動時才改這個日期。
-const UPDATED = { iso: '2026-09-21', label: '2026 年 9 月 21 日' }
+const UPDATED = { iso: '2026-09-24', label: '2026 年 9 月 24 日' }
 
 useSeoHead({
   title: '隱私權政策｜QR Code Studio',
-  description: 'QR Code Studio 的隱私權政策：QR Code 在你的瀏覽器內產生與解讀，輸入的內容與上傳的圖片不會離開你的裝置；網站以 Google Analytics 收集匿名使用統計，並說明廣告 Cookie 與你的選擇權。',
+  description: 'QR Code Studio 的隱私權政策：QR Code 在你的瀏覽器內產生與解讀，輸入的內容與上傳的圖片不會離開你的裝置；網站以 Google Analytics 與 Cloudflare Web Analytics 統計使用情形，並說明廣告 Cookie 與你的選擇權。',
   path: '/privacy',
   kind: 'page',
   breadcrumbs: [
@@ -33,7 +33,10 @@ useSeoHead({
     <p class="text-muted mt-3 leading-7">圖片內容與解讀出來的結果（含網址、WiFi 密碼、名片資訊等）只存在於該分頁的記憶體中：<strong>不會寫入網址、Cookie、localStorage、sessionStorage 或任何瀏覽紀錄</strong>，也不會出現在使用數據分析的事件裡。關閉或重新整理分頁後就不會保留。按下「用此內容重新產生」把內容帶回產生器時，同樣只在記憶體中傳遞，且只會被取用一次。</p>
 
     <h2 class="text-lg font-700 text-ink mt-7">使用數據分析（Google Analytics）</h2>
-    <p class="text-muted mt-3 leading-7">為了解網站使用情況並持續改善，本站使用 Google Analytics（GA4）收集匿名的使用統計，例如瀏覽的頁面、停留時間、裝置與瀏覽器類型、概略地區（依 IP 推估）等。這些資料透過 Cookie 蒐集，<strong>不包含你輸入到產生器中的任何內容</strong>，也不會用來辨識你的個人身分。相關資料由 Google 依其<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">隱私權政策</a>處理；你可以安裝 <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics 停用外掛</a>，或在瀏覽器封鎖 Cookie 來拒絕統計。</p>
+    <p class="text-muted mt-3 leading-7">為了解網站使用情況並持續改善，本站使用 Google Analytics（GA4）收集使用統計，例如瀏覽的頁面、停留時間、裝置與瀏覽器類型、概略地區（依 IP 推估）等。這些資料透過 Cookie（名稱是 _ga 開頭）區分不同的造訪，<strong>不包含你輸入到產生器中的任何內容</strong>，也不會用來辨識你的個人身分。相關資料由 Google 依其<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">隱私權政策</a>處理；你可以安裝 <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics 停用外掛</a>，或在瀏覽器封鎖 Cookie 來拒絕統計。</p>
+
+    <h2 class="text-lg font-700 text-ink mt-7">網站流量統計（Cloudflare Web Analytics）</h2>
+    <p class="text-muted mt-3 leading-7">本站架設在 Cloudflare 上。Cloudflare 傳送每一頁時，會自動加入 Cloudflare Web Analytics 的統計程式，把頁面網址與來源網頁（兩者都不含「?」與「#」之後的部分）、瀏覽器資訊，以及網頁載入時間等效能數據送給 Cloudflare，用來統計瀏覽量與網頁速度。依 <a href="https://www.cloudflare.com/web-analytics/" target="_blank" rel="noopener">Cloudflare 的說明</a>，它不使用 Cookie 或 localStorage。<strong>它送出的資料不包含你在產生器輸入的內容，也不包含你在掃描器選擇的圖片</strong>。</p>
 
     <h2 class="text-lg font-700 text-ink mt-7">第三方廣告與 Cookie</h2>
     <p class="text-muted mt-3 leading-7">本工具的頁面目前<strong>沒有顯示廣告，也沒有載入廣告程式碼</strong>。口袋工具網站使用 Google AdSense 等第三方廣告服務；本工具日後若加入廣告，同樣適用以下說明：</p>

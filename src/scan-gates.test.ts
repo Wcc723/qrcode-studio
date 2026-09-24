@@ -169,6 +169,18 @@ describe('隱私權與第三方授權', () => {
     expect(privacy).toMatch(/WebAssembly|WASM/)
   })
 
+  it('隱私權頁與 FAQ 如實說明流量統計：列出 Cloudflare Web Analytics，GA 不寫成匿名', () => {
+    // Cloudflare 傳送每一頁時都會自動加入 Web Analytics 的統計程式；
+    // GA 用 _ga 開頭的 Cookie 區分造訪，不是匿名統計。
+    const privacy = read('src/pages/PrivacyPage.vue')
+    expect(privacy).toContain('Cloudflare Web Analytics')
+    expect(privacy).toContain('_ga')
+    expect(privacy).not.toMatch(/匿名/)
+    const faq = read('src/pages/FaqPage.vue')
+    expect(faq).toContain('Cloudflare Web Analytics')
+    expect(faq).not.toMatch(/匿名/)
+  })
+
   it('repo 根目錄有 NOTICE，列出三份上游授權', () => {
     const notice = read('NOTICE.md')
     expect(notice).toContain('zxing-wasm')
