@@ -6,8 +6,8 @@ import { site, publisher } from '@/config/site'
 const UPDATED = { iso: '2026-09-24', label: '2026 年 9 月 24 日' }
 
 useSeoHead({
-  title: '隱私權政策｜QR Code Studio',
-  description: 'QR Code Studio 的隱私權政策：QR Code 在你的瀏覽器內產生與解讀，輸入的內容與上傳的圖片不會離開你的裝置；網站以 Google Analytics 與 Cloudflare Web Analytics 統計使用情形，並說明廣告 Cookie 與你的選擇權。',
+  title: `隱私權政策｜${site.name}`,
+  description: `${site.name}的隱私權政策：QR Code 在你的瀏覽器內產生與解讀，輸入的內容與上傳的圖片不會離開你的裝置；網站以 Google Analytics 與 Cloudflare Web Analytics 統計使用情形，並說明廣告 Cookie 與你的選擇權。`,
   path: '/privacy',
   kind: 'page',
   breadcrumbs: [

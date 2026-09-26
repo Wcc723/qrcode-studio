@@ -63,10 +63,26 @@ const siteBase = firstLoc ? firstLoc.replace(/\/$/, '') : null
 const basePath = siteBase ? `${new URL(siteBase).pathname}/`.replace(/\/{2,}/g, '/') : null
 add('sitemap 第一條 loc 可解析出站台前綴', !!siteBase, siteBase || '')
 
-const SITE_NAME = 'QR Code Studio｜口袋工具'
+// 產品名（2026-09-26 由 QR Code Studio 改名）。刻意在這裡再寫一次、不從 site.ts 推導：
+// 稽核要跟產生頁面的程式各自獨立，site.ts 改錯才會被抓到。
+const PRODUCT_NAME = 'QR Code 製造機'
+const SITE_NAME = `${PRODUCT_NAME}｜口袋工具`
+const FORMER_NAME = 'QR Code Studio'
+const ALTERNATE_NAMES = ['QR Code Maker', FORMER_NAME]
+const TRADEMARK = 'QR Code 是 DENSO WAVE INCORPORATED 在日本及其他國家的註冊商標。'
 const metaContent = (html, prop) =>
   pick(html, new RegExp(`<meta[^>]+(?:property|name)=["']${prop.replace(/[:.]/g, '\\$&')}["'][^>]+content=["']([^"']*)["']`, 'i'))
-const ogImages = new Set()
+const ogImages = new Map()
+const squashText = (html) => (html ?? '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<!--[\s\S]*?-->/g, '')
+  .replace(/<[^>]+>/g, '').replace(/\s+/g, '')
+const jsonLd = (html) => [...html.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
+  .map((m) => { try { return JSON.parse(m[1]) } catch { return null } })
+/** PNG 的寬、高與色彩類型（IHDR），順便回報有沒有 tRNS（有的話就不是全不透明） */
+const pngInfo = (file) => {
+  const buf = readFileSync(file)
+  if (buf.toString('latin1', 1, 4) !== 'PNG') return null
+  return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20), colorType: buf[25], hasTrns: buf.includes(Buffer.from('tRNS')) }
+}
 
 // 逐頁
 const titles = new Map()
@@ -106,11 +122,26 @@ for (const f of pages) {
   const rawGroups = [...html.matchAll(/class="([^"]*)"/g)].map((m) => m[1]).filter((c) => /:\(/.test(c))
   add(`[${name}] class 裡沒有未展開的 variant group`, rawGroups.length === 0, rawGroups.slice(0, 1).join(''))
   add(`[${name}] og:site_name 是「${SITE_NAME}」`, metaContent(html, 'og:site_name') === SITE_NAME)
+  // 改名：title、分享卡與畫面上都不再出現舊名。關於頁的更新紀錄刻意寫一次「原名」，其他頁一次都不行；
+  // JSON-LD 的 alternateName 在 <script> 裡，不算畫面文字。
+  add(`[${name}] title 與 og 標籤沒有舊名 ${FORMER_NAME}`,
+    ![title, metaContent(html, 'og:title'), metaContent(html, 'og:image:alt')].some((v) => v?.includes(FORMER_NAME)))
+  const formerInText = squashText(pick(html, /<body[^>]*>([\s\S]*)<\/body>/i)).split(FORMER_NAME.replace(/\s+/g, '')).length - 1
+  add(`[${name}] 畫面文字的舊名次數（只有關於頁的更新紀錄一次）`, formerInText === (name === 'about/index.html' ? 1 : 0), `${formerInText} 次`)
+  add(`[${name}] 頁尾有 DENSO WAVE 註冊商標聲明`, squashText(html).includes(TRADEMARK.replace(/\s+/g, '')))
+  const website = jsonLd(html).map((ld) => ld?.isPartOf).find((p) => p?.['@type'] === 'WebSite')
+  add(`[${name}] JSON-LD WebSite 名稱是「${PRODUCT_NAME}」、alternateName 有英文名與舊名`,
+    website?.name === PRODUCT_NAME && JSON.stringify(website?.alternateName) === JSON.stringify(ALTERNATE_NAMES),
+    JSON.stringify(website ?? null))
   const ogImage = metaContent(html, 'og:image')
   if (siteBase) {
     const ogFile = ogImage && ogImage.startsWith(`${siteBase}/`) ? join(distDir, ogImage.slice(siteBase.length)) : null
     add(`[${name}] og:image 指向 dist 內存在的檔案`, !!ogFile && existsSync(ogFile), ogImage || '')
-    if (ogFile && existsSync(ogFile)) ogImages.add(ogFile)
+    if (ogFile && existsSync(ogFile)) {
+      const size = `${metaContent(html, 'og:image:width')}×${metaContent(html, 'og:image:height')}`
+      if (!ogImages.has(ogFile)) ogImages.set(ogFile, new Set())
+      ogImages.get(ogFile).add(size)
+    }
   }
   add(`[${name}] og:image 帶寬、高、類型與替代文字`,
     ['og:image:width', 'og:image:height', 'og:image:type', 'og:image:alt'].every((p) => !!metaContent(html, p)))
@@ -124,10 +155,35 @@ add('所有頁 title 唯一', new Set(titles.values()).size === titles.size,
   dupTitles.length ? `重複：${[...new Set(dupTitles)].join(' / ')}` : '')
 add('所有頁 description 唯一', new Set(descs.values()).size === descs.size)
 
-// 分享圖：社群平台對大檔會逾時或直接不抓，全部壓在 300 KB 以下。
-for (const f of ogImages) {
+// 分享圖：社群平台對大檔會逾時或直接不抓，全部壓在 300 KB 以下；實際尺寸要等於頁面宣告的 og:image:width／height，
+// 而且是 1200×630（Facebook、LINE 的大卡比例）。
+for (const [f, declared] of ogImages) {
   const size = statSync(f).size
   add(`[og] ${rel(f)} 小於 300 KB`, size < 300 * 1024, `${Math.round(size / 1024)} KB`)
+  const info = pngInfo(f)
+  add(`[og] ${rel(f)} 是 1200×630 的 PNG，等於頁面宣告的尺寸`,
+    !!info && info.w === 1200 && info.h === 630 && [...declared].every((d) => d === `${info.w}×${info.h}`),
+    info ? `實際 ${info.w}×${info.h}，宣告 ${[...declared].join(' / ')}` : '不是 PNG')
+}
+
+// 有品牌後綴的頁面：title 後綴跟著產品名換（首頁與 7 個類型頁本來就沒有後綴，不動）
+for (const [page, expected] of [
+  ['faq/index.html', `QR Code 產生器常見問題｜${PRODUCT_NAME}`],
+  ['guide/index.html', `QR Code 教學總覽｜${PRODUCT_NAME}`],
+  ['privacy/index.html', `隱私權政策｜${PRODUCT_NAME}`],
+  ['about/index.html', `關於 ${PRODUCT_NAME}｜口袋工具`],
+  ['404.html', `找不到頁面｜${PRODUCT_NAME}`],
+]) {
+  const file = join(distDir, page)
+  const title = existsSync(file) ? pick(readFileSync(file, 'utf8'), /<title[^>]*>([\s\S]*?)<\/title>/i) : null
+  add(`[${page}] title 是「${expected}」`, title === expected, title ?? '(沒有這頁)')
+}
+{
+  const html = readFileSync(join(distDir, 'index.html'), 'utf8')
+  const app = jsonLd(html).find((ld) => ld?.['@type'] === 'SoftwareApplication')
+  add(`[index.html] 首頁 SoftwareApplication 名稱是「${PRODUCT_NAME}」`, app?.name === PRODUCT_NAME, app?.name ?? '')
+  add('[about/index.html] 關於頁有「商標」一節',
+    squashText(readFileSync(join(distDir, 'about', 'index.html'), 'utf8')).includes(`商標${TRADEMARK}`.replace(/\s+/g, '')))
 }
 
 // Organization logo：Google 要求至少 112×112，這裡固定用 512×512 的方形 PNG。

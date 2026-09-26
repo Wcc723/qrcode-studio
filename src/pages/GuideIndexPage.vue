@@ -11,7 +11,7 @@ function zhDate(iso: string) {
 }
 
 useSeoHead({
-  title: 'QR Code 教學總覽｜QR Code Studio',
+  title: `QR Code 教學總覽｜${site.name}`,
   description: `${guides.length} 篇 QR Code 教學一次看：QR Code 原理與容量、手機與電腦怎麼掃、容錯等級怎麼選、加 LOGO 不影響掃描、印刷用 SVG 與尺寸，以及 LINE QR Code 的做法。`,
   path: '/guide',
   kind: 'page',

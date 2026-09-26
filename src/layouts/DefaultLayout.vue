@@ -16,9 +16,10 @@ const nav = [
   <div class="min-h-screen flex flex-col">
     <header class="border-b-3 border-ink bg-pop-sun/90">
       <div class="max-w-screen-lg mx-auto px-4 h-16 flex items-center justify-between gap-3">
-        <RouterLink to="/" class="flex items-center gap-2.5 font-display font-700 text-xl text-ink shrink-0">
+        <!-- 320 到 359px：站名縮一級，右邊「口袋工具」才不會壓到頁面邊距 -->
+        <RouterLink to="/" class="flex items-center gap-2.5 max-[359px]:gap-2 font-display font-700 text-xl max-[359px]:text-lg text-ink whitespace-nowrap shrink-0">
           <span class="w-8 h-8 rounded-lg bg-brand border-2 border-ink shadow-[2px_2px_0_#16130f] inline-flex items-center justify-center text-white text-sm">▦</span>
-          {{ site.name }}
+          <span data-test="site-name">{{ site.name }}</span>
         </RouterLink>
         <nav aria-label="主選單" class="hidden md:flex items-center gap-1.5 text-sm font-700">
           <RouterLink v-for="n in nav" :key="n.to" :to="n.to" exact-active-class="!border-ink bg-white"
@@ -78,6 +79,7 @@ const nav = [
         <p class="max-w-screen-lg mx-auto px-4 py-4 text-xs text-muted font-600">
           © {{ site.name }} · <a :href="publisher.url" class="hover:text-link underline underline-offset-2">口袋工具 Pocketool</a> 出品 · <span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端
         </p>
+        <p class="max-w-screen-lg mx-auto px-4 pb-4 -mt-2 text-xs text-muted" data-test="trademark">{{ site.trademark }}</p>
       </div>
     </footer>
   </div>

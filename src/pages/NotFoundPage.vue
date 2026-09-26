@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { useHead } from '@unhead/vue'
+import { site } from '@/config/site'
 useHead({
-  title: '找不到頁面｜QR Code Studio',
+  title: `找不到頁面｜${site.name}`,
   meta: [{ name: 'robots', content: 'noindex, follow' }],
 })
 </script>

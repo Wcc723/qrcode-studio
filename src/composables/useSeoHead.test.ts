@@ -6,10 +6,17 @@ import {
 import { site, publisher } from '@/config/site'
 
 describe('品牌', () => {
-  it('工具名統一為 QR Code Studio，舊名 QRTool 不再出現', () => {
-    expect(site.name).toBe('QR Code Studio')
-    expect(site.siteName).toBe('QR Code Studio｜口袋工具')
+  it('產品名是 QR Code 製造機（英文 QR Code Maker），舊名只留在 formerNames，QRTool 不再出現', () => {
+    expect(site.name).toBe('QR Code 製造機')
+    expect(site.nameEn).toBe('QR Code Maker')
+    expect(site.siteName).toBe('QR Code 製造機｜口袋工具')
+    expect(site.formerNames).toEqual(['QR Code Studio'])
+    const { formerNames: _formerNames, ...rest } = site
+    expect(JSON.stringify(rest)).not.toContain('QR Code Studio')
     expect(JSON.stringify(site)).not.toContain('QRTool')
+  })
+  it('名稱含 QR Code，附 DENSO WAVE 的註冊商標聲明', () => {
+    expect(site.trademark).toBe('QR Code 是 DENSO WAVE INCORPORATED 在日本及其他國家的註冊商標。')
   })
 })
 
@@ -27,7 +34,7 @@ describe('JSON-LD builders', () => {
     expect(ld.offers.price).toBe('0')
   })
   it('未指定 appType 時維持 SoftwareApplication', () => {
-    const ld = buildSoftwareAppLd({ name: 'QR Code Studio', url: 'https://x.tw/url', description: 'desc' })
+    const ld = buildSoftwareAppLd({ name: 'QR Code 製造機', url: 'https://x.tw/url', description: 'desc' })
     expect(ld['@type']).toBe('SoftwareApplication')
   })
   it('BreadcrumbList 結構正確', () => {
@@ -63,7 +70,9 @@ describe('JSON-LD builders', () => {
   it('WebPage 系列可指定 AboutPage', () => {
     const ld = buildWebPageLd({ type: 'AboutPage', name: '關於', url: 'https://x.tw/about/', description: 'd' })
     expect(ld['@type']).toBe('AboutPage')
-    expect(ld.isPartOf).toEqual({ '@type': 'WebSite', name: 'QR Code Studio', url: `${site.url}/` })
+    expect(ld.isPartOf).toEqual({
+      '@type': 'WebSite', name: 'QR Code 製造機', alternateName: ['QR Code Maker', 'QR Code Studio'], url: `${site.url}/`,
+    })
   })
   it('Organization 是口袋工具（hub），logo 是方形 PNG', () => {
     const ld = buildOrganizationLd()

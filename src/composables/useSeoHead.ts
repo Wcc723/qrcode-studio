@@ -20,8 +20,9 @@ function publisherLd() {
   }
 }
 
+// alternateName：英文名與舊名（site.ts 的 nameEn、formerNames），讓用英文名或舊名找的人對得到同一個網站。
 function websiteRef() {
-  return { '@type': 'WebSite', name: site.name, url: `${site.url}/` }
+  return { '@type': 'WebSite', name: site.name, alternateName: [site.nameEn, ...site.formerNames], url: `${site.url}/` }
 }
 
 export function buildSoftwareAppLd(p: { name: string; url: string; description: string; appType?: AppLdType }) {
