@@ -53,6 +53,7 @@ useSeoHead({
       <li><a href="https://sourceforge.net/projects/zint/" target="_blank" rel="noopener">zint</a>：BSD-3-Clause License</li>
       <li>zxing-wasm 自有的程式碼：MIT License（Copyright © 2023 Ze-Zheng Wu）</li>
     </ul>
+    <p>介面上的圖示來自 <a href="https://lucide.dev/" target="_blank" rel="noopener">Lucide</a>（ISC License，其中由 Feather 衍生的部分圖示為 MIT License），在建置時打包進本站的樣式檔，瀏覽器不會向第三方取圖。</p>
     <p>本站<RouterLink to="/barcode/">一維條碼產生器</RouterLink>的編碼器是自行實作的，不使用上述任何第三方編碼器。完整版本、雜湊與授權出處記在 GitHub 上的 <a :href="`${repoUrl}/blob/main/NOTICE.md`" target="_blank" rel="noopener"><code>NOTICE.md</code></a>。</p>
 
     <h2>更新紀錄</h2>

@@ -5,6 +5,7 @@ export interface QrTypeMeta {
   type: QrType
   path: string            // 路由路徑，'' 代表首頁
   label: string           // tab 顯示
+  icon: string            // Lucide 圖示的 UnoCSS class（建置時打包）；首頁連結列與產生器分頁共用
   routeName: string
   h1: string
   title: string           // <title>
@@ -18,7 +19,7 @@ export interface QrTypeMeta {
 
 export const qrTypes: QrTypeMeta[] = [
   {
-    type: 'url', path: '/url', routeName: 'url', label: '網址',
+    type: 'url', path: '/url', routeName: 'url', label: '網址', icon: 'i-lucide-link',
     h1: '網址 QR Code 產生器',
     title: '網址轉 QR Code｜把連結變成 QR Code，免費下載 PNG/SVG',
     description: '免費線上把網址轉成 QR Code，瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不會過期。',
@@ -35,7 +36,7 @@ export const qrTypes: QrTypeMeta[] = [
     guides: ['line-qr-code', 'qr-with-logo', 'qr-code-svg'],
   },
   {
-    type: 'wifi', path: '/wifi', routeName: 'wifi', label: 'WiFi',
+    type: 'wifi', path: '/wifi', routeName: 'wifi', label: 'WiFi', icon: 'i-lucide-wifi',
     h1: 'WiFi QR Code 產生器',
     title: 'WiFi QR Code 產生器｜免費製作，掃碼免輸密碼自動連線',
     description: '免費製作 WiFi QR Code，訪客用手機掃一下即可自動連上無線網路、免手動輸入密碼。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。',
@@ -52,7 +53,7 @@ export const qrTypes: QrTypeMeta[] = [
     guides: ['qr-code-svg', 'scan-qr-code', 'error-correction'],
   },
   {
-    type: 'vcard', path: '/vcard', routeName: 'vcard', label: '電子名片',
+    type: 'vcard', path: '/vcard', routeName: 'vcard', label: '電子名片', icon: 'i-lucide-contact',
     h1: '電子名片 vCard QR Code 產生器',
     title: '電子名片 QR Code 產生器｜vCard 一掃存入通訊錄（免費）',
     description: '免費製作電子名片 vCard QR Code，對方掃碼即可把姓名、電話、Email、公司一鍵存入手機通訊錄。瀏覽器內生成、不傳雲端，可加 LOGO 下載 PNG/SVG。',
@@ -68,7 +69,7 @@ export const qrTypes: QrTypeMeta[] = [
     guides: ['qr-with-logo', 'qr-code-svg', 'what-is-qr-code'],
   },
   {
-    type: 'text', path: '/text', routeName: 'text', label: '純文字',
+    type: 'text', path: '/text', routeName: 'text', label: '純文字', icon: 'i-lucide-type',
     h1: '純文字 QR Code 產生器',
     title: '文字 QR Code 產生器｜任意文字轉 QR Code（免費線上）',
     description: '免費線上把任意文字轉成 QR Code，瀏覽器內即時生成、不傳雲端，可自訂顏色與 LOGO，下載 PNG / SVG。適合序號、留言、說明與活動暗號。',
@@ -84,7 +85,7 @@ export const qrTypes: QrTypeMeta[] = [
     guides: ['what-is-qr-code', 'error-correction', 'scan-qr-code'],
   },
   {
-    type: 'email', path: '/email', routeName: 'email', label: 'Email',
+    type: 'email', path: '/email', routeName: 'email', label: 'Email', icon: 'i-lucide-mail',
     h1: 'Email QR Code 產生器',
     title: 'Email QR Code 產生器｜掃碼直接寄信（免費、可帶主旨內文）',
     description: '免費製作 Email QR Code，掃碼自動開啟郵件 App 並帶入收件者、主旨與內文。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。',
@@ -99,7 +100,7 @@ export const qrTypes: QrTypeMeta[] = [
     guides: ['scan-qr-code', 'qr-with-logo', 'qr-code-svg'],
   },
   {
-    type: 'phone', path: '/phone', routeName: 'phone', label: '電話',
+    type: 'phone', path: '/phone', routeName: 'phone', label: '電話', icon: 'i-lucide-phone',
     h1: '電話 QR Code 產生器',
     title: '電話 QR Code 產生器｜掃碼一鍵撥號（免費線上製作）',
     description: '免費線上製作電話 QR Code，掃碼即可一鍵撥號，免手動輸入號碼。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。適合店家、傳單與服務專線。',
@@ -114,7 +115,7 @@ export const qrTypes: QrTypeMeta[] = [
     guides: ['scan-qr-code', 'qr-code-svg', 'qr-with-logo'],
   },
   {
-    type: 'sms', path: '/sms', routeName: 'sms', label: '簡訊',
+    type: 'sms', path: '/sms', routeName: 'sms', label: '簡訊', icon: 'i-lucide-message-square',
     h1: '簡訊 SMS QR Code 產生器',
     title: '簡訊 QR Code 產生器｜掃碼帶入號碼與內容（免費）',
     description: '免費製作簡訊 SMS QR Code，掃碼自動開啟簡訊並帶入收件號碼與內容。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。適合活動報名與投票。',

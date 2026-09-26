@@ -82,8 +82,8 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
       @dragleave.prevent="dragging = false"
       @drop.prevent="onDrop"
     >
-      <p class="text-3xl">🖼️</p>
-      <p class="font-display font-700 text-ink mt-2">把圖片拖進來，或直接 Ctrl / ⌘ + V 貼上截圖</p>
+      <span class="icon-badge-lg bg-pop-sky"><span class="i-lucide-image-plus" aria-hidden="true" /></span>
+      <p class="font-display font-700 text-ink mt-2">把圖片拖進來，或直接 <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> 貼上截圖</p>
       <p class="text-sm text-muted font-600 mt-1">支援 PNG、JPEG、WebP，一次一張</p>
 
       <input :id="fileInputId" data-test="scan-file-input" type="file" class="sr-only"

@@ -49,6 +49,12 @@ input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
 input[type="color"]::-webkit-color-swatch { border: none; border-radius: 7px; }
 input[type="color"]::-moz-color-swatch { border: none; border-radius: 7px; }
 :focus-visible { outline: 3px solid #ff7a1a; outline-offset: 2px; border-radius: 6px; }
+/* 按鍵（Ctrl、⌘、V）：像鍵帽的小框，⌘ 是按鍵上印的字，不是 emoji */
+kbd {
+  display: inline-block; min-width: 1.6em; padding: 0 0.35em; text-align: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.85em; font-weight: 700; line-height: 1.5;
+  color: #16130f; background: #fff; border: 1.5px solid #16130f; border-bottom-width: 3px; border-radius: 6px;
+}
 
 /* 進場彈跳（首屏錯落顯示） */
 @keyframes pop-in {

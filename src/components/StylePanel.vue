@@ -42,14 +42,14 @@ const ecLabel: Record<ErrorCorrectionLevel, string> = {
 
     <label class="flex items-center gap-2 text-sm font-600 text-ink cursor-pointer">
       <input type="checkbox" class="accent-brand w-4 h-4" :checked="modelValue.useGradient" @change="patch({ useGradient: ($event.target as HTMLInputElement).checked })" />
-      🌈 使用漸層
+      使用漸層
       <input v-if="modelValue.useGradient" type="color" class="w-9 h-9 rounded-lg border-2 border-ink cursor-pointer p-0 bg-white" :value="modelValue.gradientColor" @input="patch({ gradientColor: ($event.target as HTMLInputElement).value })" />
     </label>
 
     <label class="block">
-      <span class="text-sm font-700 text-ink">🖼️ 加入 LOGO</span>
+      <span class="text-sm font-700 text-ink">加入 LOGO</span>
       <input type="file" accept="image/*" class="block mt-1.5 text-sm text-muted file:(mr-2 px-3 py-1.5 rounded-lg border-2 border-ink bg-pop-sun font-700 text-ink cursor-pointer)" @change="onLogo" />
-      <button v-if="modelValue.logoDataUrl" class="chip bg-white mt-2 hover:bg-pop-pink transition" @click="patch({ logoDataUrl: null })">✕ 移除 LOGO</button>
+      <button v-if="modelValue.logoDataUrl" class="chip bg-white mt-2 hover:bg-pop-pink transition" @click="patch({ logoDataUrl: null })"><span class="i-lucide-x" aria-hidden="true" />移除 LOGO</button>
     </label>
 
     <label class="block">

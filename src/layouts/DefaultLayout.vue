@@ -23,9 +23,9 @@ const nav = [
         <nav aria-label="主選單" class="hidden md:flex items-center gap-1.5 text-sm font-700">
           <RouterLink v-for="n in nav" :key="n.to" :to="n.to" exact-active-class="!border-ink bg-white"
             class="px-3 py-1 rounded-full border-2 border-transparent hover:border-ink hover:bg-white transition">{{ n.label }}</RouterLink>
-          <a :href="publisher.url" class="ml-1 px-3 py-1 rounded-full border-2 border-ink bg-white hover:bg-pop-mint transition">🧰 口袋工具</a>
+          <a :href="publisher.url" class="ml-1 inline-flex items-center gap-1 px-3 py-1 rounded-full border-2 border-ink bg-white hover:bg-pop-mint transition"><span class="i-lucide-toolbox" aria-hidden="true" />口袋工具</a>
         </nav>
-        <a :href="publisher.url" class="md:hidden chip !text-sm !px-2.5 !py-1 bg-white shrink-0">🧰 口袋工具</a>
+        <a :href="publisher.url" class="md:hidden chip !text-sm !px-2.5 !py-1 bg-white shrink-0"><span class="i-lucide-toolbox" aria-hidden="true" />口袋工具</a>
       </div>
       <nav aria-label="主選單" class="md:hidden border-t-2 border-ink/15">
         <div class="max-w-screen-lg mx-auto px-4 py-2 flex gap-1.5 overflow-x-auto text-sm font-700 whitespace-nowrap">
@@ -60,7 +60,7 @@ const nav = [
             <li v-for="g in guides" :key="g.slug">
               <RouterLink :to="`/guide/${g.slug}/`" class="hover:text-brand transition">{{ g.shortTitle }}</RouterLink>
             </li>
-            <li><RouterLink to="/guide/" class="hover:text-brand transition">所有教學 →</RouterLink></li>
+            <li><RouterLink to="/guide/" class="inline-flex items-center gap-1 hover:text-brand transition">所有教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></li>
           </ul>
         </section>
         <section>
@@ -76,7 +76,7 @@ const nav = [
       </div>
       <div class="border-t-2 border-ink/10">
         <p class="max-w-screen-lg mx-auto px-4 py-4 text-xs text-muted font-600">
-          © {{ site.name }} · <a :href="publisher.url" class="hover:text-brand underline underline-offset-2">口袋工具 Pocketool</a> 出品 · 🔒 瀏覽器內生成，內容不傳雲端
+          © {{ site.name }} · <a :href="publisher.url" class="hover:text-brand underline underline-offset-2">口袋工具 Pocketool</a> 出品 · <span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端
         </p>
       </div>
     </footer>

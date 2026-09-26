@@ -35,6 +35,17 @@ Apache License, Version 2.0 全文：<https://www.apache.org/licenses/LICENSE-2.
 
 MIT 授權原文也隨套件一起安裝在 `node_modules/zxing-wasm/LICENSE`。
 
+## 介面圖示：Lucide
+
+畫面上的圖示（鎖頭、下載、複製、各類型 QR Code 的圖示等）來自 [Lucide](https://lucide.dev/)，
+經 npm 套件 `@iconify-json/lucide`（devDependency）在建置時由 UnoCSS 轉成 CSS，只打包用到的圖示；
+瀏覽器執行時不向任何第三方服務取圖。
+
+- **Lucide**：ISC License（Copyright Lucide Icons and Contributors）
+- 其中由 [Feather](https://github.com/feathericons/feather) 衍生的部分圖示：MIT License（Copyright Cole Bemis）
+
+授權原文：<https://github.com/lucide-icons/lucide/blob/main/LICENSE>
+
 ## 本站自己的一維條碼編碼器
 
 本站 `/barcode/` 的一維條碼是自行實作的（`src/pure/encodeBarcode.ts`），

@@ -13,8 +13,8 @@ import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
 
+// 第一步的按鍵（Ctrl、⌘、V）要包進 <kbd>，所以在模板裡另外寫，這裡只放後兩步
 const steps = [
-  '把圖片拖進虛線框，或按「選擇圖片」，也可以直接 Ctrl / ⌘ + V 貼上截圖',
   '解碼在你的瀏覽器內完成，結果會先以純文字顯示，不會自動開啟任何連結',
   '確認內容沒問題後，再決定要複製、開啟，或帶回產生器重新製作一張',
 ]
@@ -63,7 +63,7 @@ useSeoHead({
 <template>
   <div class="py-8">
     <header class="max-w-screen-lg mx-auto px-4 mb-5">
-      <span class="chip bg-pop-mint reveal reveal-1">🔒 在你的瀏覽器內解碼・圖片不上傳</span>
+      <span class="chip bg-pop-mint reveal reveal-1"><span class="i-lucide-lock" aria-hidden="true" />在你的瀏覽器內解碼・圖片不上傳</span>
       <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3 reveal reveal-2">
         QR Code 掃描器：用圖片或截圖解碼
       </h1>
@@ -93,10 +93,14 @@ useSeoHead({
         圖片也不會被上傳到任何雲端服務。
       </p>
 
-      <h3 class="text-xl font-700 text-ink mt-8">🪄 使用步驟</h3>
+      <h3 class="text-xl font-700 text-ink mt-8">使用步驟</h3>
       <ol class="list-none pl-0 mt-4 grid gap-3 sm:grid-cols-3">
+        <li class="card p-4 flex gap-3 items-start">
+          <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">1</span>
+          <span class="font-600 text-ink/85 leading-snug">把圖片拖進虛線框，或按「選擇圖片」，也可以直接 <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> 貼上截圖</span>
+        </li>
         <li v-for="(s, i) in steps" :key="i" class="card p-4 flex gap-3 items-start">
-          <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">{{ i + 1 }}</span>
+          <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">{{ i + 2 }}</span>
           <span class="font-600 text-ink/85 leading-snug">{{ s }}</span>
         </li>
       </ol>
@@ -126,7 +130,7 @@ useSeoHead({
         解碼出來的內容也可以直接按「用此內容重新產生」帶過去。
       </p>
 
-      <h3 class="text-xl font-700 text-ink mt-8">💬 常見問題</h3>
+      <h3 class="text-xl font-700 text-ink mt-8">常見問題</h3>
       <div class="mt-4 space-y-3">
         <details v-for="(f, i) in faqs" :key="i" class="card p-4">
           <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>

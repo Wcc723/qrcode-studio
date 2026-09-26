@@ -1,7 +1,25 @@
 import { defineConfig, presetUno, presetIcons, transformerVariantGroup } from 'unocss'
 
 export default defineConfig({
-  presets: [presetUno(), presetIcons()],
+  presets: [
+    presetUno(),
+    // 圖示用 Lucide（ISC 授權，@iconify-json/lucide 是 devDependency）：建置時只把用到的圖示轉成
+    // CSS mask，顏色跟著 currentColor。不設 cdn、不開 autoInstall：瀏覽器執行時不向任何第三方取圖，
+    // 圖示集沒裝好時 seo:audit 會因為 CSS 裡找不到 i-lucide-* 規則而擋下 build。
+    presetIcons({
+      scale: 1.2,
+      extraProperties: { 'display': 'inline-block', 'vertical-align': '-0.15em', 'flex-shrink': '0' },
+    }),
+  ],
+  content: {
+    pipeline: {
+      include: [
+        // UnoCSS 預設只掃 .vue、.html 這類檔案；類型圖示的 class 寫在 src/config/qr-types.ts 的 icon 欄位
+        /\.(vue|svelte|[jt]sx|vine.ts|mdx?|astro|elm|php|phtml|marko|html)($|\?)/,
+        /src\/config\/[\w-]+\.ts($|\?)/,
+      ],
+    },
+  },
   // 讓 `[&_a]:(text-brand underline)`、`file:(mr-2 px-3)` 這類 variant group 在 build 時展開。
   // 少了它，括號裡的 class 會被瀏覽器當成一般 class 套在外層元素上：教學與類型頁的本文
   // 整段變成底線＋等寬字，上傳 LOGO 的檔案欄位整個變黃。
@@ -39,5 +57,11 @@ export default defineConfig({
     'input-base': 'w-full bg-white border-2 border-ink rounded-xl px-3 py-2 text-ink placeholder-stone-400 focus:outline-none focus:ring-3 focus:ring-brand/40 transition',
     // 小貼紙標籤
     'chip': 'inline-flex items-center gap-1 text-xs font-700 text-ink border-2 border-ink rounded-full px-2.5 py-0.5',
+    // 糖果色圓底徽章：裡面放一個 aria-hidden 的單色 Lucide 圖示，底色由使用處加 bg-pop-*。
+    // emoji 拿掉之後，顏色與童趣感靠它補回來。
+    'icon-badge-base': 'inline-flex items-center justify-center shrink-0 rounded-full border-2 border-ink text-ink',
+    'icon-badge': 'icon-badge-base w-8 h-8 text-[15px]',
+    'icon-badge-sm': 'icon-badge-base w-6 h-6 text-[12px]',
+    'icon-badge-lg': 'icon-badge-base w-14 h-14 text-[26px] border-3',
   },
 })

@@ -242,6 +242,34 @@ for (const [page, needles] of [
 }
 
 // ───────────────────────────────────────────────────────────────────
+// 圖示：畫面上不用 emoji，改用建置時打包的 Lucide（UnoCSS presetIcons）。
+// presetIcons 在圖示集沒安裝時不會報錯，class 只會靜默失效（畫面上一片空白），
+// 所以要在產物上對帳：HTML 與 JS 用到的每個 i-lucide-* 都要在 CSS 裡有規則。
+// ───────────────────────────────────────────────────────────────────
+{
+  // © ™ ® 在 Unicode 也算 Extended_Pictographic，但它們是版權與商標符號，要留著
+  const emojiIn = (text) => [...text.matchAll(/[\p{Extended_Pictographic}️]/gu)].map((m) => m[0])
+    .filter((c) => !['©', '™', '®'].includes(c))
+  for (const f of htmlFiles) {
+    const html = readFileSync(f, 'utf8')
+    const body = (pick(html, /<body[^>]*>([\s\S]*)<\/body>/i) ?? '').replace(/<script[\s\S]*?<\/script>/gi, '')
+    const found = emojiIn(body)
+    add(`[${rel(f)}] 頁面內容沒有 emoji`, found.length === 0, [...new Set(found)].join(' '))
+  }
+
+  const assetsList = existsSync(join(distDir, 'assets')) ? readdirSync(join(distDir, 'assets')) : []
+  const cssText = assetsList.filter((f) => f.endsWith('.css')).map((f) => readFileSync(join(distDir, 'assets', f), 'utf8')).join('\n')
+  const jsText = assetsList.filter((f) => f.endsWith('.js')).map((f) => readFileSync(join(distDir, 'assets', f), 'utf8')).join('\n')
+  const htmlText = htmlFiles.map((f) => readFileSync(f, 'utf8')).join('\n')
+  const used = new Set([...`${htmlText}\n${jsText}`.matchAll(/\bi-lucide-[a-z0-9]+(?:-[a-z0-9]+)*/g)].map((m) => m[0]))
+  const missingIcons = [...used].filter((c) => !cssText.includes(`.${c}{`))
+  add('有用到 Lucide 圖示', used.size > 0, `${used.size} 個`)
+  add('用到的 i-lucide-* 在 CSS 裡都有規則（圖示集有裝、有打包）', missingIcons.length === 0, missingIcons.join(' '))
+  // 圖示一律在建置時轉成 CSS 內嵌，執行時不得向 Iconify 等第三方取圖
+  add('產物沒有連到線上圖示服務', !/api\.iconify\.design|api\.unisvg\.com|api\.simplesvg\.com|esm\.sh\/@iconify/.test(`${htmlText}\n${jsText}\n${cssText}`))
+}
+
+// ───────────────────────────────────────────────────────────────────
 // 解碼器的資產邊界
 // ───────────────────────────────────────────────────────────────────
 const assetsDir = join(distDir, 'assets')

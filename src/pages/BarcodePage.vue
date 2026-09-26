@@ -36,7 +36,7 @@ useSeoHead({
 <template>
   <div class="py-8">
     <header class="max-w-screen-lg mx-auto px-4 mb-5">
-      <span class="chip bg-pop-sky reveal reveal-1">🔒 免費・不傳雲端</span>
+      <span class="chip bg-pop-sky reveal reveal-1"><span class="i-lucide-lock" aria-hidden="true" />免費・不傳雲端</span>
       <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3 reveal reveal-2">
         一維條碼產生器（EAN-13、Code 128）
       </h1>
@@ -76,7 +76,7 @@ useSeoHead({
         <li><strong class="text-ink">ITF-14</strong>：外箱與瓦楞紙箱用，條粗、可遠距離掃，並帶規範要求的外框 bearer bar。</li>
       </ul>
 
-      <h3 class="text-xl font-700 text-ink mt-8">🪄 使用步驟</h3>
+      <h3 class="text-xl font-700 text-ink mt-8">使用步驟</h3>
       <ol class="list-none pl-0 mt-4 grid gap-3 sm:grid-cols-3">
         <li v-for="(s, i) in steps" :key="i" class="card p-4 flex gap-3 items-start">
           <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">{{ i + 1 }}</span>
@@ -84,7 +84,7 @@ useSeoHead({
         </li>
       </ol>
 
-      <h3 class="text-xl font-700 text-ink mt-8">💬 常見問題</h3>
+      <h3 class="text-xl font-700 text-ink mt-8">常見問題</h3>
       <div class="mt-4 space-y-3">
         <details v-for="(f, i) in faqs" :key="i" class="card p-4">
           <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>

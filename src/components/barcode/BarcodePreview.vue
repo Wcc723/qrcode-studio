@@ -13,7 +13,7 @@ defineProps<{
 <template>
   <div class="min-w-0">
     <div class="mb-3">
-      <span class="chip bg-pop-mint">🔒 不傳雲端・瀏覽器內生成</span>
+      <span class="chip bg-pop-mint"><span class="i-lucide-lock" aria-hidden="true" />不傳雲端・瀏覽器內生成</span>
     </div>
 
     <!--
@@ -23,10 +23,10 @@ defineProps<{
     -->
     <div
       class="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border-2 border-ink bg-white p-3 flex items-center justify-center min-h-[132px]">
-      <p v-if="!pattern && !error" class="text-muted text-sm font-600">✏️ 輸入內容後即時預覽</p>
+      <p v-if="!pattern && !error" class="text-muted text-sm font-600"><span class="i-lucide-pencil mr-1" aria-hidden="true" />輸入內容後即時預覽</p>
 
       <div v-else-if="error" class="flex flex-col items-center justify-center gap-2 p-4 text-center">
-        <span class="text-3xl">😵</span>
+        <span class="icon-badge-lg bg-pop-pink"><span class="i-lucide-circle-alert" aria-hidden="true" /></span>
         <p data-test="bc-preview-error" class="text-rose-600 text-sm font-700 break-all">{{ error }}</p>
       </div>
 

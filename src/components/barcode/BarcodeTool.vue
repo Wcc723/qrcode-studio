@@ -57,9 +57,9 @@ const png = computed(() => pngSize(scale.value))
 
     <div class="grid grid-cols-2 gap-2 mt-4">
       <button data-test="dl-png" class="btn-primary !bg-pop-sun" :disabled="!canDownload"
-        @click="downloadPng(scale)">⬇ PNG</button>
+        @click="downloadPng(scale)"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>PNG</button>
       <button data-test="dl-svg" class="btn-primary !bg-pop-mint" :disabled="!canDownload"
-        @click="downloadSvg()">⬇ SVG</button>
+        @click="downloadSvg()"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>SVG</button>
     </div>
   </div>
 </template>

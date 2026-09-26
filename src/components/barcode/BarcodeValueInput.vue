@@ -42,10 +42,10 @@ const emit = defineEmits<{ 'update:modelValue': [string]; flush: [] }>()
     <div id="bc-status" data-test="bc-status" aria-live="polite" class="mt-1 min-h-[1.5rem]">
       <span class="sr-only">{{ liveMessage }}</span>
       <p v-if="error" data-test="bc-error" aria-hidden="true" class="text-rose-600 text-sm font-700 break-all">
-        😵 {{ error }}
+        <span class="i-lucide-circle-alert mr-1" aria-hidden="true" />{{ error }}
       </p>
       <p v-else-if="notice" data-test="bc-notice" aria-hidden="true" class="text-ink text-sm font-700 break-all">
-        ✅ {{ notice }}
+        <span class="i-lucide-circle-check mr-1 text-emerald-700" aria-hidden="true" />{{ notice }}
       </p>
     </div>
   </div>

@@ -5,11 +5,9 @@ import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
 import { qrTypes } from '@/config/qr-types'
 import { guides } from '@/content/guides'
-import type { QrType } from '@/types'
 
-const emoji: Record<QrType, string> = {
-  url: '🔗', wifi: '📶', vcard: '👤', text: '📝', email: '✉️', phone: '📞', sms: '💬',
-}
+// 類型圖示的糖果色底，依序輪替
+const badgeBg = ['bg-pop-sun', 'bg-pop-mint', 'bg-pop-sky', 'bg-pop-pink']
 
 const faqs = [
   { q: 'QR Code 產生器要錢嗎？需要註冊嗎？', a: '完全免費、免註冊、無浮水印，可直接下載 PNG 與 SVG，商用與印刷皆可。' },
@@ -28,7 +26,7 @@ useSeoHead({
 <template>
   <div class="py-8">
     <header class="max-w-screen-lg mx-auto px-4 mb-7 text-center">
-      <span class="chip bg-pop-mint reveal reveal-1">✨ 免費・無浮水印・不傳雲端</span>
+      <span class="chip bg-pop-mint reveal reveal-1">免費・無浮水印・不傳雲端</span>
       <h1 class="text-4xl md:text-5xl font-800 text-ink mt-4 reveal reveal-2">
         免費
         <span class="px-1 rounded" style="background:linear-gradient(transparent 58%, #FFD12E 58%)">QR Code</span>
@@ -41,11 +39,11 @@ useSeoHead({
         <GeneratorTool default-type="url" />
       </div>
       <AdSlot slot-id="home-below-tool" />
-      <h2 class="text-center font-display font-700 text-xl text-ink mt-6 mb-4">挑一種，馬上做 👇</h2>
+      <h2 class="text-center font-display font-700 text-xl text-ink mt-6 mb-4">挑一種，馬上做</h2>
       <nav class="grid grid-cols-2 md:grid-cols-4 gap-4">
         <RouterLink v-for="(t, i) in qrTypes" :key="t.type" :to="`${t.path}/`"
           class="sticker p-4 block" :class="i % 2 ? 'rotate-1' : '-rotate-1'">
-          <div class="text-3xl">{{ emoji[t.type] }}</div>
+          <span class="icon-badge" :class="badgeBg[i % badgeBg.length]"><span :class="t.icon" aria-hidden="true" /></span>
           <div class="font-display font-700 text-ink mt-1.5">{{ t.label }} QR Code</div>
           <div class="text-xs text-muted mt-1 font-600 leading-snug">{{ t.intro.slice(0, 20) }}…</div>
         </RouterLink>
@@ -62,7 +60,7 @@ useSeoHead({
 
       <!-- 教學文章 -->
       <section class="mt-12">
-        <h2 class="text-center font-display font-800 text-2xl text-ink mb-1">📚 QR Code 教學</h2>
+        <h2 class="text-center font-display font-800 text-2xl text-ink mb-1">QR Code 教學</h2>
         <p class="text-center text-muted font-600 mb-5">不會用？這些文章帶你快速上手</p>
         <div class="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
           <RouterLink v-for="g in guides" :key="g.slug" :to="`/guide/${g.slug}/`" class="sticker p-4 block">
@@ -70,19 +68,19 @@ useSeoHead({
             <div class="text-xs text-muted mt-1.5 font-600 leading-snug">{{ g.description.slice(0, 40) }}…</div>
           </RouterLink>
         </div>
-        <p class="text-center mt-5 font-600"><RouterLink to="/guide/" class="text-brand underline underline-offset-2 font-700">看全部 QR Code 教學 →</RouterLink></p>
+        <p class="text-center mt-5 font-600"><RouterLink to="/guide/" class="text-brand underline underline-offset-2 font-700">看全部 QR Code 教學<span class="i-lucide-arrow-right ml-0.5" aria-hidden="true" /></RouterLink></p>
       </section>
 
       <!-- 常見問題 -->
       <section class="mt-12 max-w-3xl mx-auto">
-        <h2 class="text-center font-display font-800 text-2xl text-ink mb-5">💬 常見問題</h2>
+        <h2 class="text-center font-display font-800 text-2xl text-ink mb-5">常見問題</h2>
         <div class="space-y-3">
           <details v-for="(f, i) in faqs" :key="i" class="card p-4">
             <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
             <p class="text-ink/75 font-600 mt-2 leading-relaxed">{{ f.a }}</p>
           </details>
         </div>
-        <p class="text-center mt-5 font-600"><RouterLink to="/faq/" class="text-brand underline underline-offset-2 font-700">更多常見問題 →</RouterLink></p>
+        <p class="text-center mt-5 font-600"><RouterLink to="/faq/" class="text-brand underline underline-offset-2 font-700">更多常見問題<span class="i-lucide-arrow-right ml-0.5" aria-hidden="true" /></RouterLink></p>
       </section>
     </div>
   </div>

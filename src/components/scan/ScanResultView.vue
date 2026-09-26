@@ -61,7 +61,7 @@ const canRegenerate = computed(() => !!single.value && (single.value.isLinear ||
       <div class="flex flex-wrap gap-2 mt-4">
         <button type="button" data-test="scan-copy" class="btn-primary !bg-pop-sky"
           @click="copy(single.text)">
-          {{ copied ? '✓ 已複製' : '複製內容' }}
+          <span :class="copied ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />{{ copied ? '已複製' : '複製內容' }}
         </button>
         <a v-if="single.uri.openable && single.uri.href" data-test="scan-open"
           class="btn-primary !bg-pop-mint" :href="single.uri.href" target="_blank" rel="noopener noreferrer">
