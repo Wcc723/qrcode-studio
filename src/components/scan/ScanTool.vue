@@ -112,7 +112,7 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
     <ScanResultView v-if="status === 'done' && outcome" :outcome="outcome" @regenerate="onRegenerate" />
 
     <button v-if="status !== 'idle'" type="button" data-test="scan-reset"
-      class="text-sm font-700 text-muted underline mt-4" @click="scanner.reset()">
+      class="bg-transparent p-0 text-sm font-700 text-muted underline mt-4" @click="scanner.reset()">
       清除並換一張
     </button>
   </div>
