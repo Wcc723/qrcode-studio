@@ -16,7 +16,8 @@
 
 **QR Code Studio**，正式網址 `https://www.pocketool.app/qrcode-studio/`。在瀏覽器內產生
 網址 / WiFi / 電子名片 / Email 等類型的 QR Code，可自訂顏色、漸層、LOGO 與容錯等級，
-下載 PNG / SVG / JPG。Vue 3 + Vite + vite-ssg + UnoCSS，每條路由都預渲染成靜態 HTML。
+下載 PNG / SVG / JPG。Vue 3 + Vite + vite-ssg + UnoCSS（圖示用建置時打包的 Lucide），
+每條路由都預渲染成靜態 HTML。
 
 它是 `pocketool.app` 站群的 7 個工具站之一。站群的 hub 是
 `https://www.pocketool.app`（repo `pocket-tool-blog`，workspace 內在 `../pocket-tool-blog`），工具站正陸續從
@@ -159,6 +160,53 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 `npm run seo:audit` 有一條逐頁斷言會擋下漏補的情況：dist 內所有 `href="/..."` 與 `src="/..."`
 必須以 `/qrcode-studio/` 開頭。期望前綴由 sitemap 的第一條 `<loc>` 推導，
 讓 `gen-sitemap.mjs` 與 `site.ts` 兩個獨立來源互相對帳。
+
+## 工具區與說明文章
+
+工具頁（首頁、7 個類型頁、`/scan/`、`/barcode/`）分成上下兩塊，一眼要分得出哪裡是應用程式、哪裡是說明：
+
+- **工具區**（`src/components/ToolZone.vue`）：h1、一行副標、工具卡，整條鋪淡薄荷底 `#E6F7EE`，
+  下緣一條整寬黑線。它直接放在 `<main>` 底下，本來就是整個視窗寬；**不要包進有寬度上限的容器，
+  也不要改用 `100vw`**（會把捲軸寬度算進去，造成水平溢出）。
+- **說明文章**（`SeoContent.vue` 與各頁的 `<article data-test="doc">`）：維持頁面底色、閱讀寬度 720px，
+  文件樣式（`main.css` 的 `.doc-steps`、`.doc-faq`、`.doc-links`、`.doc-chips`）。**粗框加硬陰影的
+  `card`／`sticker` 只給工具卡用**，文章裡不要再用，否則整頁又會看起來都像工具。
+- **副標只留一行**（30 字以內，類型頁在 `qr-types.ts` 的 `lead`）。原本標題下那段完整說明放在說明文章
+  第一段（`data-test="doc-lead"`）。SEO 內文可以移出工具區，但**一個字都不能刪**；
+  `seo:audit` 會對帳這些句子仍在預渲染 HTML 的說明文章裡、不在工具區。
+- 「輸入內容」「外觀」「預覽與下載」「使用說明」這類區塊標示用 `.zone-label` 段落，**不是標題**：
+  各頁的 h1／h2／h3 大綱不因為分區而改變。
+- `main.css` 開頭有最小框線 reset（所有元素 `border-width: 0; border-style: solid`），UnoCSS 的
+  `border-2` 這類 class 才畫得出框線；`html`、`body` 的 `overflow-x` 用 `clip`，**不要改回 `hidden`**：
+  那會讓 body 變成捲動容器，預覽框的 `sticky` 就黏不住。`src/styles/main-css.test.ts` 鎖著這兩條。
+
+### 工具裡的說明：「?」與一律看得到的提示
+
+- **收進欄名旁的「?」**（`src/components/HelpTip.vue`）：只收「長、而且不看也能把欄位填完」的說明，
+  例如容錯等級的百分比、LOGO 的大小限制、尺寸換算、條碼類型的用途、掃描的檔案上限。
+  收起時用 `hidden`，文字仍在預渲染 HTML 裡；欄位要用 `aria-describedby` 指到說明框的 id。
+  「?」不放進 `legend` 或 `<label>` 裡：欄名用 `<label for>`（或 `aria-hidden` 的欄名配 sr-only 的 legend），按鈕接在右邊。
+- **一律看得到**：錯誤（容量超過、條碼格式與檢查碼）、條件式提醒（勾透明時 JPG 改白底）、
+  填寫規則（`symbologies.ts` 的 `rule`：位數、可用字元、檢查碼）、列印尺寸與 PNG 像素數、
+  掃描到非 http(s) 的警告、多個條碼與讀不到的指引。收起來只會讓工具更難用。
+- **隱私只說一次**：工具卡頂部一行（`PrivacyNote.vue`），完整說明與隱私權政策連結收在它的「?」；
+  預覽框與標題上不要再加「不傳雲端」貼紙（頁尾那行保留）。
+- `src/helpNotes.test.ts` 兩個方向都鎖：每個「?」預設收起、欄位指得到它、裡面沒有可填欄位；
+  上面「一律看得到」的每一項都不在收起來的容器裡。
+
+### 圖示：不用 emoji
+
+- 畫面上不用 emoji，圖示一律用 Lucide（`@iconify-json/lucide`，devDependency），寫成 UnoCSS 的
+  `i-lucide-<名稱>` class，建置時轉成 CSS，顏色跟著 `currentColor`。`presetIcons` **不得設 `cdn`、
+  不得開 `autoInstall`**：瀏覽器執行時不向任何第三方取圖。
+- 圖示一律 `aria-hidden="true"`；只有圖示的按鈕要補文字（例如 sr-only 的「下載」）。
+  需要顏色時放進糖果色圓底徽章（`uno.config.ts` 的 `icon-badge`、`icon-badge-sm`、`icon-badge-lg`，底色加 `bg-pop-*`）。
+- 標題（h1／h2／h3）裡不放圖示或 emoji。`⌘` 是按鍵上的字，要包在 `<kbd>` 裡。
+- UnoCSS 預設不掃一般的 `.ts`，所以 `uno.config.ts` 另外把 `src/config/*.ts` 加進掃描範圍（類型圖示寫在
+  `qr-types.ts` 的 `icon`）。圖示 class 放在其他 `.ts` 檔時，要一起加進去。
+- `src/no-emoji.test.ts` 掃元件、設定與教學本文（`©`、`™`、`®` 例外，測試檔不掃）；`seo:audit` 驗
+  各頁內容沒有 emoji、用到的 `i-lucide-*` 在 CSS 裡都有規則（圖示集沒裝時 class 會靜默失效）、
+  產物沒有連到線上圖示服務。新增圖示時 `NOTICE.md` 不必改，Lucide 的授權已經寫在那裡。
 
 ## robots.txt 與 ads.txt 由 hub 提供
 
