@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import GeneratorTool from '@/components/GeneratorTool.vue'
+import ToolZone from '@/components/ToolZone.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
@@ -24,64 +25,55 @@ useSeoHead({
 })
 </script>
 <template>
-  <div class="py-8">
-    <header class="max-w-screen-lg mx-auto px-4 mb-7 text-center">
-      <span class="chip bg-pop-mint reveal reveal-1">免費・無浮水印・不傳雲端</span>
-      <h1 class="text-4xl md:text-5xl font-800 text-ink mt-4 reveal reveal-2">
-        免費
-        <span class="px-1 rounded" style="background:linear-gradient(transparent 58%, #FFD12E 58%)">QR Code</span>
-        產生器
-      </h1>
-      <p class="text-muted font-600 mt-4 max-w-xl mx-auto reveal reveal-3">線上免費製作 QR Code（QRCode）：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。</p>
-    </header>
-    <div class="max-w-screen-lg mx-auto px-4">
-      <div class="reveal reveal-4">
-        <GeneratorTool default-type="url" />
-      </div>
-      <AdSlot slot-id="home-below-tool" />
-      <h2 class="text-center font-display font-700 text-xl text-ink mt-6 mb-4">挑一種，馬上做</h2>
-      <nav class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <RouterLink v-for="(t, i) in qrTypes" :key="t.type" :to="`${t.path}/`"
-          class="sticker p-4 block" :class="i % 2 ? 'rotate-1' : '-rotate-1'">
-          <span class="icon-badge" :class="badgeBg[i % badgeBg.length]"><span :class="t.icon" aria-hidden="true" /></span>
-          <div class="font-display font-700 text-ink mt-1.5">{{ t.label }} QR Code</div>
-          <div class="text-xs text-muted mt-1 font-600 leading-snug">{{ t.intro.slice(0, 20) }}…</div>
-        </RouterLink>
+  <div>
+    <ToolZone lead="免費、無浮水印，可加 LOGO，下載 PNG 與 SVG 向量檔">
+      <template #title>免費 <span class="px-1 rounded" style="background:linear-gradient(transparent 58%, #FFD12E 58%)">QR Code</span> 產生器</template>
+      <GeneratorTool default-type="url" />
+    </ToolZone>
+    <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="home-below-tool" /></div>
+
+    <!-- 說明文章：文件樣式，跟上面的工具區分開 -->
+    <article class="max-w-[720px] mx-auto px-4 mt-10 text-ink/85 font-600 leading-relaxed" data-test="doc">
+      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
+      <!-- 原本在標題下的整句說明，移到文章開頭，一個字都不刪 -->
+      <p class="text-lg text-ink" data-test="doc-lead">線上免費製作 QR Code（QRCode）：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。</p>
+
+      <h2 class="text-2xl font-800 text-ink mt-8">免費線上 QR Code 產生器，3 步驟製作完成</h2>
+      <p class="mt-3">這是一款<strong>免費、不傳雲端、無浮水印</strong>的線上 QR Code（行動條碼）產生器。輸入內容、自訂外觀、按下下載，整個過程都在你的瀏覽器內完成，你輸入的內容不會上傳至雲端儲存空間。支援<RouterLink to="/url/" class="text-link underline underline-offset-2 font-700">網址</RouterLink>、<RouterLink to="/wifi/" class="text-link underline underline-offset-2 font-700">WiFi</RouterLink>、<RouterLink to="/vcard/" class="text-link underline underline-offset-2 font-700">電子名片</RouterLink>、文字、Email、電話、簡訊等多種類型。</p>
+      <p class="mt-3">可自訂前景與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或<RouterLink to="/guide/qr-code-svg/" class="text-link underline underline-offset-2 font-700">SVG 向量檔</RouterLink>（印刷不失真）。產生的是<strong>靜態 QR Code</strong>，永久有效、不會過期，可放心印在名片、海報、產品包裝或店家招牌上。</p>
+      <p class="mt-3">已經有一張 QR Code 的<strong>圖片或截圖</strong>，想知道裡面是什麼？用<RouterLink to="/scan/" class="text-link underline underline-offset-2 font-700">QR Code 掃描器</RouterLink>：拖放或貼上截圖就能在瀏覽器內解碼，圖片不會上傳，結果也會先讓你確認再決定要不要開啟。</p>
+      <p class="mt-3">要做的是商品包裝上那種直條的<strong>一維條碼</strong>（EAN-13、Code 128）嗎？請改用<RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">一維條碼產生器</RouterLink>。兩者用途不同：QR Code 是二維條碼，可直接存網址與長文字；一維條碼主要對應商品編號，用於零售結帳與庫存管理。</p>
+
+      <!-- 7 種類型的專屬頁：原本是工具下方的大卡片，看起來像工具的一部分，改成說明區裡的連結列 -->
+      <h2 class="text-2xl font-800 text-ink mt-10">挑一種，馬上做</h2>
+      <p class="mt-3">每一種類型都有自己的專屬頁，附上使用情境、步驟與常見問題：</p>
+      <nav aria-label="QR Code 類型">
+        <ul class="doc-chips" data-test="type-links">
+          <li v-for="(t, i) in qrTypes" :key="t.type">
+            <span class="icon-badge-sm" :class="badgeBg[i % badgeBg.length]"><span :class="t.icon" aria-hidden="true" /></span>
+            <RouterLink :to="`${t.path}/`">{{ t.label }} QR Code</RouterLink>
+          </li>
+        </ul>
       </nav>
 
-      <!-- SEO 內文區 -->
-      <section class="mt-12 max-w-3xl mx-auto text-ink/80 font-600 leading-relaxed">
-        <h2 class="text-2xl font-800 text-ink">免費線上 QR Code 產生器，3 步驟製作完成</h2>
-        <p class="mt-3">這是一款<strong>免費、不傳雲端、無浮水印</strong>的線上 QR Code（行動條碼）產生器。輸入內容、自訂外觀、按下下載，整個過程都在你的瀏覽器內完成，你輸入的內容不會上傳至雲端儲存空間。支援<RouterLink to="/url/" class="text-brand underline font-700">網址</RouterLink>、<RouterLink to="/wifi/" class="text-brand underline font-700">WiFi</RouterLink>、<RouterLink to="/vcard/" class="text-brand underline font-700">電子名片</RouterLink>、文字、Email、電話、簡訊等多種類型。</p>
-        <p class="mt-3">可自訂前景與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或<RouterLink to="/guide/qr-code-svg/" class="text-brand underline font-700">SVG 向量檔</RouterLink>（印刷不失真）。產生的是<strong>靜態 QR Code</strong>，永久有效、不會過期，可放心印在名片、海報、產品包裝或店家招牌上。</p>
-        <p class="mt-3">已經有一張 QR Code 的<strong>圖片或截圖</strong>，想知道裡面是什麼？用<RouterLink to="/scan/" class="text-brand underline font-700">QR Code 掃描器</RouterLink>：拖放或貼上截圖就能在瀏覽器內解碼，圖片不會上傳，結果也會先讓你確認再決定要不要開啟。</p>
-        <p class="mt-3">要做的是商品包裝上那種直條的<strong>一維條碼</strong>（EAN-13、Code 128）嗎？請改用<RouterLink to="/barcode/" class="text-brand underline font-700">一維條碼產生器</RouterLink>。兩者用途不同：QR Code 是二維條碼，可直接存網址與長文字；一維條碼主要對應商品編號，用於零售結帳與庫存管理。</p>
-      </section>
+      <h2 class="text-2xl font-800 text-ink mt-10">QR Code 教學</h2>
+      <p class="mt-3">不會用？這些文章帶你快速上手</p>
+      <ul class="doc-links">
+        <li v-for="g in guides" :key="g.slug">
+          <RouterLink :to="`/guide/${g.slug}/`">{{ g.title }}</RouterLink>
+          <span class="block text-sm text-muted mt-0.5">{{ g.description.slice(0, 40) }}…</span>
+        </li>
+      </ul>
+      <p class="mt-4"><RouterLink to="/guide/" class="text-link underline underline-offset-2 font-700">看全部 QR Code 教學<span class="i-lucide-arrow-right ml-0.5" aria-hidden="true" /></RouterLink></p>
 
-      <!-- 教學文章 -->
-      <section class="mt-12">
-        <h2 class="text-center font-display font-800 text-2xl text-ink mb-1">QR Code 教學</h2>
-        <p class="text-center text-muted font-600 mb-5">不會用？這些文章帶你快速上手</p>
-        <div class="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
-          <RouterLink v-for="g in guides" :key="g.slug" :to="`/guide/${g.slug}/`" class="sticker p-4 block">
-            <div class="font-display font-700 text-ink">{{ g.title }}</div>
-            <div class="text-xs text-muted mt-1.5 font-600 leading-snug">{{ g.description.slice(0, 40) }}…</div>
-          </RouterLink>
-        </div>
-        <p class="text-center mt-5 font-600"><RouterLink to="/guide/" class="text-brand underline underline-offset-2 font-700">看全部 QR Code 教學<span class="i-lucide-arrow-right ml-0.5" aria-hidden="true" /></RouterLink></p>
-      </section>
-
-      <!-- 常見問題 -->
-      <section class="mt-12 max-w-3xl mx-auto">
-        <h2 class="text-center font-display font-800 text-2xl text-ink mb-5">常見問題</h2>
-        <div class="space-y-3">
-          <details v-for="(f, i) in faqs" :key="i" class="card p-4">
-            <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
-            <p class="text-ink/75 font-600 mt-2 leading-relaxed">{{ f.a }}</p>
-          </details>
-        </div>
-        <p class="text-center mt-5 font-600"><RouterLink to="/faq/" class="text-brand underline underline-offset-2 font-700">更多常見問題<span class="i-lucide-arrow-right ml-0.5" aria-hidden="true" /></RouterLink></p>
-      </section>
-    </div>
+      <h2 class="text-2xl font-800 text-ink mt-10">常見問題</h2>
+      <div class="doc-faq">
+        <details v-for="(f, i) in faqs" :key="i">
+          <summary>{{ f.q }}<span class="i-lucide-chevron-down faq-chevron" aria-hidden="true" /></summary>
+          <p>{{ f.a }}</p>
+        </details>
+      </div>
+      <p class="mt-4"><RouterLink to="/faq/" class="text-link underline underline-offset-2 font-700">更多常見問題<span class="i-lucide-arrow-right ml-0.5" aria-hidden="true" /></RouterLink></p>
+    </article>
   </div>
 </template>

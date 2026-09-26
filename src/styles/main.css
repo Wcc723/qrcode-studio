@@ -129,3 +129,46 @@ kbd {
   .help-tip-mark { border: 1px solid ButtonText; }
   .help-tip-btn[aria-expanded='true'] .help-tip-mark { outline: 2px solid Highlight; }
 }
+
+/*
+ * 工具區（ToolZone）：整條淡薄荷底，下緣一條整寬黑線，跟下面的說明文章分開。
+ * 它直接放在 <main> 底下，本來就是整個視窗寬，不需要 100vw。
+ * muted 字色 #7a6c57 壓在 #E6F7EE 上是 4.6:1，連結色 #C2410C 是 4.66:1，都過 4.5:1。
+ */
+.tool-zone { background: #e6f7ee; border-bottom: 3px solid #16130f; padding: 28px 0 36px; }
+@media (min-width: 768px) { .tool-zone { padding: 36px 0 44px; } }
+
+/*
+ * 區塊標示（「輸入內容」「外觀」「預覽與下載」「使用說明」）：是段落，不是標題，
+ * 各頁的 h1／h2／h3 大綱不因為分區而改變。
+ */
+.zone-label {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 12px;
+  font-family: "Fredoka", "Baloo 2", ui-rounded, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-size: 14px; font-weight: 700; letter-spacing: 0.02em; color: #16130f;
+}
+
+/*
+ * 說明文章（工具區下方）：文件樣式。沒有卡片、粗框與硬陰影，那些只留給工具卡，
+ * 一眼就分得出哪裡是應用程式、哪裡是說明。閱讀寬度 720px。
+ */
+.doc-steps { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 12px; }
+.doc-steps > li { display: flex; gap: 12px; align-items: flex-start; line-height: 1.7; }
+.doc-steps .step-no {
+  flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-top: 1px;
+  border-radius: 50%; background: #ffd12e; border: 2px solid #16130f; font-family: "Fredoka", ui-rounded, sans-serif; font-weight: 700; font-size: 14px;
+}
+.doc-faq { margin-top: 12px; border-top: 1.5px solid rgba(22, 19, 15, 0.18); }
+.doc-faq > details { border-bottom: 1.5px solid rgba(22, 19, 15, 0.18); }
+.doc-faq > details > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 2px;
+  font-family: "Fredoka", "Baloo 2", ui-rounded, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; font-weight: 700; color: #16130f;
+}
+.doc-faq > details > summary .faq-chevron { transition: transform 0.15s; }
+.doc-faq > details[open] > summary .faq-chevron { transform: rotate(180deg); }
+.doc-faq > details > p { margin: 0 2px 16px; line-height: 1.8; }
+.doc-links { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.doc-links a, .doc-chips a { color: #c2410c; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.doc-links a:hover, .doc-chips a:hover { color: #9a3412; }
+.doc-chips { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 20px; }
+.doc-chips > li { display: inline-flex; align-items: center; gap: 6px; }

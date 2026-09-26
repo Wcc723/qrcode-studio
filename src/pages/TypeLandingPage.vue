@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { qrTypeByPath } from '@/config/qr-types'
 import GeneratorTool from '@/components/GeneratorTool.vue'
+import ToolZone from '@/components/ToolZone.vue'
 import SeoContent from '@/components/SeoContent.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
@@ -22,16 +23,12 @@ useSeoHead({
 })
 </script>
 <template>
-  <div class="py-8">
-    <header class="max-w-screen-lg mx-auto px-4 mb-5">
-      <span class="chip bg-pop-sun reveal reveal-1"><span class="i-lucide-lock" aria-hidden="true" />免費・不傳雲端</span>
-      <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3 reveal reveal-2">{{ meta.h1 }}</h1>
-      <p class="text-muted font-600 mt-2 reveal reveal-3">{{ meta.description }}</p>
-    </header>
-    <div class="max-w-screen-lg mx-auto px-4">
-      <div class="reveal reveal-4"><GeneratorTool :default-type="meta.type" /></div>
-      <AdSlot slot-id="landing-below-tool" />
-    </div>
+  <div>
+    <ToolZone :lead="meta.lead">
+      <template #title>{{ meta.h1 }}</template>
+      <GeneratorTool :default-type="meta.type" />
+    </ToolZone>
+    <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="landing-below-tool" /></div>
     <SeoContent :meta="meta" />
   </div>
 </template>

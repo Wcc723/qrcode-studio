@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import BarcodeTool from '@/components/barcode/BarcodeTool.vue'
+import ToolZone from '@/components/ToolZone.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
@@ -34,25 +35,22 @@ useSeoHead({
 </script>
 
 <template>
-  <div class="py-8">
-    <header class="max-w-screen-lg mx-auto px-4 mb-5">
-      <span class="chip bg-pop-sky reveal reveal-1"><span class="i-lucide-lock" aria-hidden="true" />免費・不傳雲端</span>
-      <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3 reveal reveal-2">
-        一維條碼產生器（EAN-13、Code 128）
-      </h1>
-      <p class="text-muted font-600 mt-2 reveal reveal-3">
+  <div>
+    <ToolZone lead="Code 128、EAN-13 等 5 種格式，自動計算檢查碼">
+      <template #title>一維條碼產生器（EAN-13、Code 128）</template>
+      <BarcodeTool />
+    </ToolZone>
+    <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="barcode-below-tool" /></div>
+
+    <article class="max-w-[720px] mx-auto px-4 mt-10" data-test="doc">
+      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
+      <!-- 原本在標題下的兩句說明，移到文章開頭，一個字都不刪 -->
+      <p class="text-lg text-ink font-600 leading-relaxed" data-test="doc-lead">
         免費線上製作一維條碼，支援 Code 128、EAN-13、EAN-8、Code 39、ITF-14。
         瀏覽器內即時生成、不傳雲端，自動計算檢查碼，下載可直接印刷的 PNG 與 SVG 向量檔。
       </p>
-    </header>
 
-    <div class="max-w-screen-lg mx-auto px-4">
-      <div class="reveal reveal-4"><BarcodeTool /></div>
-      <AdSlot slot-id="barcode-below-tool" />
-    </div>
-
-    <article class="max-w-screen-lg mx-auto px-4 mt-12">
-      <h2 class="text-2xl font-800 text-ink">一維條碼與 QR Code（二維條碼）差在哪？</h2>
+      <h2 class="text-2xl font-800 text-ink mt-8">一維條碼與 QR Code（二維條碼）差在哪？</h2>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
         <strong class="text-ink">一維條碼</strong>由粗細不同的直條組成，只存得下十幾到二十幾位數字或英數，
         用途是對應一組商品編號或料號，品名與價格靠後端資料庫查。常見格式有 EAN-13、EAN-8、Code 128、Code 39 與 ITF-14。
@@ -63,8 +61,8 @@ useSeoHead({
       </p>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
         要做的是商品包裝、庫存標籤、圖書編號那種直條條碼，就用本頁的一維條碼產生器；
-        要做掃碼開網頁、加 LINE、連 WiFi 的方形圖，請改用<RouterLink to="/" class="text-brand underline font-700">免費 QR Code 產生器</RouterLink>或<RouterLink
-          to="/url/" class="text-brand underline font-700">網址 QR Code 產生器</RouterLink>。
+        要做掃碼開網頁、加 LINE、連 WiFi 的方形圖，請改用<RouterLink to="/" class="text-link underline font-700">免費 QR Code 產生器</RouterLink>或<RouterLink
+          to="/url/" class="text-link underline font-700">網址 QR Code 產生器</RouterLink>。
       </p>
 
       <h3 class="text-xl font-700 text-ink mt-8">五種格式怎麼選</h3>
@@ -77,18 +75,18 @@ useSeoHead({
       </ul>
 
       <h3 class="text-xl font-700 text-ink mt-8">使用步驟</h3>
-      <ol class="list-none pl-0 mt-4 grid gap-3 sm:grid-cols-3">
-        <li v-for="(s, i) in steps" :key="i" class="card p-4 flex gap-3 items-start">
-          <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">{{ i + 1 }}</span>
-          <span class="font-600 text-ink/85 leading-snug">{{ s }}</span>
+      <ol class="doc-steps text-ink/85 font-600">
+        <li v-for="(s, i) in steps" :key="i">
+          <span class="step-no">{{ i + 1 }}</span>
+          <span>{{ s }}</span>
         </li>
       </ol>
 
       <h3 class="text-xl font-700 text-ink mt-8">常見問題</h3>
-      <div class="mt-4 space-y-3">
-        <details v-for="(f, i) in faqs" :key="i" class="card p-4">
-          <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
-          <p class="text-ink/75 font-600 mt-2 leading-relaxed">{{ f.a }}</p>
+      <div class="doc-faq text-ink/85 font-600">
+        <details v-for="(f, i) in faqs" :key="i">
+          <summary>{{ f.q }}<span class="i-lucide-chevron-down faq-chevron" aria-hidden="true" /></summary>
+          <p>{{ f.a }}</p>
         </details>
       </div>
     </article>

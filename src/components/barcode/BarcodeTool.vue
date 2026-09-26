@@ -33,7 +33,8 @@ const png = computed(() => pngSize(scale.value))
 
 <template>
   <div class="card p-5 md:p-6">
-    <PrivacyNote mode="barcode" class="mb-4" />
+    <PrivacyNote mode="barcode" class="mb-5" />
+    <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>輸入內容</p>
     <SymbologyPicker v-model="sym" />
 
     <div class="mt-5 min-w-0">
@@ -43,6 +44,8 @@ const png = computed(() => pngSize(scale.value))
     </div>
 
     <hr class="border-t-2 border-dashed border-ink/15 my-5" />
+
+    <p class="zone-label"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-barcode" aria-hidden="true" /></span>預覽與下載</p>
 
     <BarcodePreview
       :svg="previewSvg" :pattern="pattern" :error="error"

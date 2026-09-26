@@ -23,7 +23,7 @@ useSeoHead({
 })
 </script>
 <template>
-  <article class="max-w-screen-md mx-auto px-4 py-10 text-muted leading-7 [&_a]:(text-brand underline font-700) [&_h2]:(text-lg font-700 text-ink mt-8) [&_p]:mt-3">
+  <article class="max-w-screen-md mx-auto px-4 py-10 text-muted leading-7 [&_a]:(text-link underline font-700) [&_h2]:(text-lg font-700 text-ink mt-8) [&_p]:mt-3">
     <h1 class="text-2xl font-700 text-ink">關於 {{ site.name }}</h1>
     <p>
       {{ site.name }} 是一組免費的 QR Code 與條碼工具，屬於<a :href="publisher.url">口袋工具 Pocketool</a>：<a :href="author.url">{{ author.name }}</a>（六角學院共同創辦人、軟體工程師與講師）打造的免費線上工具集，每個工具都以「免費、開箱即用、尊重隱私」為原則設計，由{{ author.name }}持續維護。所有 QR Code 與條碼都在你的瀏覽器內產生與解讀，不會上傳至雲端儲存空間，也沒有浮水印。

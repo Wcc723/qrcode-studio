@@ -42,16 +42,22 @@ async function copy() { await previewRef.value?.copyImage() }
 
 <template>
   <div class="card p-5 md:p-6">
-    <PrivacyNote mode="generate" class="mb-4" />
+    <PrivacyNote mode="generate" class="mb-5" />
+    <!-- 區塊標示是段落不是標題：頁面的 h1／h2／h3 大綱不因為分區而改變 -->
+    <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>輸入內容</p>
     <QrTypeTabs :model-value="current" @update:model-value="onType" />
     <div class="grid md:grid-cols-[1fr_auto] gap-6 mt-5">
       <div class="space-y-5 min-w-0">
         <component :is="activeInput" :key="`${current}:${handoffSeq}`" :initial="initial"
           @update:payload="payload = $event" />
         <hr class="border-t-2 border-dashed border-ink/15" />
-        <StylePanel v-model="style" />
+        <div>
+          <p class="zone-label"><span class="icon-badge-sm bg-pop-pink"><span class="i-lucide-palette" aria-hidden="true" /></span>外觀</p>
+          <StylePanel v-model="style" />
+        </div>
       </div>
       <div class="md:w-72 min-w-0">
+        <p class="zone-label"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-qr-code" aria-hidden="true" /></span>預覽與下載</p>
         <QrPreview ref="previewRef" :data="payload" :style="style" />
         <DownloadBar :download="download" :copy="copy" :disabled="!payload || overCapacity" />
       </div>

@@ -17,7 +17,7 @@ useSeoHead({
 })
 </script>
 <template>
-  <article class="max-w-screen-md mx-auto px-4 py-10 [&_a]:(text-brand underline font-700)">
+  <article class="max-w-screen-md mx-auto px-4 py-10 [&_a]:(text-link underline font-700)">
     <h1 class="text-2xl font-700 text-ink">隱私權政策</h1>
     <p class="text-sm text-muted font-600 mt-2">最後更新日期：<time :datetime="UPDATED.iso">{{ UPDATED.label }}</time></p>
 

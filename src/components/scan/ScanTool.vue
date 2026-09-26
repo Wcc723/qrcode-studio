@@ -76,7 +76,7 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
 
 <template>
   <div class="card p-5 md:p-6">
-    <PrivacyNote mode="scan" class="mb-4" />
+    <PrivacyNote mode="scan" class="mb-5" />
     <div
       data-test="scan-dropzone"
       class="rounded-2xl border-3 border-dashed p-6 text-center transition"

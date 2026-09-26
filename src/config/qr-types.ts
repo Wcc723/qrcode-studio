@@ -8,6 +8,7 @@ export interface QrTypeMeta {
   icon: string            // Lucide 圖示的 UnoCSS class（建置時打包）；首頁連結列與產生器分頁共用
   routeName: string
   h1: string
+  lead: string            // 工具區標題下的一行副標（30 字以內）；完整的 description 放在說明文章第一段
   title: string           // <title>
   description: string     // meta description
   intro: string           // landing 頁開頭段落
@@ -21,6 +22,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'url', path: '/url', routeName: 'url', label: '網址', icon: 'i-lucide-link',
     h1: '網址 QR Code 產生器',
+    lead: '貼上網址，馬上變成手機一掃就開的 QR Code',
     title: '網址轉 QR Code｜把連結變成 QR Code，免費下載 PNG/SVG',
     description: '免費線上把網址轉成 QR Code，瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不會過期。',
     intro: '輸入任何網址，立即在線上製作可掃描的網址 QR Code。整個過程在你的瀏覽器內完成、不傳雲端，完全免費、無浮水印，還能自訂顏色、加入品牌 LOGO，並下載高解析 PNG 或 SVG 向量檔。',
@@ -38,6 +40,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'wifi', path: '/wifi', routeName: 'wifi', label: 'WiFi', icon: 'i-lucide-wifi',
     h1: 'WiFi QR Code 產生器',
+    lead: '訪客一掃就連上 WiFi，不必再一個一個報密碼',
     title: 'WiFi QR Code 產生器｜免費製作，掃碼免輸密碼自動連線',
     description: '免費製作 WiFi QR Code，訪客用手機掃一下即可自動連上無線網路、免手動輸入密碼。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。',
     intro: '輸入網路名稱（SSID）與密碼，立即產生 WiFi QR Code。貼在店面、民宿、會議室或租屋處，客人用手機相機一掃就自動連線，再也不用一個一個唸密碼。免費、不傳雲端、可自訂外觀。',
@@ -55,6 +58,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'vcard', path: '/vcard', routeName: 'vcard', label: '電子名片', icon: 'i-lucide-contact',
     h1: '電子名片 vCard QR Code 產生器',
+    lead: '對方一掃，就能把你的聯絡資訊存進通訊錄',
     title: '電子名片 QR Code 產生器｜vCard 一掃存入通訊錄（免費）',
     description: '免費製作電子名片 vCard QR Code，對方掃碼即可把姓名、電話、Email、公司一鍵存入手機通訊錄。瀏覽器內生成、不傳雲端，可加 LOGO 下載 PNG/SVG。',
     intro: '輸入姓名、電話、Email、公司等聯絡資訊，產生電子名片 QR Code（vCard）。對方掃描後可直接把你存進手機通訊錄，最適合放在紙本名片、Email 簽名檔或展場攤位，省去手動輸入。',
@@ -71,6 +75,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'text', path: '/text', routeName: 'text', label: '純文字', icon: 'i-lucide-type',
     h1: '純文字 QR Code 產生器',
+    lead: '掃描後直接顯示文字，不會開啟任何網頁',
     title: '文字 QR Code 產生器｜任意文字轉 QR Code（免費線上）',
     description: '免費線上把任意文字轉成 QR Code，瀏覽器內即時生成、不傳雲端，可自訂顏色與 LOGO，下載 PNG / SVG。適合序號、留言、說明與活動暗號。',
     intro: '輸入任何文字內容，立即產生純文字 QR Code。掃描後會直接顯示文字，不需開啟網頁，適合產品序號、設備編號、留言卡片、活動暗號或簡短說明。免費、不傳雲端、可自訂外觀。',
@@ -87,6 +92,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'email', path: '/email', routeName: 'email', label: 'Email', icon: 'i-lucide-mail',
     h1: 'Email QR Code 產生器',
+    lead: '一掃就開好郵件，收件者、主旨與內文都帶好',
     title: 'Email QR Code 產生器｜掃碼直接寄信（免費、可帶主旨內文）',
     description: '免費製作 Email QR Code，掃碼自動開啟郵件 App 並帶入收件者、主旨與內文。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。',
     intro: '輸入收件者、主旨與內文，產生可直接寄信的 Email QR Code。掃描後會自動開啟郵件 App 並帶好內容，使用者確認後送出即可，方便客服、報修、活動報名與表單回收。免費、不傳雲端。',
@@ -102,6 +108,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'phone', path: '/phone', routeName: 'phone', label: '電話', icon: 'i-lucide-phone',
     h1: '電話 QR Code 產生器',
+    lead: '一掃就跳到撥號畫面，號碼已經帶好',
     title: '電話 QR Code 產生器｜掃碼一鍵撥號（免費線上製作）',
     description: '免費線上製作電話 QR Code，掃碼即可一鍵撥號，免手動輸入號碼。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。適合店家、傳單與服務專線。',
     intro: '輸入電話號碼，立即產生可一鍵撥號的電話 QR Code。掃描後手機會直接帶出撥號畫面，適合店家招牌、傳單、菜單與客服專線，讓客人少打幾個字、快速聯絡你。免費、不傳雲端。',
@@ -117,6 +124,7 @@ export const qrTypes: QrTypeMeta[] = [
   {
     type: 'sms', path: '/sms', routeName: 'sms', label: '簡訊', icon: 'i-lucide-message-square',
     h1: '簡訊 SMS QR Code 產生器',
+    lead: '一掃就開好簡訊，號碼與內容都帶好',
     title: '簡訊 QR Code 產生器｜掃碼帶入號碼與內容（免費）',
     description: '免費製作簡訊 SMS QR Code，掃碼自動開啟簡訊並帶入收件號碼與內容。瀏覽器內生成、不傳雲端，可自訂外觀並下載 PNG / SVG。適合活動報名與投票。',
     intro: '輸入收件號碼與訊息內容，產生簡訊 QR Code。掃描後會自動開啟簡訊 App 並帶好號碼與內容，常用於活動報名、抽獎投票與回覆指定關鍵字。免費、不傳雲端、可自訂外觀。',

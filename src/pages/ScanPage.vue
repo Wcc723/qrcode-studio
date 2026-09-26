@@ -9,6 +9,7 @@
  * 元件內部），這樣沒有 JavaScript 的爬蟲與讀者也拿得到完整資訊。
  */
 import ScanTool from '@/components/scan/ScanTool.vue'
+import ToolZone from '@/components/ToolZone.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
@@ -61,26 +62,23 @@ useSeoHead({
 </script>
 
 <template>
-  <div class="py-8">
-    <header class="max-w-screen-lg mx-auto px-4 mb-5">
-      <span class="chip bg-pop-mint reveal reveal-1"><span class="i-lucide-lock" aria-hidden="true" />在你的瀏覽器內解碼・圖片不上傳</span>
-      <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3 reveal reveal-2">
-        QR Code 掃描器：用圖片或截圖解碼
-      </h1>
-      <p class="text-muted font-600 mt-2 reveal reveal-3">
+  <div>
+    <ToolZone lead="拖放、選檔或貼上截圖，在瀏覽器內讀出 QR Code 與條碼">
+      <template #title>QR Code 掃描器：用圖片或截圖解碼</template>
+      <ScanTool />
+    </ToolZone>
+    <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="scan-below-tool" /></div>
+
+    <article class="max-w-[720px] mx-auto px-4 mt-10" data-test="doc">
+      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
+      <!-- 原本在標題下的三句說明，移到文章開頭，一個字都不刪 -->
+      <p class="text-lg text-ink font-600 leading-relaxed" data-test="doc-lead">
         把電腦或手機裡已經有的圖片丟進來就好：拖放、選檔案，或直接貼上截圖。
         支援 QR Code 與 Code 128、EAN-13、EAN-8、Code 39、ITF-14。
         不必安裝軟體、不需要相機權限，圖片與解讀出來的內容都留在你的瀏覽器裡。
       </p>
-    </header>
 
-    <div class="max-w-screen-lg mx-auto px-4">
-      <div class="reveal reveal-4"><ScanTool /></div>
-      <AdSlot slot-id="scan-below-tool" />
-    </div>
-
-    <article class="max-w-screen-lg mx-auto px-4 mt-12">
-      <h2 class="text-2xl font-800 text-ink">什麼情況適合用網頁解碼圖片？</h2>
+      <h2 class="text-2xl font-800 text-ink mt-8">什麼情況適合用網頁解碼圖片？</h2>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
         手機相機掃眼前的實體 QR Code 又快又準，不需要網頁插手。真正麻煩的是
         <strong class="text-ink">條碼已經是一張圖</strong>的時候：同事用 LINE 傳來的截圖、
@@ -94,14 +92,14 @@ useSeoHead({
       </p>
 
       <h3 class="text-xl font-700 text-ink mt-8">使用步驟</h3>
-      <ol class="list-none pl-0 mt-4 grid gap-3 sm:grid-cols-3">
-        <li class="card p-4 flex gap-3 items-start">
-          <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">1</span>
-          <span class="font-600 text-ink/85 leading-snug">把圖片拖進虛線框，或按「選擇圖片」，也可以直接 <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> 貼上截圖</span>
+      <ol class="doc-steps text-ink/85 font-600">
+        <li>
+          <span class="step-no">1</span>
+          <span>把圖片拖進虛線框，或按「選擇圖片」，也可以直接 <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> 貼上截圖</span>
         </li>
-        <li v-for="(s, i) in steps" :key="i" class="card p-4 flex gap-3 items-start">
-          <span class="shrink-0 w-7 h-7 rounded-full bg-pop-sun border-2 border-ink font-display font-700 flex items-center justify-center text-sm">{{ i + 2 }}</span>
-          <span class="font-600 text-ink/85 leading-snug">{{ s }}</span>
+        <li v-for="(s, i) in steps" :key="i">
+          <span class="step-no">{{ i + 2 }}</span>
+          <span>{{ s }}</span>
         </li>
       </ol>
 
@@ -114,27 +112,27 @@ useSeoHead({
         <li><strong class="text-ink">不支援 SVG</strong>：SVG 可以夾帶腳本與外部參照，不適合拿來路過算圖。請改用 PNG、JPEG 或 WebP。</li>
       </ul>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
-        完整說明見<RouterLink to="/privacy/" class="text-brand underline font-700">隱私權政策</RouterLink>，
-        解碼器的第三方授權列在<RouterLink to="/about/" class="text-brand underline font-700">關於頁</RouterLink>。
+        完整說明見<RouterLink to="/privacy/" class="text-link underline font-700">隱私權政策</RouterLink>，
+        解碼器的第三方授權列在<RouterLink to="/about/" class="text-link underline font-700">關於頁</RouterLink>。
       </p>
 
       <h2 class="text-2xl font-800 text-ink mt-10">想用手機掃眼前的 QR Code？</h2>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
         那種情況不必用這一頁。iPhone 與 Android 的內建相機、LINE 的行動條碼掃描器都能直接掃，
-        步驟與設定位置整理在<RouterLink to="/guide/scan-qr-code/" class="text-brand underline font-700">如何掃描 QR Code（手機相機、LINE、電腦）</RouterLink>。
+        步驟與設定位置整理在<RouterLink to="/guide/scan-qr-code/" class="text-link underline font-700">如何掃描 QR Code（手機相機、LINE、電腦）</RouterLink>。
         本頁處理的是另一半：<strong class="text-ink">條碼已經變成圖片</strong>的時候怎麼讀。
       </p>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
-        要反過來自己<strong class="text-ink">製作</strong>條碼，請用<RouterLink to="/" class="text-brand underline font-700">免費 QR Code 產生器</RouterLink>或<RouterLink
-          to="/barcode/" class="text-brand underline font-700">一維條碼產生器</RouterLink>。
+        要反過來自己<strong class="text-ink">製作</strong>條碼，請用<RouterLink to="/" class="text-link underline font-700">免費 QR Code 產生器</RouterLink>或<RouterLink
+          to="/barcode/" class="text-link underline font-700">一維條碼產生器</RouterLink>。
         解碼出來的內容也可以直接按「用此內容重新產生」帶過去。
       </p>
 
       <h3 class="text-xl font-700 text-ink mt-8">常見問題</h3>
-      <div class="mt-4 space-y-3">
-        <details v-for="(f, i) in faqs" :key="i" class="card p-4">
-          <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
-          <p class="text-ink/75 font-600 mt-2 leading-relaxed">{{ f.a }}</p>
+      <div class="doc-faq text-ink/85 font-600">
+        <details v-for="(f, i) in faqs" :key="i">
+          <summary>{{ f.q }}<span class="i-lucide-chevron-down faq-chevron" aria-hidden="true" /></summary>
+          <p>{{ f.a }}</p>
         </details>
       </div>
     </article>

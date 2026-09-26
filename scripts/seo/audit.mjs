@@ -270,6 +270,57 @@ for (const [page, needles] of [
 }
 
 // ───────────────────────────────────────────────────────────────────
+// 工具區與說明文章：工具頁的標題下只留一行副標，原本那段完整說明移到說明文章開頭。
+// SEO 內文一個字都不能刪，只能移出工具區，所以要在產物上對帳：
+//   ① 每個工具頁都有工具區（data-test="tool-zone"）與它後面的說明文章（data-test="doc"）
+//   ② 原本標題下的句子還在預渲染 HTML 的內文裡，而且落在說明文章，不在工具區
+// 比對時拿掉所有空白：模板裡的長句會跨行。
+// ───────────────────────────────────────────────────────────────────
+{
+  const squash = (s) => s.replace(/\s+/g, '')
+  const textOf = (html) => squash((html ?? '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ''))
+  const MOVED = {
+    '': ['線上免費製作 QR Code（QRCode）：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。'],
+    'scan/': [
+      '把電腦或手機裡已經有的圖片丟進來就好：拖放、選檔案，或直接貼上截圖。',
+      '支援 QR Code 與 Code 128、EAN-13、EAN-8、Code 39、ITF-14。',
+      '不必安裝軟體、不需要相機權限，圖片與解讀出來的內容都留在你的瀏覽器裡。',
+    ],
+    'barcode/': [
+      '免費線上製作一維條碼，支援 Code 128、EAN-13、EAN-8、Code 39、ITF-14。',
+      '瀏覽器內即時生成、不傳雲端，自動計算檢查碼，下載可直接印刷的 PNG 與 SVG 向量檔。',
+    ],
+  }
+  // 7 個類型頁：標題下原本就是 meta description 那一句
+  for (const t of ['url', 'wifi', 'vcard', 'text', 'email', 'phone', 'sms']) MOVED[`${t}/`] = null
+  for (const [dir, sentences] of Object.entries(MOVED)) {
+    const file = join(distDir, dir, 'index.html')
+    if (!existsSync(file)) { add(`[${dir || '/'}] 工具頁存在`, false); continue }
+    const html = readFileSync(file, 'utf8')
+    const zoneAt = html.indexOf('data-test="tool-zone"')
+    const docAt = html.indexOf('data-test="doc"')
+    add(`[${dir || '/'}] 有工具區，說明文章在它後面`, zoneAt !== -1 && docAt > zoneAt)
+    add(`[${dir || '/'}] 只有一個 h1`, (html.match(/<h1[\s>]/g) ?? []).length === 1)
+    const zoneText = textOf(html.slice(zoneAt, docAt))
+    const docText = textOf(html.slice(docAt))
+    const needles = sentences ?? [metaContent(html, 'description') ?? '(沒有 description)']
+    for (const s of needles) {
+      const n = squash(s)
+      add(`[${dir || '/'}] 內文仍有「${s.slice(0, 16)}…」且在說明文章裡`, docText.includes(n) && !zoneText.includes(n))
+    }
+  }
+  // 掃描頁「安全與隱私」的五條留在說明文章裡（工具裡的「?」可以重述其中幾句，所以不檢查工具區）
+  const scanFile = join(distDir, 'scan', 'index.html')
+  if (existsSync(scanFile)) {
+    const html = readFileSync(scanFile, 'utf8')
+    const docText = textOf(html.slice(html.indexOf('data-test="doc"')))
+    for (const s of ['圖片不離開瀏覽器', '不自動開啟任何東西', '只有 http 與 https 給開啟按鈕', '一次一張、一個碼', 'SVG 可以夾帶腳本與外部參照']) {
+      add(`[scan/] 安全與隱私仍有「${s}」`, docText.includes(squash(s)))
+    }
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────
 // 解碼器的資產邊界
 // ───────────────────────────────────────────────────────────────────
 const assetsDir = join(distDir, 'assets')

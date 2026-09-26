@@ -79,7 +79,7 @@ useSeoHead({
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
     <h1 class="text-3xl font-800 text-ink">QR Code 產生器常見問題</h1>
-    <p class="text-ink/80 font-600 mt-4 leading-7">使用 {{ site.name }} 時最常被問到的問題，依主題分類。想看更完整的說明與圖例，可以到<RouterLink to="/guide/" class="text-brand underline underline-offset-2 font-700">教學總覽</RouterLink>。</p>
+    <p class="text-ink/80 font-600 mt-4 leading-7">使用 {{ site.name }} 時最常被問到的問題，依主題分類。想看更完整的說明與圖例，可以到<RouterLink to="/guide/" class="text-link underline underline-offset-2 font-700">教學總覽</RouterLink>。</p>
     <nav aria-label="問題分類" class="mt-5 flex flex-wrap gap-2">
       <a v-for="g in groups" :key="g.id" :href="`#${g.id}`" class="chip bg-white hover:bg-pop-sun transition">{{ g.title }}</a>
     </nav>
@@ -89,11 +89,11 @@ useSeoHead({
       <div class="mt-4 space-y-3">
         <details v-for="(f, i) in g.items" :key="i" class="card p-4">
           <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
-          <p class="text-ink/75 font-600 mt-2 leading-relaxed [&_a]:(text-brand underline underline-offset-2 font-700)" v-html="withBase(f.a)" />
+          <p class="text-ink/75 font-600 mt-2 leading-relaxed [&_a]:(text-link underline underline-offset-2 font-700)" v-html="withBase(f.a)" />
         </details>
       </div>
     </section>
 
-    <p class="mt-10 text-ink/80 font-600 leading-7">找不到你的問題？歡迎透過口袋工具的<a :href="publisher.contactUrl" class="text-brand underline underline-offset-2 font-700">聯絡我們</a>頁面告訴我們。</p>
+    <p class="mt-10 text-ink/80 font-600 leading-7">找不到你的問題？歡迎透過口袋工具的<a :href="publisher.contactUrl" class="text-link underline underline-offset-2 font-700">聯絡我們</a>頁面告訴我們。</p>
   </article>
 </template>

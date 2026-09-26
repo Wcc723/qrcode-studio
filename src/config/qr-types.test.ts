@@ -38,4 +38,15 @@ describe('類型頁的 FAQ 與延伸閱讀', () => {
   it('文案不用破折號「——」', () => {
     expect(JSON.stringify(qrTypes)).not.toContain('——')
   })
+  it('工具區的副標只有一行（30 字以內），跟 description 不同：完整的那句放在說明文章開頭', () => {
+    for (const t of qrTypes) {
+      expect(t.lead.length, t.type).toBeGreaterThan(0)
+      expect(t.lead.length, t.type).toBeLessThanOrEqual(30)
+      expect(t.lead, t.type).not.toBe(t.description)
+    }
+  })
+  it('每種類型都有建置時打包的 Lucide 圖示', () => {
+    for (const t of qrTypes) expect(t.icon, t.type).toMatch(/^i-lucide-[a-z0-9-]+$/)
+    expect(new Set(qrTypes.map(t => t.icon)).size).toBe(qrTypes.length)
+  })
 })

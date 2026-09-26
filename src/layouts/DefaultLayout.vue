@@ -41,42 +41,42 @@ const nav = [
           <h2 class="font-display font-700 text-ink text-base">QR Code 類型</h2>
           <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
             <li v-for="t in qrTypes" :key="t.type">
-              <RouterLink :to="`${t.path}/`" class="hover:text-brand transition">{{ t.label }} QR Code</RouterLink>
+              <RouterLink :to="`${t.path}/`" class="hover:text-link transition">{{ t.label }} QR Code</RouterLink>
             </li>
           </ul>
         </section>
         <section>
           <h2 class="font-display font-700 text-ink text-base">其他工具</h2>
           <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><RouterLink to="/" class="hover:text-brand transition">免費 QR Code 產生器</RouterLink></li>
-            <li><RouterLink to="/scan/" class="hover:text-brand transition">QR Code 掃描器</RouterLink></li>
-            <li><RouterLink to="/barcode/" class="hover:text-brand transition">一維條碼產生器</RouterLink></li>
-            <li><a :href="publisher.toolsUrl" class="hover:text-brand transition">更多免費工具</a></li>
+            <li><RouterLink to="/" class="hover:text-link transition">免費 QR Code 產生器</RouterLink></li>
+            <li><RouterLink to="/scan/" class="hover:text-link transition">QR Code 掃描器</RouterLink></li>
+            <li><RouterLink to="/barcode/" class="hover:text-link transition">一維條碼產生器</RouterLink></li>
+            <li><a :href="publisher.toolsUrl" class="hover:text-link transition">更多免費工具</a></li>
           </ul>
         </section>
         <section>
           <h2 class="font-display font-700 text-ink text-base">教學</h2>
           <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
             <li v-for="g in guides" :key="g.slug">
-              <RouterLink :to="`/guide/${g.slug}/`" class="hover:text-brand transition">{{ g.shortTitle }}</RouterLink>
+              <RouterLink :to="`/guide/${g.slug}/`" class="hover:text-link transition">{{ g.shortTitle }}</RouterLink>
             </li>
-            <li><RouterLink to="/guide/" class="inline-flex items-center gap-1 hover:text-brand transition">所有教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></li>
+            <li><RouterLink to="/guide/" class="inline-flex items-center gap-1 hover:text-link transition">所有教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></li>
           </ul>
         </section>
         <section>
           <h2 class="font-display font-700 text-ink text-base">關於</h2>
           <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><RouterLink to="/about/" class="hover:text-brand transition">關於 {{ site.name }}</RouterLink></li>
-            <li><RouterLink to="/faq/" class="hover:text-brand transition">常見問題</RouterLink></li>
-            <li><RouterLink to="/privacy/" class="hover:text-brand transition">隱私權政策</RouterLink></li>
-            <li><a :href="publisher.contactUrl" class="hover:text-brand transition">聯絡我們</a></li>
-            <li><a :href="publisher.url" class="hover:text-brand transition">口袋工具 Pocketool</a></li>
+            <li><RouterLink to="/about/" class="hover:text-link transition">關於 {{ site.name }}</RouterLink></li>
+            <li><RouterLink to="/faq/" class="hover:text-link transition">常見問題</RouterLink></li>
+            <li><RouterLink to="/privacy/" class="hover:text-link transition">隱私權政策</RouterLink></li>
+            <li><a :href="publisher.contactUrl" class="hover:text-link transition">聯絡我們</a></li>
+            <li><a :href="publisher.url" class="hover:text-link transition">口袋工具 Pocketool</a></li>
           </ul>
         </section>
       </div>
       <div class="border-t-2 border-ink/10">
         <p class="max-w-screen-lg mx-auto px-4 py-4 text-xs text-muted font-600">
-          © {{ site.name }} · <a :href="publisher.url" class="hover:text-brand underline underline-offset-2">口袋工具 Pocketool</a> 出品 · <span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端
+          © {{ site.name }} · <a :href="publisher.url" class="hover:text-link underline underline-offset-2">口袋工具 Pocketool</a> 出品 · <span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端
         </p>
       </div>
     </footer>

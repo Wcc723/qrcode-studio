@@ -31,19 +31,19 @@ useSeoHead({
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
     <nav aria-label="麵包屑" class="text-sm text-muted font-600">
-      <RouterLink to="/" class="hover:text-brand underline underline-offset-2">首頁</RouterLink>
+      <RouterLink to="/" class="hover:text-link underline underline-offset-2">首頁</RouterLink>
       <span class="mx-1.5">›</span>
-      <RouterLink to="/guide/" class="hover:text-brand underline underline-offset-2">教學</RouterLink>
+      <RouterLink to="/guide/" class="hover:text-link underline underline-offset-2">教學</RouterLink>
     </nav>
     <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3">{{ g.title }}</h1>
     <p class="text-sm text-muted font-600 mt-3" data-test="guide-byline">
-      作者：<a :href="author.url" class="underline underline-offset-2 hover:text-brand">{{ author.name }}</a>（<a :href="publisher.url" class="underline underline-offset-2 hover:text-brand">口袋工具</a>）
+      作者：<a :href="author.url" class="underline underline-offset-2 hover:text-link">{{ author.name }}</a>（<a :href="publisher.url" class="underline underline-offset-2 hover:text-link">口袋工具</a>）
       <span class="mx-1.5">·</span>
       最後更新：<time :datetime="g.updated">{{ zhDate(g.updated) }}</time>
       <span class="mx-1.5">·</span>
       首次發布：<time :datetime="g.published">{{ zhDate(g.published) }}</time>
     </p>
-    <div class="guide-body mt-5 text-ink/80 font-600 leading-7 [&_p]:my-3 [&_h2]:(text-xl font-800 text-ink mt-8 mb-2) [&_h3]:(text-lg font-700 text-ink mt-5 mb-1) [&_ul]:(list-disc pl-5 my-3 space-y-1) [&_ol]:(list-decimal pl-5 my-3) [&_li]:my-1 [&_a]:(text-brand underline underline-offset-2 font-700 hover:text-brand-700) [&_strong]:text-ink [&_code]:(bg-pop-sun/30 px-1 rounded font-mono text-sm break-all)" v-html="bodyHtml" />
+    <div class="guide-body mt-5 text-ink/80 font-600 leading-7 [&_p]:my-3 [&_h2]:(text-xl font-800 text-ink mt-8 mb-2) [&_h3]:(text-lg font-700 text-ink mt-5 mb-1) [&_ul]:(list-disc pl-5 my-3 space-y-1) [&_ol]:(list-decimal pl-5 my-3) [&_li]:my-1 [&_a]:(text-link underline underline-offset-2 font-700 hover:text-link-700) [&_strong]:text-ink [&_code]:(bg-pop-sun/30 px-1 rounded font-mono text-sm break-all)" v-html="bodyHtml" />
 
     <section class="mt-10" data-test="related-guides">
       <h2 class="text-xl font-800 text-ink">相關教學</h2>
@@ -55,7 +55,7 @@ useSeoHead({
           </RouterLink>
         </li>
       </ul>
-      <p class="mt-4 text-sm font-600 text-muted"><RouterLink to="/guide/" class="text-brand underline underline-offset-2 font-700">看全部 QR Code 教學</RouterLink></p>
+      <p class="mt-4 text-sm font-600 text-muted"><RouterLink to="/guide/" class="text-link underline underline-offset-2 font-700">看全部 QR Code 教學</RouterLink></p>
     </section>
 
     <RouterLink to="/" class="btn-primary inline-flex mt-8">開始製作 QR Code</RouterLink>
