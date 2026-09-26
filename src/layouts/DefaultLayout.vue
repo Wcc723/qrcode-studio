@@ -3,6 +3,10 @@ import { qrTypes } from '@/config/qr-types'
 import { guides } from '@/content/guides'
 import { site, publisher } from '@/config/site'
 
+// 站徽是 public/ 底下的點陣圖（scripts/brand/render.mjs 產生）。模板裡寫死 /logo-64.png 不會經過 Vite base，
+// 在子路徑下會連到 hub 的 404，所以從 BASE_URL 組出網址。
+const base = import.meta.env.BASE_URL
+
 // 頁首導覽：桌機是一排膠囊，手機在標題列下方另起一排（可橫向捲動）。
 const nav = [
   { to: '/', label: '產生器' },
@@ -18,7 +22,7 @@ const nav = [
       <div class="max-w-screen-lg mx-auto px-4 h-16 flex items-center justify-between gap-3">
         <!-- 320 到 359px：站名縮一級，右邊「口袋工具」才不會壓到頁面邊距 -->
         <RouterLink to="/" class="flex items-center gap-2.5 max-[359px]:gap-2 font-display font-700 text-xl max-[359px]:text-lg text-ink whitespace-nowrap shrink-0">
-          <span class="w-8 h-8 rounded-lg bg-brand border-2 border-ink shadow-[2px_2px_0_#16130f] inline-flex items-center justify-center text-white text-sm">▦</span>
+          <img :src="`${base}logo-64.png`" :srcset="`${base}logo-64.png 2x, ${base}logo-96.png 3x`" width="32" height="32" alt="" class="w-8 h-8 shrink-0" data-test="site-logo">
           <span data-test="site-name">{{ site.name }}</span>
         </RouterLink>
         <nav aria-label="主選單" class="hidden md:flex items-center gap-1.5 text-sm font-700">

@@ -9,7 +9,7 @@ const changelog = [
   { date: '2026 年 9 月 20 日', text: '新增 QR Code 掃描器：把截圖或圖檔丟進來，在瀏覽器內解碼。' },
   { date: '2026 年 9 月 21 日', text: '修正中文、emoji 內容產生的 QR Code 掃出來是亂碼的問題，之前做好、內容含中文或 emoji 的 QR Code 請重新產生一張替換；教學文章全面改寫並新增教學總覽。' },
   { date: '2026 年 9 月 26 日', text: '工具區與下方說明分開，長說明收進欄名旁的「?」，畫面上的 emoji 換成圖示；修正透明背景下載 JPG 會變成黑底的問題。' },
-  { date: '2026 年 9 月 26 日', text: `改名為 ${site.name}（原名 ${site.formerNames[0]}），網址不變。` },
+  { date: '2026 年 9 月 26 日', text: `改名為 ${site.name}（原名 ${site.formerNames[0]}），網址不變；換上新的站徽，並補上手機加入主畫面用的圖示。` },
 ]
 
 useSeoHead({

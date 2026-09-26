@@ -196,12 +196,40 @@ if (existsSync(logoFile)) {
   add('Organization logo 存在（pocketool-logo.png）', false)
 }
 
-// favicon：沒有 <link rel="icon"> 的話瀏覽器會去抓根網域的 /favicon.ico（hub 的圖示）。
+// 站徽與圖示：沒有這些 <link> 的話，瀏覽器與 iOS 會去抓根網域的 /favicon.ico、/apple-touch-icon.png（hub 的圖示）。
+// 圖檔由 scripts/brand/render.mjs 產生；apple-touch-icon 與 manifest 圖示必須不透明（iOS 會把透明補成黑色）。
 {
   const home = readFileSync(join(distDir, 'index.html'), 'utf8')
-  const icon = pick(home, /<link[^>]+rel=["']icon["'][^>]+href=["']([^"']+)["']/i)
-  add('首頁有 favicon 且指向本站前綴下存在的檔案',
-    !!icon && !!basePath && icon.startsWith(basePath) && existsSync(join(distDir, icon.slice(basePath.length))), icon || '')
+  const inDist = (href) => !!href && !!basePath && href.startsWith(basePath) && existsSync(join(distDir, href.slice(basePath.length)))
+  const links = [...home.matchAll(/<link[^>]+>/gi)].map((m) => m[0])
+  const hrefOf = (re) => links.filter((l) => re.test(l)).map((l) => pick(l, /href=["']([^"']+)["']/i))
+  for (const [label, re, file] of [
+    ['favicon.svg', /rel=["']icon["'][^>]*type=["']image\/svg\+xml["']|type=["']image\/svg\+xml["'][^>]*rel=["']icon["']/i, 'favicon.svg'],
+    ['favicon.ico', /rel=["']icon["']/i, 'favicon.ico'],
+    ['apple-touch-icon', /rel=["']apple-touch-icon["']/i, 'apple-touch-icon.png'],
+    ['manifest', /rel=["']manifest["']/i, 'manifest.webmanifest'],
+  ]) {
+    const href = hrefOf(re).find((h) => h?.endsWith(file))
+    add(`首頁有 ${label} 且指向本站前綴下存在的檔案`, inDist(href), href || '')
+  }
+  const touch = existsSync(join(distDir, 'apple-touch-icon.png')) ? pngInfo(join(distDir, 'apple-touch-icon.png')) : null
+  add('apple-touch-icon 是 180×180、不透明的 RGB PNG', !!touch && touch.w === 180 && touch.h === 180 && touch.colorType === 2 && !touch.hasTrns,
+    touch ? `${touch.w}×${touch.h}，色彩類型 ${touch.colorType}` : '')
+  const manifestFile = join(distDir, 'manifest.webmanifest')
+  let manifest = null
+  try { manifest = JSON.parse(readFileSync(manifestFile, 'utf8')) } catch { /* 下面會報 */ }
+  add(`manifest 可解析、名稱是「${PRODUCT_NAME}」`, manifest?.name === PRODUCT_NAME && manifest?.short_name === PRODUCT_NAME, manifest?.name ?? '')
+  for (const icon of manifest?.icons ?? []) {
+    const file = join(distDir, icon.src)
+    const info = existsSync(file) && !icon.src.startsWith('/') ? pngInfo(file) : null
+    add(`manifest 圖示 ${icon.src} 存在、尺寸相符、不透明`,
+      !!info && `${info.w}x${info.h}` === icon.sizes && info.colorType === 2 && !info.hasTrns, info ? `${info.w}x${info.h}` : '找不到或不是相對路徑')
+  }
+  // 頁首站徽：srcset 也不經 Vite base，要自己驗前綴
+  const logoTag = pick(home, /(<img[^>]+data-test="site-logo"[^>]*>)/i) ?? ''
+  const logoUrls = [pick(logoTag, /\ssrc="([^"]+)"/), ...(pick(logoTag, /srcset="([^"]+)"/) ?? '').split(',').map((c) => c.trim().split(/\s+/)[0])]
+    .filter(Boolean)
+  add('頁首站徽的 src 與 srcset 都帶前綴、檔案存在', logoUrls.length === 3 && logoUrls.every(inDist), logoUrls.join(' '))
 }
 
 // 頁面類型：JSON-LD 的主類型要跟頁面性質一致。
