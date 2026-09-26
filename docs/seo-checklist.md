@@ -1,10 +1,10 @@
-# SEO 上線檢核清單 — QRTool
+# SEO 上線檢核清單：QR Code 製造機
 
 > 網址：`https://www.pocketool.app/qrcode-studio/`　·　產生日期：2026-06-01，2026-09 更新
 > 2026-09 由子網域 `qrcode-studio.pocketool.app` 搬到 www 主網域子路徑，舊網址以 Cloudflare Bulk Redirect 301 過來。
 > 標記：✅ 完成　❌ 未完成　⚠️ 需手動（外部平台 / 待補資產，無法由程式驗證）
 
-## A. 技術基礎（程式可驗 — `npm run seo:audit`，目前 113/113 PASS，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
+## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-26 共 497 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
 - [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（18 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）

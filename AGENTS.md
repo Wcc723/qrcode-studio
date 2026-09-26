@@ -14,7 +14,7 @@
 
 ## 這個 repo 是什麼
 
-**QR Code Studio**，正式網址 `https://www.pocketool.app/qrcode-studio/`。在瀏覽器內產生
+**QR Code 製造機**（英文 QR Code Maker，2026-09-26 前叫 QR Code Studio），正式網址 `https://www.pocketool.app/qrcode-studio/`。在瀏覽器內產生
 網址 / WiFi / 電子名片 / Email 等類型的 QR Code，可自訂顏色、漸層、LOGO 與容錯等級，
 下載 PNG / SVG / JPG。Vue 3 + Vite + vite-ssg + UnoCSS（圖示用建置時打包的 Lucide），
 每條路由都預渲染成靜態 HTML。
@@ -207,6 +207,25 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 - `src/no-emoji.test.ts` 掃元件、設定與教學本文（`©`、`™`、`®` 例外，測試檔不掃）；`seo:audit` 驗
   各頁內容沒有 emoji、用到的 `i-lucide-*` 在 CSS 裡都有規則（圖示集沒裝時 class 會靜默失效）、
   產物沒有連到線上圖示服務。新增圖示時 `NOTICE.md` 不必改，Lucide 的授權已經寫在那裡。
+
+## 產品名與站徽
+
+2026-09-26 由 QR Code Studio 改名為 QR Code 製造機。**只換顯示的名字**：網址 slug、Worker 名、GA 的 `content_group`
+都還是 `qrcode-studio`，不要跟著改。
+
+- **唯一開關是 `src/config/site.ts`**：`name`（產品名）、`nameEn`（英文名）、`formerNames`（舊名）、`siteName`（og:site_name）、
+  `trademark`（商標聲明）。頁面與元件一律用 `site.name`，不要寫死；`src/brand.test.ts` 掃原始碼，寫死新名或舊名都會紅。
+- **舊名只出現在兩處**：JSON-LD `WebSite.alternateName`（跟英文名一起）與關於頁更新紀錄的「原名」。`seo:audit` 逐頁驗
+  title、og 標籤與畫面文字沒有舊名（關於頁剛好一次）。
+- **title**：首頁與 7 個類型頁本來就沒有品牌後綴，改名不動；FAQ、教學總覽、隱私權、404 的後綴與關於頁跟著 `site.name`。
+  `seo:audit` 的 `PRODUCT_NAME` 刻意再寫一次、不從 `site.ts` 推導，改名時兩邊一起改。
+- **商標聲明**：名稱含 QR Code，頁尾與關於頁的「商標」一節都要有 DENSO WAVE 的註冊商標聲明（`site.trademark`），`seo:audit` 逐頁驗。
+- **站徽**：正本在 `scripts/brand/`（`logo-source.png` 與分頁圖示用的簡化版 `favicon-source.png`），`node scripts/brand/render.mjs`
+  從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與三張分享圖（產物進版控，不進 build）。
+  選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
+- 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
+  `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。
+- JSON-LD 的 `Organization` 是出品方口袋工具，logo 維持 `public/pocketool-logo.png`，不要換成本產品的站徽。
 
 ## robots.txt 與 ads.txt 由 hub 提供
 

@@ -1,6 +1,6 @@
 # 第三方授權聲明（NOTICE）
 
-本站（QR Code Studio）的圖片解碼功能使用 [zxing-wasm](https://github.com/Sec-ant/zxing-wasm)，
+本站（QR Code 製造機）的圖片解碼功能使用 [zxing-wasm](https://github.com/Sec-ant/zxing-wasm)，
 以 WebAssembly 形式在使用者的瀏覽器內執行。WASM 檔由本站自行提供，不從任何第三方 CDN 載入。
 
 ## 使用的版本
@@ -50,3 +50,7 @@ MIT 授權原文也隨套件一起安裝在 `node_modules/zxing-wasm/LICENSE`。
 
 本站 `/barcode/` 的一維條碼是自行實作的（`src/pure/encodeBarcode.ts`），
 不使用 zint 或其他第三方編碼器，與上述授權無關。
+
+## 商標
+
+QR Code 是 DENSO WAVE INCORPORATED 在日本及其他國家的註冊商標。本站是獨立製作的免費工具，與 DENSO WAVE 沒有合作或隸屬關係。
