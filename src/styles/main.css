@@ -95,3 +95,37 @@ kbd {
 .guide-body th, .guide-body td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid #efe2cc; vertical-align: top; }
 .guide-body thead th { background: #fff4d1; color: #16130f; font-weight: 800; white-space: nowrap; }
 .guide-body tbody tr:last-child td { border-bottom: 0; }
+
+/*
+ * 欄名旁的「?」（HelpTip）。看得到的圓是 20px 的糖果黃，按鈕本身 32px
+ * （上下負邊距，不撐高欄名那一列），點擊區超過 24×24（WCAG 2.5.8）。
+ * 展開的說明在欄名下方、欄位上方，左邊一條品牌橘色條，把下面的內容往下推，不做浮層。
+ */
+.field-head { display: flex; align-items: center; gap: 2px; min-width: 0; }
+.help-tip-btn {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; margin: -6px 0; padding: 0;
+  border: 0; border-radius: 50%; background: transparent; cursor: pointer;
+}
+.help-tip-mark {
+  display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%;
+  background: #ffd12e; color: #16130f; border: 1.5px solid #16130f;
+  font-family: "Fredoka", ui-rounded, sans-serif; font-size: 12px; font-weight: 800; line-height: 1;
+}
+/* 展開時換成實心黑底白字 */
+.help-tip-btn[aria-expanded='true'] .help-tip-mark { background: #16130f; color: #fff; }
+.help-tip-btn:hover .help-tip-mark { box-shadow: 0 0 0 2px #ff7a1a; }
+.help-tip-btn:focus-visible { outline: 3px solid #c2410c; outline-offset: -3px; border-radius: 50%; }
+.help-tip-panel {
+  margin: 6px 0 8px; padding: 8px 12px; border-radius: 12px; font-size: 13px; font-weight: 600; line-height: 1.7;
+  color: #16130f; background: #fffdf7; border: 1.5px solid #16130f; border-left: 5px solid #ff7a1a;
+}
+.help-tip-panel[hidden] { display: none; }
+.help-tip-panel > p { margin: 0; }
+.help-tip-panel > p + p, .help-tip-panel > ul + p, .help-tip-panel > p + ul { margin-top: 6px; }
+.help-tip-panel > ul { margin: 0; padding-left: 1.2em; list-style: disc; }
+.help-tip-panel a { color: #c2410c; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+@media (forced-colors: active) {
+  .help-tip-mark { border: 1px solid ButtonText; }
+  .help-tip-btn[aria-expanded='true'] .help-tip-mark { outline: 2px solid Highlight; }
+}

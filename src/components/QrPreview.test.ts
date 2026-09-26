@@ -12,10 +12,10 @@ vi.mock('qr-code-styling', () => ({
 }))
 
 describe('QrPreview', () => {
-  it('顯示信任徽章與預覽容器', () => {
+  it('顯示預覽容器；隱私說明只在工具卡頂部一處，預覽框不再重複', () => {
     const wrapper = mount(QrPreview, { props: { data: 'https://x.com' } })
-    expect(wrapper.text()).toContain('不傳雲端')
     expect(wrapper.find('[data-test="qr-container"]').exists()).toBe(true)
+    expect(wrapper.text()).not.toContain('不傳雲端')
   })
   it('data 為空時顯示提示', () => {
     const wrapper = mount(QrPreview, { props: { data: '' } })

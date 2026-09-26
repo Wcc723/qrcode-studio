@@ -30,6 +30,8 @@ export default defineConfig({
       brand: { DEFAULT: '#FF7A1A', 600: '#FF7A1A', 700: '#E85D00', 50: '#FFE8C2' },
       ink: '#16130f',          // 近黑（暖）
       muted: '#7a6c57',        // 暖灰棕，cream 上可讀
+      // 連結與強調字：品牌橘 #FF7A1A 當字色在紙色上只有 2.45:1，字色改用深一階的橘（紙色 4.87:1、淡薄荷 4.66:1）
+      link: { DEFAULT: '#C2410C', 700: '#9A3412' },
       line: '#efe2cc',         // 細分隔線（暖米）
       // 糖果配色
       pop: {

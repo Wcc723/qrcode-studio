@@ -8,6 +8,7 @@ import QrTypeTabs from './QrTypeTabs.vue'
 import QrPreview from './QrPreview.vue'
 import StylePanel from './StylePanel.vue'
 import DownloadBar from './DownloadBar.vue'
+import PrivacyNote from './PrivacyNote.vue'
 import { inputComponents } from './inputs'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
 
@@ -41,6 +42,7 @@ async function copy() { await previewRef.value?.copyImage() }
 
 <template>
   <div class="card p-5 md:p-6">
+    <PrivacyNote mode="generate" class="mb-4" />
     <QrTypeTabs :model-value="current" @update:model-value="onType" />
     <div class="grid md:grid-cols-[1fr_auto] gap-6 mt-5">
       <div class="space-y-5 min-w-0">

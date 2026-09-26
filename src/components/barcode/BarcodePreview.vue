@@ -12,10 +12,6 @@ defineProps<{
 
 <template>
   <div class="min-w-0">
-    <div class="mb-3">
-      <span class="chip bg-pop-mint"><span class="i-lucide-lock" aria-hidden="true" />不傳雲端・瀏覽器內生成</span>
-    </div>
-
     <!--
       一維條碼是寬扁的，所以刻意不用 QrPreview 的 aspect-square；由 SVG 自己的
       viewBox 決定長寬比，min-h 只用來撐住空狀態。min-w-0 不可省，否則這層會被

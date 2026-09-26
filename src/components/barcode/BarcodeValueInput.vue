@@ -31,7 +31,7 @@ const emit = defineEmits<{ 'update:modelValue': [string]; flush: [] }>()
     </label>
 
     <p id="bc-hint" data-test="bc-hint" class="text-xs text-muted font-600 mt-1 break-all">
-      {{ meta.hint }}
+      {{ meta.rule }}
     </p>
 
     <!--

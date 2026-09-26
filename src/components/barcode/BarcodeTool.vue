@@ -7,6 +7,8 @@ import { useBarcode } from '@/composables/useBarcode'
 import SymbologyPicker from './SymbologyPicker.vue'
 import BarcodeValueInput from './BarcodeValueInput.vue'
 import BarcodePreview from './BarcodePreview.vue'
+import HelpTip from '../HelpTip.vue'
+import PrivacyNote from '../PrivacyNote.vue'
 
 const sym = ref<BarcodeSymbology>('code128')
 const raw = ref('')
@@ -31,6 +33,7 @@ const png = computed(() => pngSize(scale.value))
 
 <template>
   <div class="card p-5 md:p-6">
+    <PrivacyNote mode="barcode" class="mb-4" />
     <SymbologyPicker v-model="sym" />
 
     <div class="mt-5 min-w-0">
@@ -45,12 +48,16 @@ const png = computed(() => pngSize(scale.value))
       :svg="previewSvg" :pattern="pattern" :error="error"
       :label="meta.label" :print-info="printInfo" />
 
-    <label class="block mt-4">
-      <span class="text-sm text-muted">PNG 解析度</span>
-      <select v-model.number="scale" data-test="bc-scale" class="input-base mt-1">
+    <div class="mt-4">
+      <HelpTip name="PNG 解析度" id="bc-scale-help">
+        <template #head><label for="bc-scale" class="text-sm text-muted">PNG 解析度</label></template>
+        <p>網頁用、列印、高解析印刷分別讓最細的一條佔 2、4、8 像素。下面的 DPI 是照「建議列印寬度」印出來時的解析度。</p>
+        <p>PNG 檔案本身不記錄每英吋點數，拉進 Word 這類軟體隨手縮放，條就會被壓得太細而掃不到；需要精確尺寸時請下載 SVG，它的寬高以毫米標示。</p>
+      </HelpTip>
+      <select id="bc-scale" v-model.number="scale" data-test="bc-scale" aria-describedby="bc-scale-help" class="input-base mt-1">
         <option v-for="p in pngPresets" :key="p.id" :value="p.scale">{{ p.label }}</option>
       </select>
-    </label>
+    </div>
     <p v-if="png" data-test="bc-png-info" class="text-xs text-muted font-600 mt-1">
       PNG {{ png.w }} × {{ png.h }} px，約 {{ png.dpi }} DPI
     </p>

@@ -14,6 +14,8 @@ import { useRouter } from 'vue-router'
 import { useImageScanner, type ScanDeps } from '@/composables/useImageScanner'
 import { putScanHandoff, buildScanHandoff, scanHandoffRoute } from '@/utils/scan-handoff'
 import ScanResultView from './ScanResultView.vue'
+import HelpTip from '../HelpTip.vue'
+import PrivacyNote from '../PrivacyNote.vue'
 
 const props = defineProps<{ deps?: ScanDeps }>()
 const router = useRouter()
@@ -74,6 +76,7 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
 
 <template>
   <div class="card p-5 md:p-6">
+    <PrivacyNote mode="scan" class="mb-4" />
     <div
       data-test="scan-dropzone"
       class="rounded-2xl border-3 border-dashed p-6 text-center transition"
@@ -84,9 +87,16 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
     >
       <span class="icon-badge-lg bg-pop-sky"><span class="i-lucide-image-plus" aria-hidden="true" /></span>
       <p class="font-display font-700 text-ink mt-2">把圖片拖進來，或直接 <kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>V</kbd> 貼上截圖</p>
-      <p class="text-sm text-muted font-600 mt-1">支援 PNG、JPEG、WebP，一次一張</p>
+      <div class="mt-1 [&_.field-head]:justify-center [&_.help-tip-panel]:(text-left max-w-md mx-auto)">
+        <HelpTip name="支援的圖片" id="scan-formats-help">
+          <template #head><p class="text-sm text-muted font-600">支援 PNG、JPEG、WebP，一次一張</p></template>
+          <p>檔案上限 12 MB，像素總數上限約 4000 萬，超過會請你先裁切或縮小。</p>
+          <p>不支援 SVG：SVG 可以夾帶腳本與外部參照，不適合拿別人給的檔案直接算圖。</p>
+          <p>一張圖裡有兩個以上的條碼時，只會告訴你數量、不顯示結果，請裁切成只剩一個再試。</p>
+        </HelpTip>
+      </div>
 
-      <input :id="fileInputId" data-test="scan-file-input" type="file" class="sr-only"
+      <input :id="fileInputId" data-test="scan-file-input" type="file" class="sr-only" aria-describedby="scan-formats-help"
         accept="image/png,image/jpeg,image/webp" @change="onFileChange" />
       <label :for="fileInputId" class="btn-primary !bg-pop-sun inline-block mt-4 cursor-pointer">
         選擇圖片

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
 import { symbologies } from '@/config/symbologies'
+import HelpTip from '../HelpTip.vue'
 
 defineProps<{ modelValue: BarcodeSymbology }>()
 const emit = defineEmits<{ 'update:modelValue': [BarcodeSymbology] }>()
@@ -15,8 +16,19 @@ const emit = defineEmits<{ 'update:modelValue': [BarcodeSymbology] }>()
     fieldset 必須 min-w-0：UA 樣式是 min-inline-size: min-content，
     不覆寫的話 400px 下會被 5 顆 pill 撐開造成整頁橫向溢出。
   -->
-  <fieldset class="border-0 p-0 m-0 min-w-0" data-test="bc-symbology">
-    <legend class="text-sm text-muted p-0 mb-2">條碼類型</legend>
+  <!--
+    「?」不放進 legend：按鈕會讓群組名稱多念一段「條碼類型的說明」。看得到的欄名在 field-head 裡
+    （對報讀器隱藏），群組名稱仍由 sr-only 的 legend 提供，用途說明用 aria-describedby 接上。
+  -->
+  <HelpTip name="條碼類型" id="bc-sym-help">
+    <template #head><span class="text-sm text-muted" aria-hidden="true">條碼類型</span></template>
+    <ul>
+      <li v-for="s in symbologies" :key="s.id"><strong>{{ s.label }}</strong>：{{ s.about }}</li>
+    </ul>
+    <p>不確定用哪個就選 Code 128；商品零售結帳用 EAN-13。</p>
+  </HelpTip>
+  <fieldset class="border-0 p-0 m-0 mt-1.5 min-w-0" data-test="bc-symbology" aria-describedby="bc-sym-help">
+    <legend class="sr-only">條碼類型</legend>
     <div class="flex flex-wrap gap-2">
       <label
         v-for="s in symbologies" :key="s.id"
