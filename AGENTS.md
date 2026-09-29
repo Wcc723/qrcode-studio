@@ -225,7 +225,15 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
   選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
 - 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
   `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。
-- JSON-LD 的 `Organization` 是出品方口袋工具，logo 維持 `public/pocketool-logo.png`，不要換成本產品的站徽。
+- **JSON-LD 的 `Organization` 是出品方口袋工具，不是本產品。** pocketool.app 底下每個站都用同一個 `@id`
+  （`https://www.pocketool.app/#organization`，`site.ts` 的 `publisher.id`）指這個出版者，完整定義在 hub 首頁。
+  本站 `App.vue` 每頁放一份完整節點（`@id`、name、alternateName、url、logo），各頁主要 JSON-LD 的 `publisher`
+  只放參照（`@type`、`@id`、`name`、`url`），同一頁不會出現第二個 Organization 實體。
+  logo 用 hub 提供的品牌圖網址（`publisher.logo`），站群每個站同一個網址；不要換成本產品的站徽，也不要改回本站自己的檔案。
+  本產品的名稱只放在 `WebSite` 的 `name`／`alternateName`，不要再寫成另一個 Organization。
+- `seo:audit` 逐頁驗：每段 JSON-LD 解析得了、每個 Organization 節點（含 publisher）都是共用 `@id`、name 與 url 是口袋工具、
+  完整節點恰好一份且 logo 正確、publisher 指向共用節點。稽核的 `ORG_ID`／`ORG_LOGO` 與 `useSeoHead.test.ts` 的 `ORG_ID`
+  刻意再寫一次、不從 `site.ts` 推導，要改 `@id` 或 logo 時三處一起改（`@id` 一改就變成另一個實體，原則上不改）。
 
 ## robots.txt 與 ads.txt 由 hub 提供
 

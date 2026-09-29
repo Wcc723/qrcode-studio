@@ -53,7 +53,9 @@
 | `icon-192.png`、`icon-512.png` | `manifest.webmanifest` 的圖示，不透明，站徽縮在中央 60%，被遮成圓形也切不到 | A |
 | `og-default.png`、`og-scan.png`、`og-barcode.png` | 1200×630 分享圖，文字由 HTML 排版（不用生圖模型產字），掃描器與條碼那兩張裡的碼是真的、掃得出來 | A |
 
-JSON-LD 的 `Organization.logo` 是出品方口袋工具的圖示（`public/pocketool-logo.png`），不是本產品的站徽，改站徽時不動它。
+JSON-LD 的 `Organization.logo` 是出品方口袋工具的品牌圖，網址在 hub（`src/config/site.ts` 的 `publisher.logo`，
+站群每個站同一個網址），不是本產品的站徽，改站徽時不動它。
+`public/pocketool-logo.png` 是之前 `Organization.logo` 用的圖，現在沒有任何地方引用，但網址已經公開過，所以檔案保留、不要刪。
 
 ## 重產
 

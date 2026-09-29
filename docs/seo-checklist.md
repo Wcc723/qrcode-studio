@@ -4,7 +4,7 @@
 > 2026-09 由子網域 `qrcode-studio.pocketool.app` 搬到 www 主網域子路徑，舊網址以 Cloudflare Bulk Redirect 301 過來。
 > 標記：✅ 完成　❌ 未完成　⚠️ 需手動（外部平台 / 待補資產，無法由程式驗證）
 
-## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-26 共 497 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
+## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-29 共 600 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
 - [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（18 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
@@ -16,7 +16,8 @@
 - [x] ✅ noindex 掃描乾淨（僅 404 頁有 `noindex, follow`，公開頁皆無）
 - [x] ✅ Open Graph（og:title/description/url/type/site_name/locale）與 Twitter 卡（card/title/description）
 - [x] ✅ **og:image / twitter:image**：`public/og-default.png`（1200×630）已就位，`site.ogImage` 已啟用
-- [x] ✅ JSON-LD：每頁 SoftwareApplication（QR 工具頁）/ WebApplication（`/barcode/` 一維條碼）/ Article（教學文）+ BreadcrumbList；全站一份 Organization（App.vue）
+- [x] ✅ JSON-LD：每頁 SoftwareApplication（QR 工具頁）/ WebApplication（`/scan/` 掃描器、`/barcode/` 一維條碼）/ Article（教學文）+ BreadcrumbList；全站一份 Organization（App.vue），用 pocketool.app 各站共用的 `@id`（`https://www.pocketool.app/#organization`），各頁 publisher 指向它（audit 逐頁斷言 @id、name、url、logo）
+- [x] ✅ JSON-LD 與畫面文字一致（2026-09-29 全站逐頁抽查）：工具名稱、免費（price 0）、文章標題、作者、發佈與更新日期、出品方名稱都在畫面上看得到
 - [x] ✅ 隱私權政策頁存在（`/privacy`；AdSlot 目前停用，仍預留）
 
 ## B. 一次性決策（人工確認）
@@ -25,7 +26,7 @@
 - [x] ✅ 子路徑前綴只存在於三處：`vite.config.ts` 的 `base` 與 `build.outDir`、`src/main.ts` 的 router base、`scripts/gen-sitemap.mjs` 的 `BASE`／`dist`。頁面層與 `src/router.ts` 一律不得硬編前綴；CI 也不再用 `SITE_URL` 覆蓋
 - [x] ✅ www / 非 www：本站已掛在 `www.pocketool.app` 底下，apex `pocketool.app` 由 zone 層級的 Single Redirect 301 到 www，本站不需另外處理
 - [x] ✅ Cloudflare `html_handling: "force-trailing-slash"` 與 canonical 的尾斜線寫法一致
-- [x] ✅ 預設分享圖 `public/og-default.png`（1200×630，糖果風）已就位，`site.ogImage` 已設定，og:image / twitter:image / Organization.logo 皆輸出。
+- [x] ✅ 預設分享圖 `public/og-default.png`（1200×630，糖果風）已就位，`site.ogImage` 已設定，og:image / twitter:image 皆輸出（Organization.logo 用 hub 的品牌圖，不是這張）。
 
 ## C. 外部平台操作（⚠️ 無法自動化，逐項手動完成）
 
