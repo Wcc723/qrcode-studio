@@ -36,10 +36,15 @@ export const site = {
 // 站群連結都從這裡取。hub 的頁面網址不帶尾斜線（/about、/contact、/privacy），
 // 只有工具總覽是 /tools/。
 export const publisher = {
+  // 站群共用的 Organization 節點 id：pocketool.app 底下每個站的 JSON-LD 都用這個 @id 指同一個出版者，
+  // 完整定義在 hub 首頁。一個字都不能改，改了就變成另一個實體。
+  id: 'https://www.pocketool.app/#organization',
   name: '口袋工具 Pocketool',
+  // 別名：中文、英文拆開的寫法，跟 hub 中文首頁的完整定義一致。
+  alternateName: ['口袋工具', 'Pocketool'],
   url: 'https://www.pocketool.app/',
-  // 512×512 方形 PNG（Google 要求 logo 至少 112×112）。檔案在本 repo 的 public/。
-  logo: `${site.url}/pocketool-logo.png`,
+  // 出品方的品牌圖由 hub 提供，站群每個站用同一個網址（Google 要求 logo 至少 112×112）。
+  logo: 'https://www.pocketool.app/brand/pocketool-icon.png',
   aboutUrl: 'https://www.pocketool.app/about',
   contactUrl: 'https://www.pocketool.app/contact',
   privacyUrl: 'https://www.pocketool.app/privacy',

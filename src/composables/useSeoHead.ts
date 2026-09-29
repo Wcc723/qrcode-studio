@@ -11,13 +11,10 @@ export interface Crumb { name: string; url: string }
 
 const IN_LANGUAGE = 'zh-Hant-TW'
 
+// publisher 只放參照：用共用 @id 對到同一個 Organization 節點，另帶 name 與 url，單獨拿出這一段也看得懂。
+// logo 等完整屬性只寫在 buildOrganizationLd 那一份（同一頁、同一個 @id）。
 function publisherLd() {
-  return {
-    '@type': 'Organization',
-    name: publisher.name,
-    url: publisher.url,
-    logo: { '@type': 'ImageObject', url: publisher.logo, width: 512, height: 512 },
-  }
+  return { '@type': 'Organization', '@id': publisher.id, name: publisher.name, url: publisher.url }
 }
 
 // alternateName：英文名與舊名（site.ts 的 nameEn、formerNames），讓用英文名或舊名找的人對得到同一個網站。
@@ -67,11 +64,12 @@ export function buildWebPageLd(p: { type: PageLdType; name: string; url: string;
   }
 }
 
-// 全站一份，放 App.vue。營運者是口袋工具（站群 hub），不是這個工具本身。
+// 全站一份，放 App.vue。營運者是口袋工具（站群 hub），不是這個工具本身；本產品的名稱留在 WebSite。
+// @id 跟各頁 publisher 的參照是同一個，一頁裡只會有這一個 Organization 實體。
 export function buildOrganizationLd() {
   return {
-    '@context': 'https://schema.org', '@type': 'Organization',
-    name: publisher.name, url: publisher.url, logo: publisher.logo,
+    '@context': 'https://schema.org', '@type': 'Organization', '@id': publisher.id,
+    name: publisher.name, alternateName: publisher.alternateName, url: publisher.url, logo: publisher.logo,
   }
 }
 

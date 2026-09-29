@@ -5,6 +5,10 @@ import {
 } from './useSeoHead'
 import { site, publisher } from '@/config/site'
 
+// 站群共用的 Organization @id，刻意在測試裡再寫一次（不從 site.ts 讀），改到 site.ts 會被抓到。
+const ORG_ID = 'https://www.pocketool.app/#organization'
+const PUBLISHER_REF = { '@type': 'Organization', '@id': ORG_ID, name: '口袋工具 Pocketool', url: 'https://www.pocketool.app/' }
+
 describe('品牌', () => {
   it('產品名是 QR Code 製造機（英文 QR Code Maker），舊名只留在 formerNames，QRTool 不再出現', () => {
     expect(site.name).toBe('QR Code 製造機')
@@ -26,7 +30,7 @@ describe('JSON-LD builders', () => {
     expect(ld['@type']).toBe('SoftwareApplication')
     expect(ld.offers.price).toBe('0')
     expect(ld.applicationCategory).toBe('UtilitiesApplication')
-    expect(ld.publisher.name).toBe('口袋工具 Pocketool')
+    expect(ld.publisher).toEqual(PUBLISHER_REF)
   })
   it('appType 可改成 WebApplication（/barcode/ 用）', () => {
     const ld = buildSoftwareAppLd({ name: '一維條碼產生器', url: 'https://x.tw/barcode/', description: 'desc', appType: 'WebApplication' })
@@ -63,9 +67,7 @@ describe('JSON-LD builders', () => {
     expect(ld.dateModified).toBe('2026-09-21')
     expect(ld.image).toEqual(['https://qrtool.example/og.png'])
     expect(ld.author).toEqual({ '@type': 'Person', name: '卡斯伯', url: 'https://www.pocketool.app/about' })
-    expect(ld.publisher['@type']).toBe('Organization')
-    expect(ld.publisher.name).toBe('口袋工具 Pocketool')
-    expect(ld.publisher.logo.url).toBe(publisher.logo)
+    expect(ld.publisher).toEqual(PUBLISHER_REF)
   })
   it('WebPage 系列可指定 AboutPage', () => {
     const ld = buildWebPageLd({ type: 'AboutPage', name: '關於', url: 'https://x.tw/about/', description: 'd' })
@@ -74,12 +76,19 @@ describe('JSON-LD builders', () => {
       '@type': 'WebSite', name: 'QR Code 製造機', alternateName: ['QR Code Maker', 'QR Code Studio'], url: `${site.url}/`,
     })
   })
-  it('Organization 是口袋工具（hub），logo 是方形 PNG', () => {
+  it('WebPage 系列的 publisher 也是共用節點的參照', () => {
+    const ld = buildWebPageLd({ type: 'WebPage', name: 'FAQ', url: 'https://x.tw/faq/', description: 'd' })
+    expect(ld.publisher).toEqual(PUBLISHER_REF)
+  })
+  it('Organization 是口袋工具（hub），用站群共用的 @id，logo 是 hub 的品牌圖', () => {
     const ld = buildOrganizationLd()
     expect(ld).toEqual({
-      '@context': 'https://schema.org', '@type': 'Organization',
-      name: '口袋工具 Pocketool', url: 'https://www.pocketool.app/', logo: `${site.url}/pocketool-logo.png`,
+      '@context': 'https://schema.org', '@type': 'Organization', '@id': ORG_ID,
+      name: '口袋工具 Pocketool', alternateName: ['口袋工具', 'Pocketool'],
+      url: 'https://www.pocketool.app/', logo: publisher.logo,
     })
+    expect(publisher.logo.startsWith('https://www.pocketool.app/')).toBe(true)
+    expect(publisher.logo).not.toContain(site.url)
   })
 })
 

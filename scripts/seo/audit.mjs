@@ -186,14 +186,44 @@ for (const [page, expected] of [
     squashText(readFileSync(join(distDir, 'about', 'index.html'), 'utf8')).includes(`商標${TRADEMARK}`.replace(/\s+/g, '')))
 }
 
-// Organization logo：Google 要求至少 112×112，這裡固定用 512×512 的方形 PNG。
-const logoFile = join(distDir, 'pocketool-logo.png')
-if (existsSync(logoFile)) {
-  const head = readFileSync(logoFile).subarray(0, 24)
-  const w = head.readUInt32BE(16), h = head.readUInt32BE(20)
-  add('Organization logo 是方形且至少 112px 的 PNG', head.toString('latin1', 1, 4) === 'PNG' && w === h && w >= 112, `${w}×${h}`)
-} else {
-  add('Organization logo 存在（pocketool-logo.png）', false)
+// 出品方 Organization：pocketool.app 底下每個站的 JSON-LD 都用同一個 @id 指口袋工具，完整定義在 hub 首頁。
+// 常數刻意在這裡再寫一次、不從 site.ts 推導：site.ts 的 @id 少一個字就變成另一個實體，只有獨立對帳抓得到。
+// 本產品（QR Code 製造機）的名稱只放在 WebSite，不能再變成另一個 Organization。
+const ORG_ID = 'https://www.pocketool.app/#organization'
+const ORG_NAME = '口袋工具 Pocketool'
+const ORG_URL = 'https://www.pocketool.app/'
+// logo 由 hub 提供（不在本站 dist 裡），這裡只驗網址；檔案本身的尺寸與 200 由 hub 那邊負責。
+const ORG_LOGO = 'https://www.pocketool.app/brand/pocketool-icon.png'
+/** 遞迴收集 JSON-LD 裡所有 @type 含 Organization 的節點（頂層、publisher、巢狀都算） */
+const orgNodes = (node, out = []) => {
+  if (Array.isArray(node)) node.forEach((n) => orgNodes(n, out))
+  else if (node && typeof node === 'object') {
+    const type = node['@type']
+    if (type === 'Organization' || (Array.isArray(type) && type.includes('Organization'))) out.push(node)
+    for (const v of Object.values(node)) orgNodes(v, out)
+  }
+  return out
+}
+for (const f of htmlFiles) {
+  const html = readFileSync(f, 'utf8')
+  const name = rel(f)
+  const blocks = [...html.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
+  const lds = jsonLd(html)
+  add(`[${name}] 每段 JSON-LD 都解析得了`, blocks.length > 0 && lds.every(Boolean), `${blocks.length} 段`)
+  const orgs = orgNodes(lds)
+  const ids = [...new Set(orgs.map((o) => o['@id'] ?? '(沒有 @id)'))]
+  add(`[${name}] 每個 Organization 都用共用 @id（一頁只有這一個實體）`, orgs.length > 0 && ids.length === 1 && ids[0] === ORG_ID, ids.join(' / '))
+  add(`[${name}] Organization 的 name 與 url 是口袋工具`,
+    orgs.length > 0 && orgs.every((o) => o.name === ORG_NAME && o.url === ORG_URL),
+    [...new Set(orgs.map((o) => `${o.name} ${o.url}`))].join(' / '))
+  const full = lds.filter((ld) => ld?.['@type'] === 'Organization')
+  add(`[${name}] 有一份完整的 Organization 節點，logo 是 hub 的品牌圖`,
+    full.length === 1 && full[0].logo === ORG_LOGO, JSON.stringify(full.map((o) => o.logo)))
+  const withPublisher = lds.filter((ld) => ld?.publisher)
+  if (name !== '404.html') {
+    add(`[${name}] 主要 JSON-LD 的 publisher 指向共用節點`,
+      withPublisher.length > 0 && withPublisher.every((ld) => ld.publisher['@id'] === ORG_ID && ld.publisher['@type'] === 'Organization'))
+  }
 }
 
 // 站徽與圖示：沒有這些 <link> 的話，瀏覽器與 iOS 會去抓根網域的 /favicon.ico、/apple-touch-icon.png（hub 的圖示）。
