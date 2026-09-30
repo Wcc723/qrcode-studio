@@ -41,7 +41,7 @@ export function useBarcode(raw: Ref<string>, sym: Ref<BarcodeSymbology>) {
       parts.push(`已自動補上檢查碼 ${v.normalized!.slice(-1)}，完整號碼 ${v.normalized}。請對照你手上的號碼確認。`)
     }
     if (sym.value === 'code39' && CODE39_SHIFT_CHARS.test(v.normalized!)) {
-      parts.push('內容含 $ / + % 這幾個字元，部分掃描器會依 Code 39 Full ASCII 規則把它們與下一個字元合併解讀，讀出來的內容可能不同。用於機器讀取時請先實機測試。')
+      parts.push('內容含 $ / + % 這幾個符號，有些掃描器會把它們跟下一個字合在一起讀，讀出來可能跟你輸入的不一樣。要給機器讀取時，請先實際掃一次。')
     }
     return parts.length ? parts.join('') : null
   })

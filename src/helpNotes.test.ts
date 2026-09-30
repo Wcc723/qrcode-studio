@@ -88,6 +88,20 @@ describe('產生器的「?」', () => {
     expect(w.find('[data-test="dl-png"]').attributes('disabled')).toBeDefined()
   })
 
+  it('「預覽與下載」旁的「?」說明三種下載格式，預設收起，四顆下載按鈕都指得到它', () => {
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' }, ...opts })
+    const btn = w.find('button[aria-label="下載格式的說明"]')
+    expect(btn.exists()).toBe(true)
+    const panel = w.find(`#${btn.attributes('aria-controls')}`)
+    expect(panel.attributes('hidden')).toBeDefined()
+    for (const fmt of ['PNG', 'SVG', 'JPG']) expect(panel.text()).toContain(fmt)
+    for (const sel of ['dl-png', 'dl-svg', 'dl-jpg', 'dl-copy']) {
+      expect(w.find(`[data-test="${sel}"]`).attributes('aria-describedby'), sel).toBe(panel.attributes('id'))
+    }
+    // 下載鈕的文字不變
+    expect(w.find('[data-test="dl-png"]').text()).toContain('PNG')
+  })
+
   it('勾了透明，JPG 會改用白底的提醒看得到', async () => {
     const w = mount(StylePanel, { props: { modelValue: { ...defaultStyle, bgColor: 'transparent' } }, ...opts })
     expect(w.find('[data-test="transparent-jpg-note"]').exists()).toBe(true)
@@ -125,7 +139,7 @@ describe('一維條碼的「?」', () => {
       expect(w.find(sel).exists(), sel).toBe(true)
       expect(w.find(sel).element.closest(COLLAPSED), sel).toBeNull()
     }
-    expect(w.find('[data-test="bc-png-info"]').text()).toMatch(/PNG \d+ × \d+ px，約 \d+ DPI/)
+    expect(w.find('[data-test="bc-png-info"]').text()).toMatch(/PNG \d+ × \d+ 像素，照建議寬度印約 \d+ DPI/)
   })
 })
 
@@ -138,7 +152,7 @@ describe('掃描器的「?」', () => {
     const w = mount(ScanTool, opts)
     expectVisible(w, '把圖片拖進來')
     expectVisible(w, '支援 PNG、JPEG、WebP，一次一張')
-    expectVisible(w, '在你的瀏覽器內解碼，圖片不上傳')
+    expectVisible(w, '在你的瀏覽器裡讀取，圖片不上傳')
     const help = w.findAll(COLLAPSED).map((p) => p.text()).join('\n')
     expect(help).toContain('12 MB')
     expect(help).toContain('不支援 SVG')

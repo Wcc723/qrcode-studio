@@ -40,7 +40,7 @@ defineProps<{
     <p v-if="printInfo" data-test="bc-print-info"
       class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-muted font-600">
       <span class="whitespace-nowrap">建議列印寬度 {{ printInfo.widthMm }} mm</span>
-      <span class="whitespace-nowrap">最細一條 {{ printInfo.xMm }} mm</span>
+      <span class="whitespace-nowrap">最細的線 {{ printInfo.xMm }} mm</span>
     </p>
   </div>
 </template>

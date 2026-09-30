@@ -46,15 +46,15 @@ const canRegenerate = computed(() => !!single.value && (single.value.isLinear ||
       <!-- 網址：先講清楚會去哪，再決定給不給點 -->
       <div v-if="single.uri.scheme" class="mt-3 text-sm font-600">
         <p class="text-muted">
-          通訊協定：<span data-test="scan-uri-scheme" class="text-ink">{{ single.uri.scheme }}</span>
+          網址開頭：<span data-test="scan-uri-scheme" class="text-ink">{{ single.uri.scheme }}</span>
         </p>
         <p v-if="single.uri.host" class="text-muted mt-1">
-          網站主機：<span data-test="scan-uri-host" class="text-ink break-all">{{ single.uri.host }}</span>
+          會開到的網站：<span data-test="scan-uri-host" class="text-ink break-all">{{ single.uri.host }}</span>
         </p>
         <p v-if="!single.uri.openable" data-test="scan-unsafe-scheme"
           class="mt-2 text-ink/80 bg-pop-sun/40 border-2 border-ink/15 rounded-xl p-3 leading-relaxed">
-          這是 {{ single.uri.scheme }} 開頭的內容，不是一般網址。本工具只對 http 與 https
-          提供直接開啟，其餘一律只顯示文字，請自行判斷是否可信。
+          這不是一般網址（開頭是 {{ single.uri.scheme }}:），可能會在你的裝置上做別的事。
+          只有 http、https 開頭的網址才有開啟按鈕，這一筆只顯示文字，請自己判斷能不能信任。
         </p>
       </div>
 
@@ -69,7 +69,7 @@ const canRegenerate = computed(() => !!single.value && (single.value.isLinear ||
         </a>
         <button v-if="canRegenerate" type="button" data-test="scan-regenerate"
           class="btn-primary !bg-pop-sun" @click="emit('regenerate')">
-          用此內容重新產生
+          用這個內容再做一張
         </button>
       </div>
       <p v-if="copyError" data-test="scan-copy-error" class="text-sm text-muted font-600 mt-2">{{ copyError }}</p>
@@ -79,7 +79,7 @@ const canRegenerate = computed(() => !!single.value && (single.value.isLinear ||
     <div v-else-if="outcome.status === 'multiple'" data-test="scan-multiple" class="card p-4">
       <p class="font-700 text-ink">這張圖裡有 {{ outcome.count }} 個條碼</p>
       <p class="text-muted font-600 mt-2 leading-relaxed">
-        第一版不猜你想要哪一個，所以不顯示結果。請把圖裁切成只剩一個條碼再試一次。
+        為了避免挑錯，有多個條碼時不顯示結果。請把圖裁切成只剩一個條碼再試一次。
         <template v-if="outcome.formatLabels.length">
           （偵測到的格式：{{ outcome.formatLabels.join('、') }}）
         </template>

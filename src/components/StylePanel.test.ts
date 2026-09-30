@@ -4,7 +4,7 @@ import StylePanel from './StylePanel.vue'
 import { defaultStyle } from '@/types'
 
 describe('StylePanel', () => {
-  it('改變前景色時 emit 更新後的 style', async () => {
+  it('改變方塊顏色時 emit 更新後的 style', async () => {
     const wrapper = mount(StylePanel, { props: { modelValue: { ...defaultStyle } } })
     await wrapper.find('[data-test="dotColor"]').setValue('#ff0000')
     const events = wrapper.emitted('update:modelValue')

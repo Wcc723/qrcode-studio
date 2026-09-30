@@ -90,8 +90,8 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
       <div class="mt-1 [&_.field-head]:justify-center [&_.help-tip-panel]:(text-left max-w-md mx-auto)">
         <HelpTip name="支援的圖片" id="scan-formats-help">
           <template #head><p class="text-sm text-muted font-600">支援 PNG、JPEG、WebP，一次一張</p></template>
-          <p>檔案上限 12 MB，像素總數上限約 4000 萬，超過會請你先裁切或縮小。</p>
-          <p>不支援 SVG：SVG 可以夾帶腳本與外部參照，不適合拿別人給的檔案直接算圖。</p>
+          <p>檔案上限 12 MB，圖片最大約 4000 萬像素，超過會請你先裁切或縮小。</p>
+          <p>不支援 SVG：SVG 檔裡可以藏程式碼，為了安全不讀別人給的 SVG。</p>
           <p>一張圖裡有兩個以上的條碼時，只會告訴你數量、不顯示結果，請裁切成只剩一個再試。</p>
         </HelpTip>
       </div>
@@ -103,7 +103,7 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
       </label>
     </div>
 
-    <!-- 解碼狀態：一律用文字播報，不依賴顏色 -->
+    <!-- 讀取狀態：一律用文字播報，不依賴顏色 -->
     <p data-test="scan-live" class="text-sm font-600 text-muted mt-3 min-h-5" aria-live="polite" role="status">
       {{ liveMessage }}
     </p>

@@ -97,7 +97,7 @@ export function useImageScanner(deps: ScanDeps): ImageScanner {
     status.value = 'working'
     error.value = null
     outcome.value = null
-    liveMessage.value = '解碼中…'
+    liveMessage.value = '讀取中…'
 
     let head: Uint8Array
     try {

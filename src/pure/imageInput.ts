@@ -39,14 +39,14 @@ const MIME_TO_KIND: Record<string, ImageKind> = {
 const MESSAGES: Record<ImageRejectCode, string> = {
   empty: '這個檔案是空的，請換一張圖片。',
   tooLarge: `圖片檔案太大（上限 ${MAX_IMAGE_BYTES / 1024 / 1024} MB），請先壓縮或改用截圖。`,
-  svgRejected: '不支援 SVG。SVG 是可執行的向量格式，本工具只解碼 PNG、JPEG 與 WebP 點陣圖。',
+  svgRejected: '不支援 SVG。SVG 檔裡可以藏程式碼，為了安全不讀別人給的 SVG；本工具只讀 PNG、JPEG 與 WebP 圖片。',
   unsupportedType: '只支援 PNG、JPEG 與 WebP 圖片，請換一張。',
   mimeMismatch: '這個檔案的內容與副檔名不符，可能已損毀或被改過副檔名。',
   notImage: '讀不出圖片內容，請確認這是 PNG、JPEG 或 WebP 圖片。',
   zeroSize: '圖片的寬或高是 0，可能已損毀。',
   dimensionTooLarge: `圖片單邊超過 ${MAX_IMAGE_DIMENSION} 像素，請先裁切或縮小。`,
-  tooManyPixels: '圖片的像素總數太多，請先裁切或縮小再試。',
-  multipleFiles: '一次只能解碼一張圖片，請只選一張。',
+  tooManyPixels: '圖片太大了（最大約 4000 萬像素），請先裁切或縮小再試。',
+  multipleFiles: '一次只能讀一張圖片，請只選一張。',
   noFile: '沒有讀到圖片，請重新選擇。',
 }
 

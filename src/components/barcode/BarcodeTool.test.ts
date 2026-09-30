@@ -67,13 +67,14 @@ describe('BarcodeTool', () => {
     expect(n.text()).toContain('5449000000996')
   })
 
-  it('Code 39 含 $ / + % 時警告 Full ASCII 可能被合併解讀', async () => {
+  it('Code 39 含 $ / + % 時提醒有些掃描器會跟下一個字合在一起讀', async () => {
     const w = mount(BarcodeTool)
     await w.find('[data-test="bc-radio-code39"]').setValue()
     await type(w, 'A$E')
     const n = w.find('[data-test="bc-notice"]')
     expect(n.exists()).toBe(true)
-    expect(n.text()).toContain('Full ASCII')
+    expect(n.text()).toContain('跟下一個字合在一起讀')
+    expect(n.text()).not.toContain('ASCII')
   })
 
   it('Code 39 小寫會轉大寫且不報錯', async () => {
@@ -91,7 +92,7 @@ describe('BarcodeTool', () => {
     expect(w.find('[data-test="bc-print-info"]').text()).toContain('1.016')
   })
 
-  it('PNG 解析度三段，切換會更新 DPI 說明', async () => {
+  it('PNG 清晰度三段，切換會更新 DPI 說明', async () => {
     const w = mount(BarcodeTool)
     await type(w, 'ABC-12345')
     const info = () => w.find('[data-test="bc-png-info"]').text()

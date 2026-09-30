@@ -65,7 +65,7 @@ export function useQrCode(data: Ref<string>, style: Ref<QrStyleOptions>) {
 
   function update() {
     if (exceedsQrCapacity(data.value, style.value.errorCorrectionLevel)) {
-      error.value = '內容過長，超出 QR Code 容量。請縮短內容，或調低容錯等級。'
+      error.value = '內容過長，超出 QR Code 容量。請縮短內容，或把耐髒程度調低。'
       return
     }
     error.value = null

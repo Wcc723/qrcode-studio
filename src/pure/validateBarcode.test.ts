@@ -159,7 +159,7 @@ describe('validateBarcode / itf14', () => {
 
 describe('validateBarcode / code39', () => {
   it('大寫英數與連字號通過：ABC-1234', () => { expect(validateBarcode('code39', 'ABC-1234')).toEqual(ok('ABC-1234')) })
-  it('含半角空白通過：HELLO WORLD', () => { expect(validateBarcode('code39', 'HELLO WORLD')).toEqual(ok('HELLO WORLD')) })
+  it('含半形空白通過：HELLO WORLD', () => { expect(validateBarcode('code39', 'HELLO WORLD')).toEqual(ok('HELLO WORLD')) })
   it('小寫自動轉大寫：abc-123 → ABC-123', () => { expect(validateBarcode('code39', 'abc-123')).toEqual(ok('ABC-123')) })
   it('小寫混空白與點：a-b c.d → A-B C.D', () => { expect(validateBarcode('code39', 'a-b c.d')).toEqual(ok('A-B C.D')) })
   it('7 個合法符號全用上：A B-C.D$E/F+G%H', () => { expect(validateBarcode('code39', 'A B-C.D$E/F+G%H')).toEqual(ok('A B-C.D$E/F+G%H')) })
@@ -172,27 +172,27 @@ describe('validateBarcode / code39', () => {
   })
   it('內容中間夾 * 報專屬錯誤：A*B', () => {
     expect(validateBarcode('code39', 'A*B')).toEqual(err('code39Star',
-      'Code 39 的 * 是起始/結束符號，由工具自動加上，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。'))
+      '* 是 Code 39 頭尾自動加上的記號，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。'))
   })
   it('只有開頭的 * 也報專屬錯誤：*ABC', () => {
     expect(validateBarcode('code39', '*ABC')).toEqual(err('code39Star',
-      'Code 39 的 * 是起始/結束符號，由工具自動加上，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。'))
+      '* 是 Code 39 頭尾自動加上的記號，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。'))
   })
   it('底線不在 43 字元集內：ABC_123', () => {
     expect(validateBarcode('code39', 'ABC_123')).toEqual(err('charset',
-      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半角空白。不支援的字元：「_」。'))
+      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半形空白。不支援的字元：「_」。'))
   })
   it('# 與 ! 不在字元集內，兩個都列出', () => {
     expect(validateBarcode('code39', 'ab#c!d')).toEqual(err('charset',
-      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半角空白。不支援的字元：「#」、「!」。'))
+      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半形空白。不支援的字元：「#」、「!」。'))
   })
   it('中文報字元錯', () => {
     expect(validateBarcode('code39', '中')).toEqual(err('charset',
-      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半角空白。不支援的字元：「中」。'))
+      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半形空白。不支援的字元：「中」。'))
   })
   it('內部 tab 以 U+ 形式顯示', () => {
     expect(validateBarcode('code39', 'A\tB')).toEqual(err('charset',
-      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半角空白。不支援的字元：「U+0009」。'))
+      'Code 39 只支援數字、大寫英文與 - . $ / + % 和半形空白。不支援的字元：「U+0009」。'))
   })
   it('空字串報空值錯', () => { expect(validateBarcode('code39', '')).toEqual(err('empty', '請輸入條碼內容。')) })
   it('只有 ** 剝除後成空字串，報空值錯', () => { expect(validateBarcode('code39', '**')).toEqual(err('empty', '請輸入條碼內容。')) })
@@ -211,15 +211,15 @@ describe('validateBarcode / code128', () => {
   })
   it('中文報字元錯並建議改用 QR Code', () => {
     expect(validateBarcode('code128', '中文')).toEqual(err('charset',
-      'Code 128 只支援可列印的 ASCII 字元。不支援的字元：「中」、「文」。中文或全形符號請改用 QR Code。'))
+      'Code 128 只能放英文、數字與鍵盤上的半形符號。不支援的字元：「中」、「文」。中文或全形符號請改用 QR Code。'))
   })
   it('帶重音的拉丁字母也不行：café', () => {
     expect(validateBarcode('code128', 'café')).toEqual(err('charset',
-      'Code 128 只支援可列印的 ASCII 字元。不支援的字元：「é」。中文或全形符號請改用 QR Code。'))
+      'Code 128 只能放英文、數字與鍵盤上的半形符號。不支援的字元：「é」。中文或全形符號請改用 QR Code。'))
   })
   it('內部 tab 以 U+ 形式顯示', () => {
     expect(validateBarcode('code128', 'a\tb')).toEqual(err('charset',
-      'Code 128 只支援可列印的 ASCII 字元。不支援的字元：「U+0009」。中文或全形符號請改用 QR Code。'))
+      'Code 128 只能放英文、數字與鍵盤上的半形符號。不支援的字元：「U+0009」。中文或全形符號請改用 QR Code。'))
   })
   it('空字串報空值錯', () => { expect(validateBarcode('code128', '')).toEqual(err('empty', '請輸入條碼內容。')) })
   it('只有空白報空值錯', () => { expect(validateBarcode('code128', '   ')).toEqual(err('empty', '請輸入條碼內容。')) })

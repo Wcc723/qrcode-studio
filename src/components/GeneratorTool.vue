@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, useId } from 'vue'
 import type { QrType, QrStyleOptions } from '@/types'
 import type { PayloadInputMap } from '@/pure'
 import { defaultStyle } from '@/types'
@@ -9,6 +9,7 @@ import QrPreview from './QrPreview.vue'
 import StylePanel from './StylePanel.vue'
 import DownloadBar from './DownloadBar.vue'
 import PrivacyNote from './PrivacyNote.vue'
+import HelpTip from './HelpTip.vue'
 import { inputComponents } from './inputs'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
 
@@ -17,6 +18,7 @@ const current = ref<QrType>(props.defaultType)
 const payload = ref('')
 const style = ref<QrStyleOptions>({ ...defaultStyle })
 const previewRef = ref<InstanceType<typeof QrPreview> | null>(null)
+const uid = useId()
 
 // /scan/ 交棒過來的內容。只在瀏覽器端取（SSR 預渲染時不該有任何使用者資料），
 // 而且取用一次就清掉：重新整理這一頁就不會再帶內容進來。
@@ -57,9 +59,20 @@ async function copy() { await previewRef.value?.copyImage() }
         </div>
       </div>
       <div class="md:w-72 min-w-0">
-        <p class="zone-label"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-qr-code" aria-hidden="true" /></span>預覽與下載</p>
+        <!-- 三種格式各在什麼時候用，收在「預覽與下載」旁的「?」；下載鈕的文字不變 -->
+        <div class="mb-3">
+          <HelpTip name="下載格式" :id="`${uid}-dl-help`">
+            <template #head><p class="zone-label !mb-0"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-qr-code" aria-hidden="true" /></span>預覽與下載</p></template>
+            <ul>
+              <li><strong>PNG</strong>：一般用途都用它，可以透明背景。</li>
+              <li><strong>SVG</strong>：放多大都清楚，印刷或交給設計師排版用。</li>
+              <li><strong>JPG</strong>：只有對方只收 JPG 時才用，不能透明背景。</li>
+            </ul>
+            <p>「複製」會把 PNG 圖片複製起來，可以直接貼進聊天或文件。</p>
+          </HelpTip>
+        </div>
         <QrPreview ref="previewRef" :data="payload" :style="style" />
-        <DownloadBar :download="download" :copy="copy" :disabled="!payload || overCapacity" />
+        <DownloadBar :download="download" :copy="copy" :disabled="!payload || overCapacity" :describedby="`${uid}-dl-help`" />
       </div>
     </div>
   </div>

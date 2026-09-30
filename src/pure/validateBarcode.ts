@@ -81,7 +81,7 @@ const GTIN: Record<'ean13' | 'ean8' | 'itf14', GtinConfig> = {
 }
 
 function validateGtin(cfg: GtinConfig, raw: string): BarcodeValidation {
-  // 去掉所有空白與半角連字號，支援貼上 978-0-201-37962-4 或 5449 0000 0099 6。
+  // 去掉所有空白與半形連字號，支援貼上 978-0-201-37962-4 或 5449 0000 0099 6。
   // JS 的 \s 含不斷行空白與全形空白，所以從網頁複製的號碼也吃得下。
   const digits = raw.replace(/[\s-]/g, '')
   if (!digits) return fail('empty', EMPTY_MESSAGE)
@@ -120,13 +120,13 @@ function validateCode39(raw: string): BarcodeValidation {
 
   if (value.includes('*')) {
     return fail('code39Star',
-      'Code 39 的 * 是起始/結束符號，由工具自動加上，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。')
+      '* 是 Code 39 頭尾自動加上的記號，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。')
   }
 
   const bad = badChars(value, ch => CODE39_CHARSET.includes(ch))
   if (bad.length) {
     return fail('charset',
-      `Code 39 只支援數字、大寫英文與 - . $ / + % 和半角空白。不支援的字元：${listBad(bad)}。`)
+      `Code 39 只支援數字、大寫英文與 - . $ / + % 和半形空白。不支援的字元：${listBad(bad)}。`)
   }
 
   if (value.length > CODE39_MAX_LENGTH) {
@@ -149,7 +149,7 @@ function validateCode128(raw: string): BarcodeValidation {
   })
   if (bad.length) {
     return fail('charset',
-      `Code 128 只支援可列印的 ASCII 字元。不支援的字元：${listBad(bad)}。中文或全形符號請改用 QR Code。`)
+      `Code 128 只能放英文、數字與鍵盤上的半形符號。不支援的字元：${listBad(bad)}。中文或全形符號請改用 QR Code。`)
   }
 
   if (value.length > CODE128_MAX_LENGTH) {

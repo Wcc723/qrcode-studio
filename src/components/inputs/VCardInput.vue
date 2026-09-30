@@ -15,7 +15,7 @@ const uid = useId()
   <div>
     <HelpTip name="聯絡資訊" :id="`${uid}-help`">
       <template #head><span :id="`${uid}-label`" class="text-sm font-700 text-ink">聯絡資訊</span></template>
-      <p>採用標準的 vCard 3.0 格式，對方掃描後可以一鍵存進手機通訊錄。留空的欄位會自動省略。</p>
+      <p>用的是手機通訊錄都認得的電子名片格式（vCard），對方掃描後可以一鍵存進手機通訊錄。留空的欄位會自動省略。</p>
       <p>欄位填得越多，QR Code 越密，印在名片上時建議只留最常用的幾項。沒有 LINE ID 欄位，可以把 LINE 加好友網址填在「網站」。</p>
     </HelpTip>
     <div role="group" :aria-labelledby="`${uid}-label`" :aria-describedby="`${uid}-help`" class="grid grid-cols-2 gap-3 mt-1">
