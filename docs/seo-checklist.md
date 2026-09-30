@@ -4,7 +4,7 @@
 > 2026-09 由子網域 `qrcode-studio.pocketool.app` 搬到 www 主網域子路徑，舊網址以 Cloudflare Bulk Redirect 301 過來。
 > 標記：✅ 完成　❌ 未完成　⚠️ 需手動（外部平台 / 待補資產，無法由程式驗證）
 
-## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-30 共 691 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
+## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-30 共 711 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
 - [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（18 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
@@ -57,10 +57,12 @@ og:title、twitter:title 跟 title 一起改；meta description 沒有改。`seo
 
 分享圖與替代文字在 v1.6.0 上線後另外重畫（2026-09-30 commit，上線日以部署成功那天為準）：`/barcode/` 的大標
 「一維條碼產生器」改成「條碼產生器」，`/scan/` 的橫幅「上傳圖片或貼上截圖就能解碼」改成「上傳圖片或截圖就能讀取」、
-小標籤「一維條碼」改成「條碼」，og:image:alt、twitter:image:alt 照圖上的字改。網址沒變，已經分享出去的連結要到
-Facebook 分享偵錯工具與 LINE 重抓才會換圖。分享圖不影響搜尋結果顯示的標題，上面的四週比較照原本的改動日算。
-`seo:audit` 從這次起拿 `scripts/brand/cards.mjs` 對帳：替代文字要寫著圖上的大標，這兩頁的替代文字以大標開頭、
-有橫幅那句，大標也要在 title 裡。
+小標籤「一維條碼」改成「條碼」，og:image:alt、twitter:image:alt 照圖上的字改。分享圖網址沒變：這兩頁幾乎沒有
+從社群分享進來的紀錄，下一次分享就會抓到新圖，所以不換檔名；已經被平台快取過的連結可能還是舊圖，
+Facebook 與 LINE 都沒有能保證換圖的重抓工具（原因與換檔名的做法見 `docs/brand/README.md`）。
+分享圖不影響搜尋結果顯示的標題，上面的四週比較照原本的改動日算。
+`seo:audit` 從這次起拿 `scripts/brand/cards.mjs` 對帳：站台根目錄的 og:image 要是其中一張，替代文字要寫著圖上的大標，
+這兩頁的替代文字以大標開頭、有橫幅那句，大標也要在 title 裡。
 
 ---
 

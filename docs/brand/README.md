@@ -69,6 +69,17 @@ PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/brand/render.mjs
 
 產完用 `npm run build` 跑一次稽核：`seo:audit` 會驗每張分享圖是 1200×630、小於 300 KB，
 apple-touch-icon 與 manifest 圖示不透明，頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在；
-分享圖的替代文字也拿 `cards.mjs` 對帳（寫著圖上的大標，掃描器與條碼那兩頁的大標要在 title 裡）。
+分享圖也拿 `cards.mjs` 對帳（站台根目錄的 og:image 要是其中一張，替代文字寫著圖上的大標，掃描器與條碼那兩頁的大標要在 title 裡）。
 只重畫某幾張時在指令後面接檔名（例如 `og-scan.png og-barcode.png`），另外兩張不會動；重畫後把圖裡的碼用站上的掃描器讀一次。
-分享圖網址不變，社群平台會快取舊圖，上線後到 Facebook 分享偵錯工具與 LINE 重抓用到那張圖的頁面。
+
+### 已經分享出去的連結
+
+檔名不變只重畫圖，已經被社群平台抓過的連結可能一直顯示舊圖，站長那邊也沒有工具能保證換掉：
+
+- **Facebook**：官方文件（Sharing for Webmasters）寫明圖片依網址快取，網址不變就不會更新。
+  分享偵錯工具的「再次抓取」會更新標題與說明，圖片不保證換。
+- **LINE**：目前沒有公開的清快取工具（以前的 LINE Page Poker 已經停止服務，2026-09 查過網域已不存在），只能等快取自己過期。
+
+從來沒被分享過的頁面不受影響，下一次分享就會抓到新圖。要讓已分享的連結確定換圖，就給新檔名（例如 `og-scan-2.png`）：
+`cards.mjs` 的 `out` 與頁面 `useSeoHead` 的 `ogImage.path` 一起改，重跑 `render.mjs`，舊檔可以留在 `public/`。
+平台碰到新網址會自己抓新圖，不必清快取。不要在網址後面加 `?v=2`：`seo:audit` 會找不到檔案，也對不到 `cards.mjs` 的卡片。
