@@ -150,7 +150,11 @@ for (const f of pages) {
   // 「一維條碼產生器」「就能解碼」，當時沒有一條檢查擋得住。圖上的字的正本是 scripts/brand/cards.mjs（render.mjs 用它產圖）：
   // 替代文字要寫著圖上的大標；專屬分享圖（不是 og-default）的替代文字以大標開頭、也有橫幅那句，大標還要出現在 title 裡。
   // 這裡只對得到 cards.mjs：改了字卻沒重跑 render.mjs，public/ 的 PNG 還是舊的，要自己重產、目視確認。
-  const card = siteBase && ogImage?.startsWith(`${siteBase}/`) ? CARDS.find((c) => c.out === ogImage.slice(siteBase.length + 1)) : null
+  const ogPath = siteBase && ogImage?.startsWith(`${siteBase}/`) ? ogImage.slice(siteBase.length + 1) : null
+  const card = ogPath ? CARDS.find((c) => c.out === ogPath) : null
+  // 站台根目錄的分享圖都是 render.mjs 照 cards.mjs 產的。對不到卡片的話底下的對帳會安靜跳過，所以這裡先紅；
+  // 換了檔名沒改 cards.mjs 的 out、或在網址後面加 ?v= 都會停在這條。子目錄的圖（教學示意圖）不是卡片，不在此限。
+  if (ogPath && !ogPath.includes('/')) add(`[${name}] og:image 是 cards.mjs 裡的一張分享圖`, !!card, ogPath)
   if (card) {
     const alt = squashText(metaContent(html, 'og:image:alt'))
     const headline = squashText(card.lines.map((l) => l.text).join(''))
