@@ -155,6 +155,50 @@ add('所有頁 title 唯一', new Set(titles.values()).size === titles.size,
   dupTitles.length ? `重複：${[...new Set(dupTitles)].join(' / ')}` : '')
 add('所有頁 description 唯一', new Set(descs.values()).size === descs.size)
 
+// GA 只在正式主機載入：產物（含 404.html）不能有寫死的 <script src="…googletagmanager…">，
+// gtag.js 一律由看 location.hostname 的那段 inline script 插入。本機 preview、wrangler dev 與
+// workers.dev 跑的是同一份產物，寫死的話開發與驗收的造訪都會混進正式報表。
+// build 會把 inline script 壓縮改寫，所以不比對原始碼字面，改成把那段 script 換上假的
+// location、window、document 實際跑一次（不碰網路），看它在各主機名上做了什麼。
+// 主機名、量測 ID 與 content_group 刻意再寫一次，不從 index.html 推導。
+const GA_HOST = 'www.pocketool.app'
+const GA_ID = 'G-4FJ6KE3R2V'
+const GA_CONTENT_GROUP = 'qrcode-studio'
+const runGa = (script, hostname) => {
+  const appended = []
+  const win = {}
+  const doc = { createElement: (tag) => ({ tag }), head: { appendChild: (el) => { appended.push(el) } } }
+  try {
+    new Function('location', 'window', 'document', script)({ hostname }, win, doc)
+  } catch (e) {
+    return { error: String(e) }
+  }
+  const commands = (win.dataLayer ?? []).map((a) => Array.from(a))
+  return { appended, commands, hasGtag: typeof win.gtag === 'function' }
+}
+for (const f of htmlFiles) {
+  const html = readFileSync(f, 'utf8')
+  const name = rel(f)
+  const ga = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1])
+    .filter((s) => s.includes('googletagmanager.com/gtag/js'))
+  add(`[${name}] 沒有寫死的 <script src> 載入 gtag.js，恰好一段 inline GA 片段`,
+    !/<script[^>]*\ssrc=["'][^"']*googletagmanager/i.test(html) && ga.length === 1, `inline GA 片段 ${ga.length} 段`)
+  if (ga.length !== 1) continue
+  const prod = runGa(ga[0], GA_HOST)
+  add(`[${name}] GA 在 ${GA_HOST} 插入 async gtag.js，config 帶量測 ID 與 content_group`,
+    !prod.error && prod.hasGtag && prod.appended.length === 1
+      && prod.appended[0].tag === 'script' && prod.appended[0].async === true
+      && prod.appended[0].src === `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`
+      && prod.commands[0]?.[0] === 'js'
+      && JSON.stringify(prod.commands[1]) === JSON.stringify(['config', GA_ID, { content_group: GA_CONTENT_GROUP }]),
+    prod.error ?? JSON.stringify(prod.commands[1] ?? null))
+  const others = ['localhost', '127.0.0.1', 'qrcode-studio.example.workers.dev', 'pocketool.app']
+    .map((h) => [h, runGa(ga[0], h)])
+    .filter(([, r]) => r.error || r.hasGtag || r.appended.length || r.commands.length)
+  add(`[${name}] GA 在 localhost、127.0.0.1、workers.dev、apex 都不載入`, others.length === 0,
+    others.map(([h]) => h).join(' '))
+}
+
 // 分享圖：社群平台對大檔會逾時或直接不抓，全部壓在 300 KB 以下；實際尺寸要等於頁面宣告的 og:image:width／height，
 // 而且是 1200×630（Facebook、LINE 的大卡比例）。
 for (const [f, declared] of ogImages) {

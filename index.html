@@ -8,13 +8,26 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <!-- Google tag (gtag.js)：站群共用 GA4 property，各站以 content_group 區分 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-4FJ6KE3R2V"></script>
+    <!--
+      Google tag (gtag.js)：站群共用 GA4 property，各站以 content_group 區分。
+      只在正式主機量測：localhost、vite dev／preview、wrangler dev、workers.dev 跑的都是同一份 HTML，
+      不看主機名的話，開發與驗收時的造訪會混進正式報表。其他主機名連 gtag.js 都不請求。
+      404 頁由同一份 index.html 預渲染，不必另寫；src/analytics.test.ts 會在不同主機名上跑這段，
+      seo:audit 逐頁驗產物沒有寫死的 gtag.js。
+    -->
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-4FJ6KE3R2V', { content_group: 'qrcode-studio' });
+      (function (host) {
+        if (host !== 'www.pocketool.app') return;
+        window.dataLayer = window.dataLayer || [];
+        /* gtag.js 只把真的 Arguments 物件當指令：要用 function 推 arguments，不能改成箭頭函式 */
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', 'G-4FJ6KE3R2V', { content_group: 'qrcode-studio' });
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-4FJ6KE3R2V';
+        document.head.appendChild(s);
+      })(location.hostname);
     </script>
   </head>
   <body>

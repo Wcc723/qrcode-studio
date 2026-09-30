@@ -4,7 +4,7 @@
 > 2026-09 由子網域 `qrcode-studio.pocketool.app` 搬到 www 主網域子路徑，舊網址以 Cloudflare Bulk Redirect 301 過來。
 > 標記：✅ 完成　❌ 未完成　⚠️ 需手動（外部平台 / 待補資產，無法由程式驗證）
 
-## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-29 共 600 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
+## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-30 共 663 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
 - [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（18 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
@@ -34,6 +34,7 @@
 - [ ] ⚠️ GSC：在 `sc-domain:pocketool.app` 提交 `https://www.pocketool.app/qrcode-studio/sitemap.xml`。**等它顯示成功之後**，才移除舊的 `https://qrcode-studio.pocketool.app/sitemap.xml` 提交紀錄
 - [ ] ⚠️ GSC：對首頁與各類型核心頁（/wifi/、/url/、/vcard/…）做 URL Inspection → 要求建立索引
 - [ ] ⚠️ GA4：2026-09-17 起本站改送站群共用 property（量測 ID `G-4FJ6KE3R2V`，`content_group: 'qrcode-studio'`），舊 property `G-WX9VS8GGBZ` 只留歷史。共用 property 的資料串流網址是 `https://www.pocketool.app`；所有以 hostname 或 page_path 為條件的關鍵事件／目標對象／自訂定義都要改用 `content_group`（`page_path` 由 `/wifi/` 變成 `/qrcode-studio/wifi/`，GA4 不會警告，只會比對到零列）
+- [x] ✅ GA4 只在 `www.pocketool.app` 載入（2026-09-30）：`index.html` 的 inline script 先看 `location.hostname` 才建立 gtag、送 config、插入 gtag.js；localhost、`vite dev`／`preview`、`wrangler dev`、workers.dev 一律不載入。404 頁由同一份 index.html 預渲染，不另寫。`src/analytics.test.ts` 在各主機名上跑原始碼那段，`seo:audit` 逐頁（含 404.html）把壓縮後的那段換上假的 location、window、document 實際跑一次。本機要驗 www 的行為時，用 Playwright route 把 www 網址對到本機 build，GA 相關請求一律攔截回 204，不要真的送出
 - [ ] ⚠️ Bing Webmaster Tools：驗證 + 提交 sitemap（可從 GSC 匯入）
 - [ ] ⚠️ 外部入口：個人站 / GitHub README / 社群至少放一條連結指向本站（避免孤島）
 - [ ] ⚠️ （若日後啟用 AdSense）隱私權政策頁內容齊備、符合 Google 廣告政策

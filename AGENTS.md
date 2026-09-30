@@ -235,6 +235,18 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
   完整節點恰好一份且 logo 正確、publisher 指向共用節點。稽核的 `ORG_ID`／`ORG_LOGO` 與 `useSeoHead.test.ts` 的 `ORG_ID`
   刻意再寫一次、不從 `site.ts` 推導，要改 `@id` 或 logo 時三處一起改（`@id` 一改就變成另一個實體，原則上不改）。
 
+## GA 只在正式主機載入
+
+`index.html` 的 GA 是一段 inline script：`location.hostname` 等於 `www.pocketool.app` 才建立 `gtag`、送 `config`
+（`content_group: 'qrcode-studio'`）並插入 `gtag.js`；localhost、`vite dev`／`preview`、`wrangler dev`、workers.dev
+連 `googletagmanager.com` 都不請求。**不要改回寫死的 `<script src="…gtag/js">`**：本機跑的是同一份產物，
+開發與驗收的造訪會混進正式報表。404 頁由同一份 `index.html` 預渲染，不必另寫一份。
+
+- `src/analytics.test.ts` 換上假的 location、window、document，在各主機名上跑原始碼那段；`seo:audit` 對產物
+  （build 會壓縮改寫這段）逐頁做同樣的事，含 404.html
+- 程式裡要送自訂事件時，先確認 `window.gtag` 存在；非正式主機上它是 `undefined`
+- 瀏覽器驗收（本機或正式站）一律用 `page.route` 擋掉 GA 與廣告請求，要驗 GA 行為就攔截後回 204
+
 ## robots.txt 與 ads.txt 由 hub 提供
 
 子路徑下爬蟲只讀根網域的 `/robots.txt`，AdSense 也只讀根網域的 `/ads.txt`，
