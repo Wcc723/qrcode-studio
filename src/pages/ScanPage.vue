@@ -48,7 +48,7 @@ const faqs = [
 ]
 
 useSeoHead({
-  title: 'QR Code 掃描器｜上傳圖片或貼上截圖，線上解碼 QR 與條碼',
+  title: 'QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR 與條碼',
   description: '免費線上 QR Code 掃描器與條碼解碼器：上傳圖片、拖放或直接貼上截圖，在瀏覽器內讀取 QR Code 與 Code 128、EAN-13 等一維條碼。圖片不上傳雲端，結果先安全預覽再決定是否開啟。',
   path: '/scan',
   appName: 'QR Code 掃描器',
@@ -64,7 +64,7 @@ useSeoHead({
 <template>
   <div>
     <ToolZone lead="拖放、選檔或貼上截圖，在瀏覽器內讀出 QR Code 與條碼">
-      <template #title>QR Code 掃描器：用圖片或截圖解碼</template>
+      <template #title>QR Code 掃描器：用圖片或截圖讀取</template>
       <ScanTool />
     </ToolZone>
     <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="scan-below-tool" /></div>
@@ -124,7 +124,7 @@ useSeoHead({
       </p>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
         要反過來自己<strong class="text-ink">製作</strong>條碼，請用<RouterLink to="/" class="text-link underline font-700">免費 QR Code 產生器</RouterLink>或<RouterLink
-          to="/barcode/" class="text-link underline font-700">一維條碼產生器</RouterLink>。
+          to="/barcode/" class="text-link underline font-700">條碼產生器</RouterLink>。
         讀出來的內容也可以直接按「用這個內容再做一張」帶過去。
       </p>
 

@@ -40,7 +40,7 @@ useSeoHead({
     <h2>三個工具怎麼運作</h2>
     <ul class="list-disc pl-5 mt-3 space-y-2">
       <li><RouterLink to="/">QR Code 產生器</RouterLink>：用公開原始碼的 qr-code-styling 套件（MIT License）在你的瀏覽器裡畫出來。每種類型都用手機相機認得的標準格式，例如 WiFi 用 <code>WIFI:</code>、電子名片用 vCard 3.0、Email 用寄信連結 <code>mailto:</code>、簡訊用 <code>SMSTO:</code>。中文與 emoji 以通行的 UTF-8 編碼。</li>
-      <li><RouterLink to="/barcode/">一維條碼產生器</RouterLink>：產生條碼的程式是自己寫的，會依國際條碼組織 GS1 的規則自動計算 EAN-13、EAN-8、ITF-14 的檢查碼（最後一位，用來抓打錯的號碼），SVG 檔帶有毫米尺寸，置入排版軟體就是標準大小。</li>
+      <li><RouterLink to="/barcode/">條碼產生器</RouterLink>：產生條碼的程式是自己寫的，會依國際條碼組織 GS1 的規則自動計算 EAN-13、EAN-8、ITF-14 的檢查碼（最後一位，用來抓打錯的號碼），SVG 檔帶有毫米尺寸，置入排版軟體就是標準大小。</li>
       <li><RouterLink to="/scan/">QR Code 掃描器</RouterLink>：用 zxing-wasm 在你的瀏覽器裡讀取（解碼）截圖或圖檔。讀出來的結果先以純文字顯示，不會自動開啟連結，避免掃到偽造網址時被直接帶走。</li>
     </ul>
     <p>
@@ -57,7 +57,7 @@ useSeoHead({
       <li>zxing-wasm 自有的程式碼：MIT License（Copyright © 2023 Ze-Zheng Wu）</li>
     </ul>
     <p>介面上的圖示來自 <a href="https://lucide.dev/" target="_blank" rel="noopener">Lucide</a>（ISC License，其中由 Feather 衍生的部分圖示為 MIT License），在建置時打包進本站的樣式檔，瀏覽器不會向第三方取圖。</p>
-    <p>本站<RouterLink to="/barcode/">一維條碼產生器</RouterLink>產生條碼的程式（編碼器）是自行實作的，不使用上述任何第三方編碼器。完整版本、雜湊與授權出處記在 GitHub 上的 <a :href="`${repoUrl}/blob/main/NOTICE.md`" target="_blank" rel="noopener"><code>NOTICE.md</code></a>。</p>
+    <p>本站<RouterLink to="/barcode/">條碼產生器</RouterLink>產生條碼的程式（編碼器）是自行實作的，不使用上述任何第三方編碼器。完整版本、雜湊與授權出處記在 GitHub 上的 <a :href="`${repoUrl}/blob/main/NOTICE.md`" target="_blank" rel="noopener"><code>NOTICE.md</code></a>。</p>
 
     <h2>商標</h2>
     <p data-test="trademark-about">{{ site.trademark }}本站是獨立製作的免費工具，與 DENSO WAVE 沒有合作或隸屬關係。</p>

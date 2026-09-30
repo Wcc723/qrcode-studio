@@ -11,7 +11,7 @@ const base = import.meta.env.BASE_URL
 const nav = [
   { to: '/', label: '產生器' },
   { to: '/scan/', label: '掃描器' },
-  { to: '/barcode/', label: '一維條碼' },
+  { to: '/barcode/', label: '條碼' },
   { to: '/guide/', label: '教學' },
   { to: '/faq/', label: '常見問題' },
 ]
@@ -55,7 +55,7 @@ const nav = [
           <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
             <li><RouterLink to="/" class="hover:text-link transition">免費 QR Code 產生器</RouterLink></li>
             <li><RouterLink to="/scan/" class="hover:text-link transition">QR Code 掃描器</RouterLink></li>
-            <li><RouterLink to="/barcode/" class="hover:text-link transition">一維條碼產生器</RouterLink></li>
+            <li><RouterLink to="/barcode/" class="hover:text-link transition">條碼產生器</RouterLink></li>
             <li><a :href="publisher.toolsUrl" class="hover:text-link transition">更多免費工具</a></li>
           </ul>
         </section>

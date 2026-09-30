@@ -10,7 +10,7 @@
 export const guideBodies: Record<string, string> = {
   'what-is-qr-code': `
 <p>QR Code 是 Quick Response Code 的縮寫，中文常叫「行動條碼」或「二維條碼」。它在 1994 年由日本 DENSO 的開發部門（也就是今天的 DENSO WAVE）發表，開發時最重視的就是「讀得快」，Quick Response 指的正是這件事；另一個目標是存下比一維條碼多得多的資料，連日文漢字與假名都要能放。和商品包裝上只在橫向記錄資料的一維條碼不同，QR Code 在橫向與直向都存資料，所以同樣大小能放進多得多的內容：一整串網址、WiFi 帳密、一張電子名片都裝得下。</p>
-<p>如果你要做的是結帳時嗶一下的那種直條條碼（EAN-13、Code 128），那是另一種東西，請改用<a href="/barcode/">一維條碼產生器</a>。</p>
+<p>如果你要做的是結帳時嗶一下的那種直條條碼（EAN-13、Code 128），那是另一種東西，請改用<a href="/barcode/">條碼產生器</a>。</p>
 
 <h2>一張 QR Code 由哪些部分組成</h2>
 <p>把 QR Code 放大看，它是由一格一格的黑白小方塊組成，每一個小方塊叫做一個「模組」。這些小方塊分成兩類：一類是固定的圖形，負責讓相機找到並對齊這張碼；另一類才是真正的資料。下面這張圖是本站網址 <code>https://www.pocketool.app/qrcode-studio/</code> 以容錯等級 M 做出來的 QR Code，我們把固定圖形分色標出來：</p>

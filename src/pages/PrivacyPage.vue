@@ -25,7 +25,7 @@ useSeoHead({
       本頁說明 {{ site.name }}（<code>www.pocketool.app/qrcode-studio/</code>，以下簡稱「本工具」）如何處理你的資料。本工具是 <a :href="publisher.url">口袋工具 Pocketool</a> 的一部分，<strong>同時適用口袋工具全站隱私權政策</strong>（<a :href="publisher.privacyUrl">www.pocketool.app/privacy</a>）；這一頁補充說明本工具特有的處理方式。
     </p>
 
-    <h2 class="text-lg font-700 text-ink mt-7">你輸入的內容（QR Code 產生器、一維條碼產生器）</h2>
+    <h2 class="text-lg font-700 text-ink mt-7">你輸入的內容（QR Code 產生器、條碼產生器）</h2>
     <p class="text-muted mt-3 leading-7">你輸入的所有內容（網址、WiFi 密碼、聯絡資訊、條碼號碼等）都只在你的瀏覽器內處理並產生圖片，<strong>不會上傳至雲端儲存空間，我們也不會儲存這些內容</strong>。你上傳的 LOGO 圖片同樣只在瀏覽器內與 QR Code 合成，不會送到任何伺服器。本工具本身不會把你輸入的內容存進瀏覽器的任何儲存空間（Cookie、localStorage 等），重新整理頁面後就會清空。</p>
 
     <h2 class="text-lg font-700 text-ink mt-7">讀取圖片（QR Code 掃描器）</h2>

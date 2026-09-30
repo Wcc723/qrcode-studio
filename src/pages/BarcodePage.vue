@@ -21,15 +21,15 @@ const steps = [
 ]
 
 useSeoHead({
-  title: '一維條碼產生器｜EAN-13、Code 128 商品條碼線上免費製作',
+  title: '條碼產生器｜EAN-13、Code 128 商品條碼線上免費製作',
   description: '免費線上一維條碼產生器，支援 EAN-13 商品條碼與 Code 128 等格式：輸入數字即時產生條碼，瀏覽器內生成、不傳雲端，自動計算檢查碼，免費下載 PNG 與 SVG 向量檔。',
   path: '/barcode',
-  appName: '一維條碼產生器',
+  appName: '條碼產生器',
   appType: 'WebApplication',
   ogImage: { path: '/og-barcode.png', width: 1200, height: 630, alt: '一維條碼產生器：EAN-13、Code 128 線上製作，自動算檢查碼' },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
-    { name: '一維條碼', url: `${site.url}/barcode/` },
+    { name: '條碼產生器', url: `${site.url}/barcode/` },
   ],
 })
 </script>
@@ -37,7 +37,7 @@ useSeoHead({
 <template>
   <div>
     <ToolZone lead="Code 128、EAN-13 等 5 種格式，自動計算檢查碼">
-      <template #title>一維條碼產生器（EAN-13、Code 128）</template>
+      <template #title>條碼產生器（EAN-13、Code 128）</template>
       <BarcodeTool />
     </ToolZone>
     <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="barcode-below-tool" /></div>
@@ -60,7 +60,7 @@ useSeoHead({
         掃描後不必查店家的系統就能取得完整內容，能放的內容多得多，也比較耐髒。
       </p>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
-        要做的是商品包裝、庫存標籤、圖書編號那種直條條碼，就用本頁的一維條碼產生器；
+        要做的是商品包裝、庫存標籤、圖書編號那種直條條碼，就用本頁的條碼產生器；
         要做掃碼開網頁、加 LINE、連 WiFi 的方形圖，請改用<RouterLink to="/" class="text-link underline font-700">免費 QR Code 產生器</RouterLink>或<RouterLink
           to="/url/" class="text-link underline font-700">網址 QR Code 產生器</RouterLink>。
       </p>

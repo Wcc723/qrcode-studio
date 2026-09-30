@@ -51,7 +51,7 @@ useSeoHead({
       <ul class="mt-3 list-disc pl-5 space-y-1.5 text-ink/80 font-600 leading-relaxed">
         <li><RouterLink to="/" class="text-link underline underline-offset-2 font-700">免費 QR Code 產生器</RouterLink>：網址、WiFi、電子名片等 7 種類型，可加 LOGO、下載 PNG 與 SVG。</li>
         <li><RouterLink to="/scan/" class="text-link underline underline-offset-2 font-700">QR Code 掃描器</RouterLink>：截圖或圖檔裡的 QR Code 與條碼，在瀏覽器裡讀取。</li>
-        <li><RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">一維條碼產生器</RouterLink>：EAN-13、Code 128 等商品與物流條碼。</li>
+        <li><RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">條碼產生器</RouterLink>：EAN-13、Code 128 等商品與物流條碼。</li>
         <li><RouterLink to="/faq/" class="text-link underline underline-offset-2 font-700">常見問題</RouterLink>：費用、隱私、下載格式等快速解答。</li>
       </ul>
     </section>

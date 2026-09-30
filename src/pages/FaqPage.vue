@@ -50,7 +50,7 @@ const groups: { id: string; title: string; items: Faq[] }[] = [
       { q: '可以做哪些類型的 QR Code？', a: '支援<a href="/url/">網址</a>、<a href="/wifi/">WiFi</a>、<a href="/vcard/">電子名片</a>、<a href="/text/">純文字</a>、<a href="/email/">Email</a>、<a href="/phone/">電話</a>與<a href="/sms/">簡訊</a> 7 種。每一種都用手機相機認得的標準格式，掃了手機就知道要開網頁、連 WiFi 還是存聯絡人。' },
       { q: '中文內容可以嗎？', a: '可以，中文與 emoji 都能放。一個中文字佔的空間大約是英文字母的 3 倍，所以同樣大小能放的中文字大約是英文字母的三分之一。內容很長時建議放在網頁上，QR Code 只放網址。' },
       { q: 'WiFi 換了密碼，QR Code 要重做嗎？', a: '要。靜態 QR Code 裡直接存著密碼，換密碼後請重新產生一張，並把舊的撤下。' },
-      { q: '一維條碼和 QR Code 差在哪？', a: '一維條碼是商品包裝上那種直條條碼，主要存商品編號；QR Code 是二維條碼，可以直接存網址、文字與聯絡資訊。要做 EAN-13、Code 128 等商品或物流條碼，請用<a href="/barcode/">一維條碼產生器</a>。' },
+      { q: '一維條碼和 QR Code 差在哪？', a: '一維條碼是商品包裝上那種直條條碼，主要存商品編號；QR Code 是二維條碼，可以直接存網址、文字與聯絡資訊。要做 EAN-13、Code 128 等商品或物流條碼，請用<a href="/barcode/">條碼產生器</a>。' },
     ],
   },
   {

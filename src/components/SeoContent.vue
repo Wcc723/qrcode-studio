@@ -50,7 +50,7 @@ const bodyHtml = computed(() => withBase(props.meta.body ?? ''))
       <ul class="doc-chips" data-test="other-types">
         <li v-for="t in otherTypes" :key="t.type"><span :class="t.icon" class="text-muted" aria-hidden="true" /><RouterLink :to="`${t.path}/`">{{ t.label }} QR Code</RouterLink></li>
         <li><span class="i-lucide-scan-line text-muted" aria-hidden="true" /><RouterLink to="/scan/">QR Code 掃描器</RouterLink></li>
-        <li><span class="i-lucide-barcode text-muted" aria-hidden="true" /><RouterLink to="/barcode/">一維條碼產生器</RouterLink></li>
+        <li><span class="i-lucide-barcode text-muted" aria-hidden="true" /><RouterLink to="/barcode/">條碼產生器</RouterLink></li>
       </ul>
     </nav>
   </article>

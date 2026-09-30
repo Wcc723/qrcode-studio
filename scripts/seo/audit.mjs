@@ -222,6 +222,22 @@ for (const [page, expected] of [
   const title = existsSync(file) ? pick(readFileSync(file, 'utf8'), /<title[^>]*>([\s\S]*?)<\/title>/i) : null
   add(`[${page}] title 是「${expected}」`, title === expected, title ?? '(沒有這頁)')
 }
+// /barcode/ 與 /scan/ 的標題（2026-09-30 改成白話：「一維條碼產生器」改以「條碼產生器」開頭，「解碼」改「讀取」）。
+// H1 跟 title 用同一種說法，搜尋結果的標題才不會出現兩種寫法；og:title、twitter:title 跟 title 一致。
+// 值刻意再寫一次、不從頁面推導，改標題時兩邊一起改。
+for (const [page, expectedTitle, expectedH1] of [
+  ['barcode/index.html', '條碼產生器｜EAN-13、Code 128 商品條碼線上免費製作', '條碼產生器（EAN-13、Code 128）'],
+  ['scan/index.html', 'QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR 與條碼', 'QR Code 掃描器：用圖片或截圖讀取'],
+]) {
+  const file = join(distDir, page)
+  const html = existsSync(file) ? readFileSync(file, 'utf8') : ''
+  const title = pick(html, /<title[^>]*>([\s\S]*?)<\/title>/i)
+  add(`[${page}] title 是「${expectedTitle}」`, title === expectedTitle, title ?? '(沒有這頁)')
+  add(`[${page}] og:title、twitter:title 等於 title`,
+    metaContent(html, 'og:title') === expectedTitle && metaContent(html, 'twitter:title') === expectedTitle)
+  const h1 = squashText(pick(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i))
+  add(`[${page}] H1 是「${expectedH1}」`, h1 === expectedH1.replace(/\s+/g, ''), h1)
+}
 {
   const html = readFileSync(join(distDir, 'index.html'), 'utf8')
   const app = jsonLd(html).find((ld) => ld?.['@type'] === 'SoftwareApplication')
