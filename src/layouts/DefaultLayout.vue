@@ -13,7 +13,7 @@ const nav = [
   { to: '/scan/', label: '掃描器' },
   { to: '/barcode/', label: '一維條碼' },
   { to: '/guide/', label: '教學' },
-  { to: '/faq/', label: 'FAQ' },
+  { to: '/faq/', label: '常見問題' },
 ]
 </script>
 <template>

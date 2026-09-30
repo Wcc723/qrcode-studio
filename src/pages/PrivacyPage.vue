@@ -26,11 +26,11 @@ useSeoHead({
     </p>
 
     <h2 class="text-lg font-700 text-ink mt-7">你輸入的內容（QR Code 產生器、一維條碼產生器）</h2>
-    <p class="text-muted mt-3 leading-7">你輸入的所有內容（網址、WiFi 密碼、聯絡資訊、條碼號碼等）都只在你的瀏覽器內處理並產生圖片，<strong>不會上傳至雲端儲存空間，我們也不會儲存這些內容</strong>。你上傳的 LOGO 圖片同樣只在瀏覽器內與 QR Code 合成，不會送到任何伺服器。本工具本身不使用 Cookie、localStorage 或其他瀏覽器儲存空間保存你輸入的內容，重新整理頁面後就會清空。</p>
+    <p class="text-muted mt-3 leading-7">你輸入的所有內容（網址、WiFi 密碼、聯絡資訊、條碼號碼等）都只在你的瀏覽器內處理並產生圖片，<strong>不會上傳至雲端儲存空間，我們也不會儲存這些內容</strong>。你上傳的 LOGO 圖片同樣只在瀏覽器內與 QR Code 合成，不會送到任何伺服器。本工具本身不會把你輸入的內容存進瀏覽器的任何儲存空間（Cookie、localStorage 等），重新整理頁面後就會清空。</p>
 
-    <h2 class="text-lg font-700 text-ink mt-7">圖片解碼（QR Code 掃描器）</h2>
-    <p class="text-muted mt-3 leading-7">在<RouterLink to="/scan/">QR Code 掃描器</RouterLink>選擇、拖放或貼上的圖片，<strong>不會上傳到任何伺服器</strong>。解碼是由本站提供的 WebAssembly（WASM）模組在你的瀏覽器內執行的，該模組本身也由本站網域提供，不從第三方 CDN 載入。</p>
-    <p class="text-muted mt-3 leading-7">圖片內容與解讀出來的結果（含網址、WiFi 密碼、名片資訊等）只存在於該分頁的記憶體中：<strong>不會寫入網址、Cookie、localStorage、sessionStorage 或任何瀏覽紀錄</strong>，也不會出現在使用數據分析的事件裡。關閉或重新整理分頁後就不會保留。按下「用此內容重新產生」把內容帶回產生器時，同樣只在記憶體中傳遞，且只會被取用一次。</p>
+    <h2 class="text-lg font-700 text-ink mt-7">讀取圖片（QR Code 掃描器）</h2>
+    <p class="text-muted mt-3 leading-7">在<RouterLink to="/scan/">QR Code 掃描器</RouterLink>選擇、拖放或貼上的圖片，<strong>不會上傳到任何伺服器</strong>。讀取（解碼）是由本站提供的讀取程式（WebAssembly 模組，簡稱 WASM）在你的瀏覽器內執行的，這個程式本身也由本站網域提供，不向其他公司的伺服器下載（第三方 CDN）。</p>
+    <p class="text-muted mt-3 leading-7">圖片內容與讀出來的結果（含網址、WiFi 密碼、名片資訊等）只在這個分頁開著的時候存在：<strong>不會存進網址或瀏覽器的任何儲存空間（Cookie、localStorage、sessionStorage），也不會留在瀏覽紀錄裡</strong>；使用數據分析的事件裡同樣沒有這些內容。關閉或重新整理分頁後就不會保留。按下「用這個內容再做一張」把內容帶回產生器時，同樣只在這個分頁裡傳遞，且只會被取用一次。</p>
 
     <h2 class="text-lg font-700 text-ink mt-7">使用數據分析（Google Analytics）</h2>
     <p class="text-muted mt-3 leading-7">為了解網站使用情況並持續改善，本站使用 Google Analytics（GA4）收集使用統計，例如瀏覽的頁面、停留時間、裝置與瀏覽器類型、概略地區（依 IP 推估）等。這些資料透過 Cookie（名稱是 _ga 開頭）區分不同的造訪，<strong>不包含你輸入到產生器中的任何內容</strong>，也不會用來辨識你的個人身分。相關資料由 Google 依其<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">隱私權政策</a>處理；你可以安裝 <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics 停用外掛</a>，或在瀏覽器封鎖 Cookie 來拒絕統計。</p>

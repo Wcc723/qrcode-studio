@@ -12,10 +12,10 @@ const badgeBg = ['bg-pop-sun', 'bg-pop-mint', 'bg-pop-sky', 'bg-pop-pink']
 
 const faqs = [
   { q: 'QR Code 產生器要錢嗎？需要註冊嗎？', a: '完全免費、免註冊、無浮水印，可直接下載 PNG 與 SVG，商用與印刷皆可。' },
-  { q: 'QR Code 會過期嗎？', a: '不會。本工具產生的是靜態 QR Code，內容直接編碼在圖中，永久有效、不需聯網、不會失效。' },
-  { q: '我輸入的內容會被上傳嗎？', a: '你輸入的內容只在你的瀏覽器內編碼成 QR Code 圖片，不會上傳至雲端儲存空間。' },
-  { q: '可以加入 LOGO 和自訂顏色嗎？', a: '可以。支援自訂前景／背景顏色、漸層，以及上傳 LOGO；上傳 LOGO 時會自動提高容錯等級以確保可掃描。' },
-  { q: '可以下載 SVG 向量檔印刷用嗎？', a: '可以。免費提供 SVG 向量檔，放大不失真，適合名片、海報與大圖輸出。' },
+  { q: 'QR Code 會過期嗎？', a: '不會。本工具產生的是靜態 QR Code，內容直接存在圖裡，不經過任何網站轉址，永久有效、不會失效。' },
+  { q: '我輸入的內容會被上傳嗎？', a: '你輸入的內容只在你的瀏覽器裡轉成 QR Code 圖片，不會上傳至雲端儲存空間。' },
+  { q: '可以加入 LOGO 和自訂顏色嗎？', a: '可以。支援自訂方塊與背景顏色、漸層，以及上傳 LOGO；上傳 LOGO 時會自動調成最耐髒的等級（H），確保掃得出來。' },
+  { q: '可以下載 SVG 向量檔印刷用嗎？', a: '可以。免費提供 SVG 向量檔，放多大都不會糊，適合名片、海報與大圖輸出。' },
 ]
 
 useSeoHead({
@@ -40,9 +40,9 @@ useSeoHead({
 
       <h2 class="text-2xl font-800 text-ink mt-8">免費線上 QR Code 產生器，3 步驟製作完成</h2>
       <p class="mt-3">這是一款<strong>免費、不傳雲端、無浮水印</strong>的線上 QR Code（行動條碼）產生器。輸入內容、自訂外觀、按下下載，整個過程都在你的瀏覽器內完成，你輸入的內容不會上傳至雲端儲存空間。支援<RouterLink to="/url/" class="text-link underline underline-offset-2 font-700">網址</RouterLink>、<RouterLink to="/wifi/" class="text-link underline underline-offset-2 font-700">WiFi</RouterLink>、<RouterLink to="/vcard/" class="text-link underline underline-offset-2 font-700">電子名片</RouterLink>、文字、Email、電話、簡訊等多種類型。</p>
-      <p class="mt-3">可自訂前景與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或<RouterLink to="/guide/qr-code-svg/" class="text-link underline underline-offset-2 font-700">SVG 向量檔</RouterLink>（印刷不失真）。產生的是<strong>靜態 QR Code</strong>，永久有效、不會過期，可放心印在名片、海報、產品包裝或店家招牌上。</p>
-      <p class="mt-3">已經有一張 QR Code 的<strong>圖片或截圖</strong>，想知道裡面是什麼？用<RouterLink to="/scan/" class="text-link underline underline-offset-2 font-700">QR Code 掃描器</RouterLink>：拖放或貼上截圖就能在瀏覽器內解碼，圖片不會上傳，結果也會先讓你確認再決定要不要開啟。</p>
-      <p class="mt-3">要做的是商品包裝上那種直條的<strong>一維條碼</strong>（EAN-13、Code 128）嗎？請改用<RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">一維條碼產生器</RouterLink>。兩者用途不同：QR Code 是二維條碼，可直接存網址與長文字；一維條碼主要對應商品編號，用於零售結帳與庫存管理。</p>
+      <p class="mt-3">可自訂方塊與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或<RouterLink to="/guide/qr-code-svg/" class="text-link underline underline-offset-2 font-700">SVG 向量檔</RouterLink>（放多大都不會糊，印刷用）。產生的是<strong>靜態 QR Code</strong>（內容直接存在圖裡，不經過任何網站轉址），永久有效、不會過期，可放心印在名片、海報、產品包裝或店家招牌上。</p>
+      <p class="mt-3">已經有一張 QR Code 的<strong>圖片或截圖</strong>，想知道裡面是什麼？用<RouterLink to="/scan/" class="text-link underline underline-offset-2 font-700">QR Code 掃描器</RouterLink>：拖放或貼上截圖就能在瀏覽器裡讀出內容，圖片不會上傳，結果也會先讓你確認再決定要不要開啟。</p>
+      <p class="mt-3">要做的是商品包裝上那種直條條碼（<strong>一維條碼</strong>，例如 EAN-13、Code 128）嗎？請改用<RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">一維條碼產生器</RouterLink>。兩者用途不同：QR Code 是二維條碼，可直接存網址與長文字；一維條碼主要對應商品編號，用於零售結帳與庫存管理。</p>
 
       <!-- 7 種類型的專屬頁：原本是工具下方的大卡片，看起來像工具的一部分，改成說明區裡的連結列 -->
       <h2 class="text-2xl font-800 text-ink mt-10">挑一種，馬上做</h2>

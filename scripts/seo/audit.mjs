@@ -472,7 +472,7 @@ for (const [page, needles] of [
   if (existsSync(scanFile)) {
     const html = readFileSync(scanFile, 'utf8')
     const docText = textOf(html.slice(html.indexOf('data-test="doc"')))
-    for (const s of ['圖片不離開瀏覽器', '不自動開啟任何東西', '只有 http 與 https 給開啟按鈕', '一次一張、一個碼', 'SVG 可以夾帶腳本與外部參照']) {
+    for (const s of ['圖片不離開瀏覽器', '不自動開啟任何東西', '只有 http 與 https 給開啟按鈕', '一次一張、一個碼', 'SVG 檔裡可以藏程式碼']) {
       add(`[scan/] 安全與隱私仍有「${s}」`, docText.includes(squash(s)))
     }
   }
