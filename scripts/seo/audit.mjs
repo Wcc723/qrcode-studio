@@ -6,6 +6,7 @@
 import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { createHash } from 'node:crypto'
+import { CARDS } from '../brand/cards.mjs'
 
 const argv = process.argv.slice(2)
 const distDir = (() => {
@@ -145,6 +146,21 @@ for (const f of pages) {
   }
   add(`[${name}] og:image 帶寬、高、類型與替代文字`,
     ['og:image:width', 'og:image:height', 'og:image:type', 'og:image:alt'].every((p) => !!metaContent(html, p)))
+  // 分享圖上的字要跟頁面對得上。2026-09-30 /barcode/ 與 /scan/ 的 title 改成白話之後，分享圖還寫著
+  // 「一維條碼產生器」「就能解碼」，當時沒有一條檢查擋得住。圖上的字的正本是 scripts/brand/cards.mjs（render.mjs 用它產圖）：
+  // 替代文字要寫著圖上的大標；專屬分享圖（不是 og-default）的替代文字以大標開頭、也有橫幅那句，大標還要出現在 title 裡。
+  // 這裡只對得到 cards.mjs：改了字卻沒重跑 render.mjs，public/ 的 PNG 還是舊的，要自己重產、目視確認。
+  const card = siteBase && ogImage?.startsWith(`${siteBase}/`) ? CARDS.find((c) => c.out === ogImage.slice(siteBase.length + 1)) : null
+  if (card) {
+    const alt = squashText(metaContent(html, 'og:image:alt'))
+    const headline = squashText(card.lines.map((l) => l.text).join(''))
+    add(`[${name}] 分享圖的替代文字寫著圖上的大標「${headline}」`, alt.includes(headline), metaContent(html, 'og:image:alt') ?? '')
+    if (card.out !== 'og-default.png') {
+      add(`[${name}] 專屬分享圖的替代文字以大標開頭、有橫幅那句，大標也在 title 裡`,
+        alt.startsWith(headline) && alt.includes(squashText(card.banner)) && squashText(title).includes(headline),
+        `${card.out}：${card.banner}`)
+    }
+  }
   if (title) titles.set(name, title)
   if (desc) descs.set(name, desc)
 }

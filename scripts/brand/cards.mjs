@@ -1,6 +1,7 @@
 // 分享圖（1200×630）的文字正本。版面在 render.mjs，站名不寫在這裡：render.mjs 從 src/config/site.ts 讀 siteName。
 // 分享圖的 alt 寫在頁面的 useSeoHead（首頁用 site.ts 的 ogImage.alt，/scan/ 與 /barcode/ 在各自的頁面），
-// 改了圖上的字記得一起看 alt 還對不對。
+// 改了圖上的字記得一起看 alt 還對不對。seo:audit 會拿這份對帳：alt 要寫著大標（lines），
+// /scan/ 與 /barcode/ 的大標要在 title 裡、alt 要有 banner；所以頁面的 title 改了說法，這裡跟著改再重跑 render.mjs。
 export const CARDS = [
   {
     out: 'og-default.png',
