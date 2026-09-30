@@ -221,7 +221,8 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 - **欄名改了，提到它的地方一起改**：教學與常見問題裡的「圖片大小」滑桿、「耐髒程度（容錯等級）」選單、「方塊顏色」。
 - **不跟著文案改的**：網址；下拉選單與勾選框的 `value`（L／M／Q／H、WPA／WEP／nopass、PNG 清晰度的 scale），
   產出的內容不能變；類型頁、首頁、`/scan/`、`/barcode/` 的 meta description 與 `seo:audit` 對帳的首段。
-  title 與 H1 要改時另外處理：改之前把改前的 title 與 28 天基線記進 `docs/seo-checklist.md` 的「標題改動紀錄」。
+  title 與 H1 要改時另外處理：改之前把改前的 title 與 28 天基線記進 `docs/seo-checklist.md` 的「標題改動紀錄」，
+  分享圖與替代文字一起改（見「產品名與站徽」）。
 - **關於頁的授權段落與隱私權頁準確性優先**：原詞保留，只在前面補白話。`seo:audit` 要求隱私權頁有 WebAssembly、
   localStorage，關於頁有 zxing-wasm、Apache License、BSD-3-Clause。
 - 教學只調整用字時 `updated` 不動（sitemap 的 `<lastmod>` 不跟著變），示意圖、圖說與替代文字不重產。
@@ -243,6 +244,10 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 - **站徽**：正本在 `scripts/brand/`（`logo-source.png` 與分頁圖示用的簡化版 `favicon-source.png`），`node scripts/brand/render.mjs`
   從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與三張分享圖（產物進版控，不進 build）。
   選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
+- **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/` 各自寫，其他頁用
+  `site.ts` 的 `ogImage.alt`）。這兩頁的 title 改說法時，分享圖跟著改字、重跑 `render.mjs`，替代文字照圖上的字寫。
+  `seo:audit` 拿 `cards.mjs` 對帳：替代文字寫著圖上的大標；這兩頁的替代文字以大標開頭、有橫幅那句，大標也在 title 裡。
+  它驗不到 PNG 本身，改了字沒重產圖不會紅。分享圖網址不變，上線後請站長用 Facebook 分享偵錯工具與 LINE 重抓那幾頁。
 - 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
   `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。
 - **JSON-LD 的 `Organization` 是出品方口袋工具，不是本產品。** pocketool.app 底下每個站都用同一個 `@id`

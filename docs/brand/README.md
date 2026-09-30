@@ -68,4 +68,7 @@ PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/brand/render.mjs
 ```
 
 產完用 `npm run build` 跑一次稽核：`seo:audit` 會驗每張分享圖是 1200×630、小於 300 KB，
-apple-touch-icon 與 manifest 圖示不透明，頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在。
+apple-touch-icon 與 manifest 圖示不透明，頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在；
+分享圖的替代文字也拿 `cards.mjs` 對帳（寫著圖上的大標，掃描器與條碼那兩頁的大標要在 title 裡）。
+只重畫某幾張時在指令後面接檔名（例如 `og-scan.png og-barcode.png`），另外兩張不會動；重畫後把圖裡的碼用站上的掃描器讀一次。
+分享圖網址不變，社群平台會快取舊圖，上線後到 Facebook 分享偵錯工具與 LINE 重抓用到那張圖的頁面。
