@@ -27,8 +27,9 @@ const uid = useId()
         <p>不確定就選 WPA/WPA2，現在的家用與店家路由器大多是它；WEP 只有很舊的設備在用；不用輸入密碼就能連的網路選「不用密碼」，密碼欄會停用。</p>
         <p>「隱藏的網路」：手機 WiFi 清單上看不到這個名稱、要手動輸入才連得上時才勾。</p>
       </HelpTip>
+      <!-- 選項帶了用途說明，比較長：寬度不夠放 16rem 時選單自己佔一行，「隱藏的網路」換到下一行，選項字才不會被截掉 -->
       <div class="flex gap-3 flex-wrap items-center mt-1">
-        <select :id="`${uid}-enc`" v-model="f.encryption" :aria-describedby="`${uid}-enc-help`" class="input-base flex-1 min-w-[160px] !w-auto">
+        <select :id="`${uid}-enc`" v-model="f.encryption" :aria-describedby="`${uid}-enc-help`" class="input-base flex-[1_1_16rem] min-w-0 !w-auto">
           <option value="WPA">WPA/WPA2（大多數家用、店家）</option><option value="WEP">WEP（很舊的設備）</option><option value="nopass">不用密碼</option>
         </select>
         <label class="flex items-center gap-2 cursor-pointer"><input v-model="f.hidden" type="checkbox" class="accent-brand w-4 h-4" /><span class="text-sm font-600 text-ink whitespace-nowrap">隱藏的網路</span></label>
