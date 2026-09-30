@@ -129,7 +129,7 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
   之前就能擋掉解壓縮炸彈。
 - **圖片與解碼內容只能留在記憶體。** 不得寫入網址（query／hash）、Cookie、
   localStorage、sessionStorage、IndexedDB、Cache Storage，也不得進 GA 事件。
-  「用此內容重新產生」用 `src/utils/scan-handoff.ts` 的模組層級變數交棒，取用一次就清掉。
+  「用這個內容再做一張」用 `src/utils/scan-handoff.ts` 的模組層級變數交棒，取用一次就清掉。
   解碼結果一律以文字節點渲染，**不得用 `v-html` 或 `innerHTML`**：那是別人做的 QR，
   內容完全不可信。`src/scan-gates.test.ts` 會掃原始碼擋下這些出口。
 
@@ -207,6 +207,26 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 - `src/no-emoji.test.ts` 掃元件、設定與教學本文（`©`、`™`、`®` 例外，測試檔不掃）；`seo:audit` 驗
   各頁內容沒有 emoji、用到的 `i-lucide-*` 在 CSS 裡都有規則（圖示集沒裝時 class 會靜默失效）、
   產物沒有連到線上圖示服務。新增圖示時 `NOTICE.md` 不必改，Lucide 的授權已經寫在那裡。
+
+## 用字：白話優先
+
+站長的要求是減少使用者的學習負擔，2026-09-30 全站照這幾條改過一次（#7）：
+
+- **白話在前，原詞放括號**：先寫使用者聽得懂的說法；要讓人對得上外面看到的名稱時，原詞放括號或收進「?」。
+  例如「耐髒程度（容錯等級）」「四周留白（靜區）」「小方塊（模組）」「淺色方塊配深色背景（反白）」。
+- **使用者在別處真的會看到的名稱照寫，每頁第一次出現就白話解釋**：PNG、SVG、JPG、WebP、EAN-13、Code 128、DPI、
+  WPA/WPA2、vCard、檢查碼。
+- **只有工程師懂的詞，工具區不用**：通訊協定、網站主機、符號學、演算法、算圖、碼字、位元組、UTF-8、ASCII、
+  WebAssembly、編碼器。說明文章裡也改白話，真的需要時才放括號。台灣用語：「半角」一律寫「半形」。
+- **欄名改了，提到它的地方一起改**：教學與常見問題裡的「圖片大小」滑桿、「耐髒程度（容錯等級）」選單、「方塊顏色」。
+- **不跟著文案改的**：網址；下拉選單與勾選框的 `value`（L／M／Q／H、WPA／WEP／nopass、PNG 清晰度的 scale），
+  產出的內容不能變；類型頁、首頁、`/scan/`、`/barcode/` 的 meta description 與 `seo:audit` 對帳的首段。
+  title 與 H1 要改時另外處理：改之前把改前的 title 與 28 天基線記進 `docs/seo-checklist.md` 的「標題改動紀錄」。
+- **關於頁的授權段落與隱私權頁準確性優先**：原詞保留，只在前面補白話。`seo:audit` 要求隱私權頁有 WebAssembly、
+  localStorage，關於頁有 zxing-wasm、Apache License、BSD-3-Clause。
+- 教學只調整用字時 `updated` 不動（sitemap 的 `<lastmod>` 不跟著變），示意圖、圖說與替代文字不重產。
+- `src/plain-words.test.ts` 掃元件、設定、composable、純函式、版面與頁面（關於、隱私權除外；註解不算），
+  出現通訊協定、網站主機、符號學、演算法、算圖、半角、前景色、可列印的 ASCII、第一版就紅。要再擋新的詞，加在那裡。
 
 ## 產品名與站徽
 
