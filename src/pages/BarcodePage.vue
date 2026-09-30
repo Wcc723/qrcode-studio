@@ -26,7 +26,7 @@ useSeoHead({
   path: '/barcode',
   appName: '條碼產生器',
   appType: 'WebApplication',
-  ogImage: { path: '/og-barcode.png', width: 1200, height: 630, alt: '一維條碼產生器：EAN-13、Code 128 線上製作，自動算檢查碼' },
+  ogImage: { path: '/og-barcode.png', width: 1200, height: 630, alt: '條碼產生器：EAN-13、Code 128 線上製作，自動算檢查碼' },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: '條碼產生器', url: `${site.url}/barcode/` },
