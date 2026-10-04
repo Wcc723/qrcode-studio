@@ -75,7 +75,8 @@ PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/brand/render.mjs
 產完用 `npm run build` 跑一次稽核：`seo:audit` 會驗每張分享圖是 1200×630、小於 300 KB，
 apple-touch-icon 與 maskable 圖示不透明，manifest 的 192 與 512 各有一張 any、一張 maskable，maskable 逐像素驗安全圓外只有底色，
 頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在；
-分享圖也拿 `cards.mjs` 對帳（站台根目錄的 og:image 要是其中一張，替代文字寫著圖上的大標，掃描器與條碼那兩頁的大標要在 title 裡）。
+分享圖也拿 `cards.mjs` 對帳（站台根目錄的 og:image 要是其中一張，替代文字寫著圖上的大標，掃描器與條碼那兩頁的替代文字
+以大標開頭、有橫幅那句，大標也要在 title 裡）。它驗不到 PNG 本身：`cards.mjs` 改了字卻沒重跑 `render.mjs`，稽核不會紅。
 只重畫某幾張時在指令後面接檔名（例如 `og-scan.png og-barcode.png`），另外兩張不會動；重畫後把圖裡的碼用站上的掃描器讀一次。
 
 ### 已經分享出去的連結

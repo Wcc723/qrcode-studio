@@ -6,7 +6,7 @@
 
 **不可違反**
 
-- push `main` 前須經站長同意；push 即觸發 Cloudflare Workers Builds 部署，不要手動 `wrangler deploy`
+- push `main` 即觸發 Cloudflare Workers Builds 部署，不要手動 `wrangler deploy`
 - `wrangler.jsonc` 的 `name` 必須是 `qrcode-studio`（線上 Worker 名）
 - 子路徑相關設定（base、routes、assets 目錄、`_headers`、`404.html`）改動前，先讀本檔的子路徑章節與 workspace 的 `docs/runbooks/subpath-migration.md`
 - `/scan/` 的解碼器 WASM 一律自架，不得改回第三方 CDN；`zxing-wasm` 必須精確鎖版（見「圖片解碼」章節）
@@ -20,10 +20,8 @@
 每條路由都預渲染成靜態 HTML。
 
 它是 `pocketool.app` 站群的 7 個工具站之一。站群的 hub 是
-`https://www.pocketool.app`（repo `pocket-tool-blog`，workspace 內在 `../pocket-tool-blog`），工具站正陸續從
-`<slug>.pocketool.app` 子網域搬到 hub 的子路徑。**本站已於 2026-09-07 搬完**，
-與 `compound-calculator`、`kaomoji` 同一模式；`tw-life-calc` 與 `zipcode` 待搬，
-`beyblade` 與 `speak-cards` 站長決定不搬。逐站現況以 hub 的 `CLAUDE.md` 對照表為準。
+`https://www.pocketool.app`（repo `pocket-tool-blog`，workspace 內在 `../pocket-tool-blog`），
+本站已從子網域搬到 hub 的子路徑（搬站背景見 `docs/deploy.md`）。
 
 套件管理用 **npm**。
 
@@ -47,14 +45,11 @@ node scripts/fixtures/gen-scan-fixtures.mjs
 走 **Cloudflare Workers Builds**：後台接 Git，push 到 `main` 就自動建置並部署。
 這個 Cloudflare 帳號底下**沒有任何 Pages 專案**，站群全部是 Worker。
 
-repo 內**沒有** GitHub Actions。原本有一份 `.github/workflows/deploy.yml`，但 repo 的
-Actions secrets 是空的、`CLOUDFLARE_API_TOKEN` 從未設定，那條部署從 2026-06-01 起每次
-都失敗，而 Workers Builds 一直正常運作所以沒人發現。2026-09-07 已整個移除。
+repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 
 **把關綁在 npm 生命週期上**，不是後台欄位：Workers Builds 只吃一條建置命令，所以用
 `prebuild`（跑測試）與 `postbuild`（跑 SEO 稽核）掛在 `build` 上。任一步失敗就中止，
-部署不會發生。這樣把關留在版本控管內、本機能用同一條指令重現，也不必碰後台那個
-一輸入就會讓整頁變空白的「組建命令」欄位。
+部署不會發生。
 
 ## 子路徑部署：四個不可改動點
 
@@ -98,7 +93,7 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 其餘一律推導，不要在別的地方硬編：
 
 1. `vite.config.ts` 的 `base` 與 `build.outDir`
-2. `src/main.ts` 的 router base（`base: import.meta.env.BASE_URL`）——
+2. `src/main.ts` 的 router base（`base: import.meta.env.BASE_URL`）：
    vite-ssg 的 `createWebHistory(routerOptions.base)` **不會**自動吃 Vite 的 base，
    漏了會讓 matcher 命不到任何路由（白畫面）且預渲染 HTML 的 `<a href>` 全部少前綴。
    `src/router.ts` 內的 `path` 一律不加前綴。
@@ -251,9 +246,7 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
   選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
 - **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/` 各自寫，其他頁用
   `site.ts` 的 `ogImage.alt`）。這兩頁的 title 改說法時，分享圖跟著改字、重跑 `render.mjs`，替代文字照圖上的字寫。
-  `seo:audit` 拿 `cards.mjs` 對帳：根目錄的 og:image 要是其中一張；替代文字寫著圖上的大標；這兩頁的替代文字以大標開頭、
-  有橫幅那句，大標也在 title 裡。它驗不到 PNG 本身，改了字沒重產圖不會紅。
-  社群平台依圖片網址快取，網址不變時已分享過的連結可能一直是舊圖，重抓工具不保證換掉；要換就換檔名，見 `docs/brand/README.md`。
+  `seo:audit` 拿 `cards.mjs` 對帳，但驗不到 PNG 本身；對帳項目與已分享連結怎麼換圖見 `docs/brand/README.md`。
 - 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
   `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。
 - **JSON-LD 的 `Organization` 是出品方口袋工具，不是本產品。** pocketool.app 底下每個站都用同一個 `@id`
@@ -286,19 +279,5 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 
 ## 改動 base 相關設定後的本機驗證
 
-```bash
-rm -rf dist && npm run build
-
-ls -a dist                                   # 應只有 404.html 與 qrcode-studio/
-grep -rho 'href="/[^"]*"' dist/qrcode-studio --include='*.html' \
-  | sort -u | grep -v '^href="/qrcode-studio/'   # 必須零輸出
-
-npx wrangler dev --port 8799 --local         # 用真正的 Workers runtime 驗
-curl -sI http://127.0.0.1:8799/qrcode-studio/            # 200
-curl -sI http://127.0.0.1:8799/qrcode-studio             # 307 → 帶尾斜線
-curl -sI "http://127.0.0.1:8799/qrcode-studio?utm_source=t"  # 307，不能是 404
-curl -sI http://127.0.0.1:8799/qrcode-studio-foo         # 404 但 content-length 不能是 0
-```
-
-**wrangler dev 會在啟動時建好資產清單**，build 之後沒重啟的話會拿到過時的結果
-（實際踩過：未預渲染路徑一度回 404，重啟後正常）。改完 build 一定要重啟再驗。
+重新 build 後檢查 `dist` 結構與站內連結前綴，再用 `wrangler dev` 打四種網址；指令與預期回應見 `docs/deploy.md`。
+**wrangler dev 在啟動時建好資產清單**，build 之後一定要重啟再驗。
