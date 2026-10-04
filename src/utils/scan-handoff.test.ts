@@ -40,6 +40,9 @@ describe('一次性交棒', () => {
 
 describe('交棒內容不得離開記憶體', () => {
   it('不寫 localStorage / sessionStorage', () => {
+    // 先確認讀到的是瀏覽器那種 Storage：不是的話，下面的 setItem 監聽什麼都攔不到
+    expect(localStorage).toBeInstanceOf(Storage)
+    expect(sessionStorage).toBeInstanceOf(Storage)
     const setItem = vi.spyOn(Storage.prototype, 'setItem')
     putScanHandoff({ kind: 'qr', type: 'wifi', data: { ssid: 'Cafe', password: 'secret', encryption: 'WPA', hidden: false } })
     takeScanHandoff()

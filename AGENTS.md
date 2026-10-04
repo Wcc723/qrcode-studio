@@ -39,6 +39,11 @@ npm run deploy      # 緊急備用：rm -rf dist && build && wrangler deploy
 node scripts/fixtures/gen-scan-fixtures.mjs
 ```
 
+Node 版本照 `.nvmrc`（22），但測試在 Node 25 也要過。Node 25 起全域自帶 `localStorage`／`sessionStorage`
+（沒給 `--localstorage-file` 時是沒有 `length`、`setItem` 的空物件），vitest 的 happy-dom 環境不會蓋掉它，
+所以 `test/setup/web-storage.ts` 在每個測試檔開始前換上 happy-dom 的版本。「內容不寫進儲存空間」的測試靠它才驗得到東西，
+不要拿掉；`src/utils/scan-handoff.test.ts` 會先確認讀到的是 `Storage`。
+
 ## 部署
 
 **Cloudflare Workers Static Assets**（設定見 `wrangler.jsonc`，Worker 名 `qrcode-studio`），

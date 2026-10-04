@@ -9,5 +9,6 @@ export default defineConfig({
     environment: 'happy-dom',
     environmentMatchGlobs: [['src/pure/**', 'node']],
     globals: true,
+    setupFiles: ['./test/setup/web-storage.ts'],
   },
 })
