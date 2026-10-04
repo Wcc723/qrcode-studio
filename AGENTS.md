@@ -247,6 +247,7 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 - **商標聲明**：名稱含 QR Code，頁尾與關於頁的「商標」一節都要有 DENSO WAVE 的註冊商標聲明（`site.trademark`），`seo:audit` 逐頁驗。
 - **站徽**：正本在 `scripts/brand/`（`logo-source.png` 與分頁圖示用的簡化版 `favicon-source.png`），`node scripts/brand/render.mjs`
   從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與三張分享圖（產物進版控，不進 build）。
+  manifest 圖示的 any 與 maskable 各兩張，不合寫成 `any maskable`，`seo:audit` 逐像素驗 maskable 的安全圓。
   選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
 - **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/` 各自寫，其他頁用
   `site.ts` 的 `ogImage.alt`）。這兩頁的 title 改說法時，分享圖跟著改字、重跑 `render.mjs`，替代文字照圖上的字寫。

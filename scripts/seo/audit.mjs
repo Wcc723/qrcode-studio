@@ -6,6 +6,7 @@
 import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { createHash } from 'node:crypto'
+import { inflateSync } from 'node:zlib'
 import { CARDS } from '../brand/cards.mjs'
 
 const argv = process.argv.slice(2)
@@ -83,6 +84,40 @@ const pngInfo = (file) => {
   const buf = readFileSync(file)
   if (buf.toString('latin1', 1, 4) !== 'PNG') return null
   return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20), colorType: buf[25], hasTrns: buf.includes(Buffer.from('tRNS')) }
+}
+/**
+ * 解開 8-bit、不交錯的 RGB／RGBA PNG（sharp 產的圖示就是這種），回傳逐像素的位元組；其他格式回 null。
+ * 稽核要看 maskable 圖示的實際像素，又不想為此多裝相依，所以自己解：IDAT 接起來 inflate，再逐列還原五種濾波。
+ */
+const pngPixels = (file) => {
+  const buf = readFileSync(file)
+  const [w, h, depth, colorType, interlace] = [buf.readUInt32BE(16), buf.readUInt32BE(20), buf[24], buf[25], buf[28]]
+  const ch = { 2: 3, 6: 4 }[colorType]
+  if (depth !== 8 || !ch || interlace !== 0) return null
+  const idat = []
+  for (let at = 8; at + 8 <= buf.length; ) {
+    const len = buf.readUInt32BE(at)
+    if (buf.toString('latin1', at + 4, at + 8) === 'IDAT') idat.push(buf.subarray(at + 8, at + 8 + len))
+    at += 12 + len
+  }
+  const raw = inflateSync(Buffer.concat(idat))
+  const stride = w * ch
+  const data = Buffer.alloc(h * stride)
+  for (let y = 0; y < h; y++) {
+    const filter = raw[y * (stride + 1)]
+    const src = y * (stride + 1) + 1
+    const row = y * stride
+    for (let i = 0; i < stride; i++) {
+      const a = i >= ch ? data[row + i - ch] : 0
+      const b = y > 0 ? data[row - stride + i] : 0
+      const c = y > 0 && i >= ch ? data[row - stride + i - ch] : 0
+      const p = a + b - c
+      const [pa, pb, pc] = [Math.abs(p - a), Math.abs(p - b), Math.abs(p - c)]
+      const pred = [0, a, b, (a + b) >> 1, pa <= pb && pa <= pc ? a : pb <= pc ? b : c][filter]
+      data[row + i] = (raw[src + i] + pred) & 0xff
+    }
+  }
+  return { w, h, ch, data }
 }
 
 // 逐頁
@@ -307,7 +342,8 @@ for (const f of htmlFiles) {
 }
 
 // 站徽與圖示：沒有這些 <link> 的話，瀏覽器與 iOS 會去抓根網域的 /favicon.ico、/apple-touch-icon.png（hub 的圖示）。
-// 圖檔由 scripts/brand/render.mjs 產生；apple-touch-icon 與 manifest 圖示必須不透明（iOS 會把透明補成黑色）。
+// 圖檔由 scripts/brand/render.mjs 產生；apple-touch-icon 與 maskable 圖示必須不透明（iOS 會把透明補成黑色，
+// maskable 被裁成圓形或方圓形時，裁切範圍內都要是底色）。
 {
   const home = readFileSync(join(distDir, 'index.html'), 'utf8')
   const inDist = (href) => !!href && !!basePath && href.startsWith(basePath) && existsSync(join(distDir, href.slice(basePath.length)))
@@ -329,11 +365,41 @@ for (const f of htmlFiles) {
   let manifest = null
   try { manifest = JSON.parse(readFileSync(manifestFile, 'utf8')) } catch { /* 下面會報 */ }
   add(`manifest 可解析、名稱是「${PRODUCT_NAME}」`, manifest?.name === PRODUCT_NAME && manifest?.short_name === PRODUCT_NAME, manifest?.name ?? '')
-  for (const icon of manifest?.icons ?? []) {
+  // any 是站徽本身（可以透明），maskable 是滿版底色、站徽縮在安全圓內。兩種用途不能合寫成「any maskable」：
+  // 當 any 用時拿到的是留了安全邊的圖，站徽看起來縮一圈。
+  const icons = manifest?.icons ?? []
+  const purposes = icons.map((i) => `${i.sizes} ${i.purpose ?? '(沒寫)'}`)
+  add('manifest 圖示是 192 與 512 各一張 any、一張 maskable，不合寫 purpose',
+    JSON.stringify([...purposes].sort()) === JSON.stringify(['192x192 any', '192x192 maskable', '512x512 any', '512x512 maskable']),
+    purposes.join(' / '))
+  // 底色就是 manifest 的 background_color（Android 的啟動畫面也用它），兩邊對得起來
+  const bg = (manifest?.background_color ?? '').match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i)?.slice(1).map((x) => parseInt(x, 16))
+  for (const icon of icons) {
     const file = join(distDir, icon.src)
     const info = existsSync(file) && !icon.src.startsWith('/') ? pngInfo(file) : null
-    add(`manifest 圖示 ${icon.src} 存在、尺寸相符、不透明`,
-      !!info && `${info.w}x${info.h}` === icon.sizes && info.colorType === 2 && !info.hasTrns, info ? `${info.w}x${info.h}` : '找不到或不是相對路徑')
+    add(`manifest 圖示 ${icon.src} 存在、尺寸相符`, !!info && `${info.w}x${info.h}` === icon.sizes, info ? `${info.w}x${info.h}` : '找不到或不是相對路徑')
+    if (icon.purpose !== 'maskable' || !info) continue
+    add(`maskable 圖示 ${icon.src} 是不透明的 RGB PNG`, info.colorType === 2 && !info.hasTrns, `色彩類型 ${info.colorType}`)
+    // 安全圓：以中心為圓心、半徑為寬度 40% 的圓（W3C Manifest 的 safe zone），各平台的遮罩形狀都不會切到它。
+    // 像素只要有一角落在圓外就算圓外（遮罩會切過它），那些像素必須跟底色一模一樣。
+    const px = pngPixels(file)
+    let outside = 0
+    let inside = 0
+    if (px && bg) {
+      const radius = 0.4 * px.w
+      for (let y = 0; y < px.h; y++) {
+        for (let x = 0; x < px.w; x++) {
+          const at = (y * px.w + x) * px.ch
+          const isBg = bg.every((v, k) => px.data[at + k] === v)
+          const far = Math.max(Math.abs(x - px.w / 2), Math.abs(x + 1 - px.w / 2)) ** 2 +
+            Math.max(Math.abs(y - px.h / 2), Math.abs(y + 1 - px.h / 2)) ** 2 > radius ** 2
+          if (!isBg && far) outside++
+          if (!isBg && !far) inside++
+        }
+      }
+    }
+    add(`maskable 圖示 ${icon.src} 的安全圓（半徑 40%）外只有底色 ${manifest.background_color}，站徽在圓內`,
+      !!px && !!bg && outside === 0 && inside > 0, px && bg ? `圓外 ${outside} 個像素不是底色，圓內 ${inside} 個` : '解不開 PNG 或 background_color 不是 #RRGGBB')
   }
   // 頁首站徽：srcset 也不經 Vite base，要自己驗前綴
   const logoTag = pick(home, /(<img[^>]+data-test="site-logo"[^>]*>)/i) ?? ''

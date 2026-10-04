@@ -50,12 +50,17 @@
 | `favicon.svg` | 分頁圖示：SVG 外框內嵌 96 px PNG（整份約 7 KB） | C |
 | `favicon.ico` | 16、32、48 px，舊瀏覽器與 Windows 捷徑 | C |
 | `apple-touch-icon.png` | iOS 加入主畫面，180×180 不透明（紙色底，四周留約 19 px，不自己加圓角） | A |
-| `icon-192.png`、`icon-512.png` | `manifest.webmanifest` 的圖示，不透明，站徽縮在中央 60%，被遮成圓形也切不到 | A |
+| `icon-192.png`、`icon-512.png` | `manifest.webmanifest` 的 any 圖示：站徽本身、透明底（跟頁首一樣），桌面安裝後的視窗與工作列照原樣顯示；量化成 8-bit 調色盤（512 約 60 KB） | A |
+| `icon-maskable-192.png`、`icon-maskable-512.png` | `manifest.webmanifest` 的 maskable 圖示：紙色滿版底，站徽縮到整個落在半徑 40% 的安全圓內，Android 裁成圓形、方圓形或水滴形都切不到 | A |
 | `og-default.png`、`og-scan.png`、`og-barcode.png` | 1200×630 分享圖，文字由 HTML 排版（不用生圖模型產字），掃描器與條碼那兩張裡的碼是真的、掃得出來 | A |
 
 JSON-LD 的 `Organization.logo` 是出品方口袋工具的品牌圖，網址在 hub（`src/config/site.ts` 的 `publisher.logo`，
 站群每個站同一個網址），不是本產品的站徽，改站徽時不動它。
 `public/pocketool-logo.png` 是之前 `Organization.logo` 用的圖，現在沒有任何地方引用，但網址已經公開過，所以檔案保留、不要刪。
+
+manifest 的 any 與 maskable 分成兩組，不要合寫成 `"purpose": "any maskable"`：合寫時當 any 用的地方（桌面安裝、啟動畫面）拿到的是
+留了安全邊的圖，站徽看起來縮一圈。maskable 的大小不是寫死的比例：`render.mjs` 先量正本裡最遠的非透明像素離中心多遠，
+再把站徽縮到那一點落在半徑 39% 內（留 1% 給縮圖的反鋸齒），換正本時會跟著算。
 
 ## 重產
 
@@ -68,7 +73,8 @@ PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/brand/render.mjs
 ```
 
 產完用 `npm run build` 跑一次稽核：`seo:audit` 會驗每張分享圖是 1200×630、小於 300 KB，
-apple-touch-icon 與 manifest 圖示不透明，頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在；
+apple-touch-icon 與 maskable 圖示不透明，manifest 的 192 與 512 各有一張 any、一張 maskable，maskable 逐像素驗安全圓外只有底色，
+頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在；
 分享圖也拿 `cards.mjs` 對帳（站台根目錄的 og:image 要是其中一張，替代文字寫著圖上的大標，掃描器與條碼那兩頁的大標要在 title 裡）。
 只重畫某幾張時在指令後面接檔名（例如 `og-scan.png og-barcode.png`），另外兩張不會動；重畫後把圖裡的碼用站上的掃描器讀一次。
 

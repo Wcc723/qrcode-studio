@@ -63,7 +63,21 @@ describe('站徽與圖示', () => {
       expect(icon.src).not.toMatch(/^\//)
       expect(existsSync(join(root, 'public', icon.src))).toBe(true)
     }
-    expect(manifest.icons.map((i: { sizes: string }) => i.sizes)).toEqual(['192x192', '512x512'])
+  })
+
+  it('manifest 圖示 192 與 512 各一張 any、一張 maskable，不合寫成「any maskable」，而且都由 render.mjs 產生', () => {
+    const manifest = JSON.parse(read('public/manifest.webmanifest'))
+    const icons: { src: string; sizes: string; purpose: string }[] = manifest.icons
+    // 合寫的話，當 any 用時拿到的是留了安全邊的圖，站徽看起來縮一圈
+    expect(icons.map((i) => `${i.sizes} ${i.purpose}`)).toEqual([
+      '192x192 any',
+      '512x512 any',
+      '192x192 maskable',
+      '512x512 maskable',
+    ])
+    expect(new Set(icons.map((i) => i.src)).size).toBe(icons.length)
+    const render = read('scripts/brand/render.mjs')
+    for (const icon of icons) expect(render).toContain(`'${icon.src}'`)
   })
 
   it('favicon.svg 的替代文字是產品名，內嵌的是點陣站徽', () => {

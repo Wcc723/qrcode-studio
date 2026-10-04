@@ -6,7 +6,7 @@
 //   node scripts/brand/render.mjs --out /tmp/brand # 先畫到別處比對，不覆蓋 public/
 //
 // 站徽正本（512×512 透明 PNG，Codex 生成，選案與理由見 docs/brand/README.md）：
-//   scripts/brand/logo-source.png     頁首、apple-touch-icon、manifest 圖示、分享圖
+//   scripts/brand/logo-source.png     頁首、apple-touch-icon、manifest 圖示（any 與 maskable）、分享圖
 //   scripts/brand/favicon-source.png  分頁圖示（favicon.svg、favicon.ico）：正本縮到 16px 會糊成一團，改用同一批生成的簡化版
 // 圖示一律用 sharp 從正本縮（lanczos3，小尺寸比瀏覽器縮得清楚）。sharp 不是本 repo 的直接相依，是 wrangler 帶進來的。
 //
@@ -47,9 +47,31 @@ const FAVICON = readFileSync(join(ROOT, 'scripts/brand/favicon-source.png'))
 // 不透明圖示的底色：頁面的紙色（main.css 的 --paper），跟 manifest 的 background_color 一樣
 const PAPER = '#FFF7EA'
 
+// maskable 的安全圓：Android 會把圖示裁成圓形、方圓形或水滴形，只保證以中心為圓心、半徑為寬度 40% 的圓不被切到
+// （W3C Manifest 的 safe zone，seo:audit 逐像素驗）。站徽縮到「最遠的非透明像素」落在 39% 內，留 1% 給縮圖的反鋸齒。
+const SAFE_RADIUS = 0.39
+// 正本裡最遠的非透明像素（取像素離中心最遠的那一角）到中心的距離，以正本寬度為 1。正本換了會跟著變，不寫死。
+const LOGO_REACH = await (async () => {
+  const { data, info } = await sharp(LOGO).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+  const { width: w, height: h } = info
+  let far = 0
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      if (!data[(y * w + x) * 4 + 3]) continue
+      const dx = Math.max(Math.abs(x - w / 2), Math.abs(x + 1 - w / 2))
+      const dy = Math.max(Math.abs(y - h / 2), Math.abs(y + 1 - h / 2))
+      far = Math.max(far, Math.hypot(dx, dy))
+    }
+  }
+  return far / w
+})()
+
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;')
 
-/** 正本縮成 size×size。palette：量化成帶透明的 8-bit 調色盤，給會被每個訪客下載的小圖 */
+/**
+ * 正本縮成 size×size。palette：量化成帶透明的 8-bit 調色盤，給頁首站徽這種每個訪客都會下載的小圖，
+ * 以及 manifest 的 any 圖示（512 從約 256 KB 降到約 60 KB，與原圖的 PSNR 約 45 dB，主畫面大小看不出差別）。
+ */
 const mark = (src, size, palette = false) =>
   sharp(src)
     .resize(size, size, { kernel: 'lanczos3' })
@@ -57,16 +79,19 @@ const mark = (src, size, palette = false) =>
     .toBuffer()
 
 /**
- * 不透明的方形圖示：紙色底，站徽佔 ratio。存成不帶 alpha 的 RGB（seo:audit 驗色彩類型是 2）。
+ * 不透明的方形圖示：紙色底，站徽邊長 side。存成不帶 alpha 的 RGB（seo:audit 驗色彩類型是 2）。
  * iOS 與 Android 會自己套圓角或遮罩，所以底色滿版、不留透明角，也不自己畫圓角。
  */
-async function opaqueIcon(size, ratio) {
+async function opaqueIcon(size, side) {
   return sharp({ create: { width: size, height: size, channels: 3, background: PAPER } })
-    .composite([{ input: await mark(LOGO, Math.round(size * ratio)), gravity: 'centre' }])
+    .composite([{ input: await mark(LOGO, side), gravity: 'centre' }])
     .removeAlpha()
     .png({ compressionLevel: 9 })
     .toBuffer()
 }
+
+/** manifest 的 maskable：站徽盡量大，但整個落在安全圓內。邊長取偶數，置中時四周留白一樣、不差半個像素 */
+const maskableIcon = (size) => opaqueIcon(size, 2 * Math.floor((size * SAFE_RADIUS) / LOGO_REACH / 2))
 
 /** ICO 就是「6 byte 檔頭 + 每張 16 byte 目錄項 + 各張 PNG 原封不動接在後面」，不必裝相依 */
 function packIco(pngs) {
@@ -104,10 +129,13 @@ const ICONS = {
     ),
   'favicon.ico': async () => packIco(await Promise.all([16, 32, 48].map(async (size) => ({ size, png: await mark(FAVICON, size) })))),
   // iOS 加入主畫面：180×180、不透明；站徽四周留約 19px
-  'apple-touch-icon.png': () => opaqueIcon(180, 142 / 180),
-  // manifest（any maskable）：站徽縮在中央 60%，被遮成圓形也切不到
-  'icon-192.png': () => opaqueIcon(192, 0.6),
-  'icon-512.png': () => opaqueIcon(512, 0.6),
+  'apple-touch-icon.png': () => opaqueIcon(180, 142),
+  // manifest 的 any：站徽本身、透明底（跟頁首與分頁圖示一樣），桌面安裝後的視窗與工作列照原樣顯示
+  'icon-192.png': () => mark(LOGO, 192, true),
+  'icon-512.png': () => mark(LOGO, 512, true),
+  // manifest 的 maskable：紙色滿版底，站徽縮在安全圓內，Android 主畫面裁成什麼形狀都切不到
+  'icon-maskable-192.png': () => maskableIcon(192),
+  'icon-maskable-512.png': () => maskableIcon(512),
 }
 
 // ───────────────────────── 分享圖 ─────────────────────────
