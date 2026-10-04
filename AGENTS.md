@@ -189,6 +189,10 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 - **一律看得到**：錯誤（容量超過、條碼格式與檢查碼）、條件式提醒（勾透明時 JPG 改白底）、
   填寫規則（`symbologies.ts` 的 `rule`：位數、可用字元、檢查碼）、列印尺寸與 PNG 像素數、
   掃描到非 http(s) 的警告、多個條碼與讀不到的指引。收起來只會讓工具更難用。
+- **掃描結果的警告只給認不出類型的內容**：WiFi、電子名片、Email、電話、簡訊這些認得出類型的（`parsed.kind`），
+  不寫「網址開頭」、不出警告，改成一句中性說明（例如「這是 WiFi 設定，不是網址，本站不會自動連線」，
+  寫在 `ScanResultView.vue` 的 `kindNotes`）；認不出類型、開頭又不是 http／https 的（`javascript:`、`data:`、`file:`、
+  半殘的 `WIFI:`、一維碼）照舊警告，不要放寬。`ScanResultView.test.ts` 兩邊都鎖。
 - **隱私只說一次**：工具卡頂部一行（`PrivacyNote.vue`），完整說明與隱私權政策連結收在它的「?」；
   預覽框與標題上不要再加「不傳雲端」貼紙（頁尾那行保留）。
 - `src/helpNotes.test.ts` 兩個方向都鎖：每個「?」預設收起、欄位指得到它、裡面沒有可填欄位；

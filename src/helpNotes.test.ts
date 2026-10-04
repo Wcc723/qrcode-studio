@@ -158,9 +158,11 @@ describe('掃描器的「?」', () => {
     expect(help).toContain('不支援 SVG')
   })
 
-  it('非 http(s) 的警告、多個條碼與讀不到的指引看得到', () => {
+  it('非 http(s) 的警告、WiFi 這類內容的說明、多個條碼與讀不到的指引看得到', () => {
     const unsafe = mount(ScanResultView, { props: { outcome: toScanOutcome([{ format: 'QRCode', text: 'javascript:alert(1)' }]) }, ...opts })
     expectVisible(unsafe, '不是一般網址')
+    const wifi = mount(ScanResultView, { props: { outcome: toScanOutcome([{ format: 'QRCode', text: 'WIFI:T:WPA;S:Cafe;P:pw;H:false;;' }]) }, ...opts })
+    expectVisible(wifi, '這是 WiFi 設定，不是網址')
     const multiple = mount(ScanResultView, { props: { outcome: { status: 'multiple', count: 2, formatLabels: [] } }, ...opts })
     expectVisible(multiple, '請把圖裁切成只剩一個條碼再試一次')
     const none = mount(ScanResultView, { props: { outcome: { status: 'none' } }, ...opts })

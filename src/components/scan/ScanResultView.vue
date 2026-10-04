@@ -7,10 +7,13 @@
  *    當程式碼跑。原樣顯示反而是這裡的功能：使用者要看到的就是真正的原文。
  * 2. **只有 http/https 給得出 href**。javascript:／data:／file: 這些只顯示 scheme，
  *    連可點的元素都不產生，使用者不可能「不小心按到」。
+ *    認得出類型的非網址內容（WiFi、電子名片、Email、電話、簡訊）也不給 href，
+ *    但不寫「網址開頭」、不出警告，改成一句中性說明；認不出類型的照舊警告。
  * 3. **多碼時不提供任何單一結果的動作**，型別上就拿不到 result。
  */
 import { computed } from 'vue'
 import type { ScanOutcome } from '@/pure/scanResult'
+import type { ParsedScanPayload } from '@/pure/parseScanPayload'
 import { useCopyText } from '@/composables/useCopyText'
 
 const props = defineProps<{ outcome: ScanOutcome }>()
@@ -23,6 +26,20 @@ const parsedKindLabel: Record<string, string> = {
   url: '網址', wifi: 'WiFi', vcard: '電子名片', text: '純文字',
   email: 'Email', phone: '電話', sms: '簡訊',
 }
+
+/**
+ * 認得出類型、又不是網址的內容：說清楚它是什麼、本站不會替你做什麼。
+ * 這幾種開頭（WIFI:、BEGIN:VCARD、mailto: 等）本站自己也會產生，掃一張正常的 WiFi QR
+ * 不該看起來像被警告。只有 QR 才有 parsed，一維碼與認不出類型的內容不在這裡，照舊走警告。
+ */
+const kindNotes: Partial<Record<ParsedScanPayload['kind'], string>> = {
+  wifi: '這是 WiFi 設定，不是網址，本站不會自動連線。',
+  vcard: '這是電子名片，不是網址，本站不會自動存進聯絡人。',
+  email: '這是寄 Email 用的資料，不是網址，本站不會自動寄信。',
+  phone: '這是電話號碼，不是網址，本站不會自動撥號。',
+  sms: '這是傳簡訊用的資料，不是網址，本站不會自動傳出簡訊。',
+}
+const kindNote = computed(() => (single.value?.parsed ? kindNotes[single.value.parsed.kind] ?? null : null))
 
 /** 一維碼一定交棒到條碼產生器；QR 只有解析得出型別時才給「重新產生」。 */
 const canRegenerate = computed(() => !!single.value && (single.value.isLinear || !!single.value.parsed))
@@ -43,8 +60,11 @@ const canRegenerate = computed(() => !!single.value && (single.value.isLinear ||
       <p data-test="scan-result-text"
         class="mt-1 p-3 rounded-xl bg-white border-2 border-ink/15 font-mono text-sm text-ink break-all whitespace-pre-wrap">{{ single.text }}</p>
 
+      <!-- 認得出類型的非網址內容：一句中性說明，不寫網址開頭、不出警告 -->
+      <p v-if="kindNote" data-test="scan-kind-note" class="mt-3 text-sm font-600 text-muted leading-relaxed">{{ kindNote }}</p>
+
       <!-- 網址：先講清楚會去哪，再決定給不給點 -->
-      <div v-if="single.uri.scheme" class="mt-3 text-sm font-600">
+      <div v-else-if="single.uri.scheme" class="mt-3 text-sm font-600">
         <p class="text-muted">
           網址開頭：<span data-test="scan-uri-scheme" class="text-ink">{{ single.uri.scheme }}</span>
         </p>
