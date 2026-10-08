@@ -1,10 +1,19 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
 import { symbologies } from '@/config/symbologies'
 import HelpTip from '../HelpTip.vue'
 
-defineProps<{ modelValue: BarcodeSymbology }>()
+const props = defineProps<{ modelValue: BarcodeSymbology }>()
 const emit = defineEmits<{ 'update:modelValue': [BarcodeSymbology] }>()
+
+// radio 用 v-model，不用 :checked：整頁載入時 client 沿用預渲染的 DOM（hydrate），hydrate 不會改 checked，
+// Firefox 重新整理又會把上一次選的 radio 還原回來，畫面上會勾著 EAN-13、亮著 Code 128，點 EAN-13 也不會觸發 change。
+// v-model 在 hydrate 時就把 checked 對回狀態（src/hydration.test.ts）。
+const selected = computed({
+  get: () => props.modelValue,
+  set: (v: BarcodeSymbology) => emit('update:modelValue', v),
+})
 </script>
 
 <template>
@@ -36,9 +45,8 @@ const emit = defineEmits<{ 'update:modelValue': [BarcodeSymbology] }>()
         class="relative inline-flex items-center rounded-full cursor-pointer select-none">
         <input
           type="radio" name="bc-symbology" class="peer sr-only"
-          :value="s.id" :checked="modelValue === s.id"
-          :data-test="`bc-radio-${s.id}`"
-          @change="emit('update:modelValue', s.id)" />
+          v-model="selected" :value="s.id"
+          :data-test="`bc-radio-${s.id}`" />
         <!--
           焦點框畫在這個 span 上而不是靠全域 :focus-visible：radio 是 sr-only
           （1x1px、clip），outline 會畫在那個看不見的點上。peer-focus-visible

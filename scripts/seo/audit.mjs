@@ -626,6 +626,38 @@ if (wasmFiles.length === 1) {
     wasmInHtml.map(rel).join(' '))
 }
 
+// ───────────────────────────────────────────────────────────────────
+// 整頁載入的 hydrate（src/utils/hydration.ts）：client 比對 <html data-ssg-route> 與網址，
+// 同一頁才沿用預渲染的 DOM。這個屬性不見或跟檔案路徑對不上，client 會默默回到整頁重畫，
+// 畫面看不出來、單元測試也驗不到；404.html 是 /404，不會跟任何正常網址對上。
+// 屬性名刻意再寫一次、不從原始碼推導（hydration.test.ts 鎖著同一個名字）。
+//
+// 另外 hydrate 不會改 <select> 的 value：預渲染的每個下拉選單都要在選中的 <option> 標 selected
+// （v-model 才會有，:value 只會輸出瀏覽器不認的 <select value="M">），不然 hydrate 之後、
+// 以及沒跑 JavaScript 的讀者與爬蟲，看到的都是第一個選項。
+// ───────────────────────────────────────────────────────────────────
+{
+  const SSG_ROUTE_ATTR = 'data-ssg-route'
+  const decodeAttr = (s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+  for (const f of htmlFiles) {
+    const html = readFileSync(f, 'utf8')
+    const name = rel(f)
+    const expected = name === '404.html' ? '/404'
+      : name === 'index.html' ? '/'
+        : `/${name.replace(/\/index\.html$/, '').replace(/\.html$/, '')}`
+    const attr = html.match(new RegExp(`<html\\b[^>]*\\s${SSG_ROUTE_ATTR}="([^"]*)"`, 'i'))?.[1]
+    add(`[${name}] <html ${SSG_ROUTE_ATTR}> 是 ${expected}（跟檔案路徑一致，client 才會 hydrate）`,
+      attr !== undefined && decodeAttr(attr) === expected, attr === undefined ? '沒有這個屬性' : attr)
+    const selects = [...html.matchAll(/<select\b[^>]*>([\s\S]*?)<\/select>/gi)]
+    if (selects.length) {
+      const bad = selects
+        .map((m) => [pick(m[0], /<select\b[^>]*\sid="([^"]*)"/i) ?? '(沒有 id)', (m[1].match(/<option\b[^>]*\sselected(?=[\s>=/])/gi) ?? []).length])
+        .filter(([, n]) => n !== 1)
+      add(`[${name}] 每個下拉選單都恰好標了一個 selected 的選項`, bad.length === 0, bad.map(([id, n]) => `${id} 有 ${n} 個`).join(' '))
+    }
+  }
+}
+
 // 輸出
 let failed = 0
 for (const r of results) {

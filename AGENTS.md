@@ -264,6 +264,19 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
   完整節點恰好一份且 logo 正確、publisher 指向共用節點。稽核的 `ORG_ID`／`ORG_LOGO` 與 `useSeoHead.test.ts` 的 `ORG_ID`
   刻意再寫一次、不從 `site.ts` 推導，要改 `@id` 或 logo 時三處一起改（`@id` 一改就變成另一個實體，原則上不改）。
 
+## 整頁載入沿用預渲染的 DOM（hydrate）
+
+`src/main.ts` 在 SSR 時把 routePath 記在 `<html data-ssg-route>`，client 比對網址，同一頁才 hydrate，404.html 這類
+拿別頁 HTML 回應的照舊整頁重畫（原因與比對規則見 `src/utils/hydration.ts`）。兩條規則：
+
+- 瀏覽器才有的狀態（localStorage、navigator、`route.query`、`/scan/` 的交棒、`Date.now()`、`Math.random()`）
+  不得在 setup 或 template 直接讀，一律在 `onMounted` 之後。
+- 下拉選單、radio、checkbox 的選取狀態用 `v-model`，不用 `:value`／`:checked`：hydrate 不改 `<select>` 的 value 與
+  checked，`<select :value>` 會停在第一個選項，Firefox 重新整理還會把上一次的選擇還原到欄位上。
+
+`src/hydration.test.ts` 逐頁 hydrate 驗沒有 mismatch、表單狀態對得上；`seo:audit` 驗每頁 `data-ssg-route` 跟檔案路徑
+一致、每個下拉選單恰好一個 `selected`。
+
 ## GA 只在正式主機載入
 
 `index.html` 的 GA 是一段 inline script：`location.hostname` 等於 `www.pocketool.app` 才建立 `gtag`、送 `config`

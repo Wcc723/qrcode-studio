@@ -16,6 +16,19 @@ const transparent = computed({
   set: (v: boolean) => patch({ bgColor: v ? 'transparent' : '#ffffff' }),
 })
 
+// 勾選框與下拉選單一律用 v-model，不用 :checked／:value。整頁載入時 client 會沿用預渲染的 DOM（hydrate），
+// hydrate 不會改 <select> 的 value 與勾選框的 checked：SSR 輸出的 <select value="M"> 瀏覽器不認，
+// 畫面會停在第一個選項 L；Firefox 重新整理時還會把上一次的勾選還原回來，跟狀態對不上。
+// v-model 的 SSR 輸出會在選中的 <option> 加 selected，hydrate 完也會把畫面對回狀態（src/hydration.test.ts）。
+const useGradient = computed({
+  get: () => props.modelValue.useGradient,
+  set: (v: boolean) => patch({ useGradient: v }),
+})
+const ecLevel = computed({
+  get: () => props.modelValue.errorCorrectionLevel,
+  set: (v: ErrorCorrectionLevel) => patch({ errorCorrectionLevel: v }),
+})
+
 function onLogo(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0]
   if (!file) return
@@ -51,7 +64,7 @@ const ecLabel: Record<ErrorCorrectionLevel, string> = {
     </div>
 
     <label class="flex items-center gap-2 text-sm font-600 text-ink cursor-pointer">
-      <input type="checkbox" class="accent-brand w-4 h-4" :checked="modelValue.useGradient" @change="patch({ useGradient: ($event.target as HTMLInputElement).checked })" />
+      <input v-model="useGradient" data-test="useGradient" type="checkbox" class="accent-brand w-4 h-4" />
       使用漸層
       <input v-if="modelValue.useGradient" type="color" aria-label="漸層的第二個顏色" class="w-9 h-9 rounded-lg border-2 border-ink cursor-pointer p-0 bg-white" :value="modelValue.gradientColor" @input="patch({ gradientColor: ($event.target as HTMLInputElement).value })" />
     </label>
@@ -72,7 +85,7 @@ const ecLabel: Record<ErrorCorrectionLevel, string> = {
         <p>被弄髒、磨損或中間蓋了 LOGO，還掃不掃得出來：L、M、Q、H 被遮住約 7%、15%、25%、30% 還能掃。等級越高，方塊越多越細；一般用途維持 M，戶外、貼紙這類容易磨損的地方選 Q，加入 LOGO 時會自動調成 H。</p>
         <p>比較與實際圖例見<RouterLink to="/guide/error-correction/">容錯等級怎麼選</RouterLink>。</p>
       </HelpTip>
-      <select :id="`${uid}-ec`" :aria-describedby="`${uid}-ec-help`" class="input-base mt-1.5" :value="modelValue.errorCorrectionLevel" @change="patch({ errorCorrectionLevel: ($event.target as HTMLSelectElement).value as ErrorCorrectionLevel })">
+      <select :id="`${uid}-ec`" v-model="ecLevel" data-test="ecLevel" :aria-describedby="`${uid}-ec-help`" class="input-base mt-1.5">
         <option v-for="lv in ecLevels" :key="lv" :value="lv">{{ ecLabel[lv] }}</option>
       </select>
     </div>
