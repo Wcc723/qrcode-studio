@@ -13,6 +13,8 @@
  * 幾乎一樣，但 <select v-model> 只有 SSR 模板會在選中的 <option> 加 selected，這一項由 seo:audit 驗產物。
  */
 import { describe, it, expect, vi, afterEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { createSSRApp, type App as VueApp } from 'vue'
 import { renderToString } from 'vue/server-renderer'
 import { createRouter, createMemoryHistory } from 'vue-router'
@@ -99,6 +101,17 @@ describe('整頁載入 hydrate：每一種頁面都沿用預渲染的 DOM', () =
     const { logs, keptRoot } = await hydrate('/wifi', '/wifi')
     expect(logs).toEqual([])
     expect(keptRoot).toBe(true)
+  })
+
+  it('build 不改寫預渲染 HTML 的空白（vite-ssg 的 formatting 是 none）', () => {
+    // 這裡的 HTML 是 renderToString 直接給的，build 時 vite-ssg 還會照 formatting 再改寫一次。
+    // 'minify' 會削掉文字節點頭尾的空白、'prettify' 會重新排版，client 的 vnode 都還是原本的文字，
+    // 正式站每一頁都會報 text mismatch（2026-10-08 開 __VUE_PROD_HYDRATION_MISMATCH_DETAILS__ 量到）。
+    // vite.config.ts 在 happy-dom 環境 import 不進來，所以讀原始碼。這裡的全域 URL 是 happy-dom 的，
+    // new URL('..', import.meta.url) 會解析成 http://localhost，路徑改用 import.meta.dirname。
+    const config = readFileSync(join(import.meta.dirname, '..', 'vite.config.ts'), 'utf8')
+    const formatting = config.match(/^\s*formatting:\s*['"](\w+)['"]/m)?.[1] ?? 'none'
+    expect(formatting).toBe('none')
   })
 
   it('反例：拿首頁的 HTML 在別的網址 hydrate 一定 mismatch，所以 main.ts 要先比對路由', async () => {

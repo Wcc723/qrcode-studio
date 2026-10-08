@@ -13,7 +13,10 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   ssgOptions: {
     script: 'async',
-    formatting: 'minify',
+    // 不要改回 'minify'：vite-ssg 的 minify 用 html-minifier-terser 的 collapseWhitespace，會削掉文字節點
+    // 頭尾的空白（`<label><input> 使用漸層 </label>` 變成「 使用漸層」），client 的 vnode 還留著，
+    // hydrate 時每一頁都報 text mismatch。不壓縮每頁 gzip 後只多約 140 bytes。src/hydration.test.ts 會擋。
+    formatting: 'none',
     dirStyle: 'nested',
     async includedRoutes(paths) {
       const { guides } = await import('./src/content/guides')

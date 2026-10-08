@@ -267,12 +267,13 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 ## 整頁載入沿用預渲染的 DOM（hydrate）
 
 `src/main.ts` 在 SSR 時把 routePath 記在 `<html data-ssg-route>`，client 比對網址，同一頁才 hydrate，404.html 這類
-拿別頁 HTML 回應的照舊整頁重畫（原因與比對規則見 `src/utils/hydration.ts`）。兩條規則：
+拿別頁 HTML 回應的照舊整頁重畫（原因與比對規則見 `src/utils/hydration.ts`）。三條規則：
 
 - 瀏覽器才有的狀態（localStorage、navigator、`route.query`、`/scan/` 的交棒、`Date.now()`、`Math.random()`）
   不得在 setup 或 template 直接讀，一律在 `onMounted` 之後。
 - 下拉選單、radio、checkbox 的選取狀態用 `v-model`，不用 `:value`／`:checked`：hydrate 不改 `<select>` 的 value 與
   checked，`<select :value>` 會停在第一個選項，Firefox 重新整理還會把上一次的選擇還原到欄位上。
+- `vite.config.ts` 的 `ssgOptions.formatting` 維持 `'none'`：`'minify'` 削掉文字節點頭尾的空白，每頁都 text mismatch。
 
 `src/hydration.test.ts` 逐頁 hydrate 驗沒有 mismatch、表單狀態對得上；`seo:audit` 驗每頁 `data-ssg-route` 跟檔案路徑
 一致、每個下拉選單恰好一個 `selected`。
