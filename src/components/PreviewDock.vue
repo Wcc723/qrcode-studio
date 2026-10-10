@@ -54,7 +54,8 @@ onBeforeUnmount(() => document.documentElement.classList.remove(DOCKED))
       <div class="max-w-screen-lg mx-auto px-4 flex items-center gap-2">
         <button type="button" class="mr-auto min-w-0 min-h-11 flex items-center gap-2.5 p-0 bg-transparent text-left rounded-xl" data-test="dock-expand" @click="emit('expand')">
           <span class="dock-thumb" aria-hidden="true">
-            <QrThumb v-if="live" :data="data" :qr-style="qrStyle" />
+            <!-- 收著的時候不重畫（打字時鍵盤開著就是收著），出現時才補畫 -->
+            <QrThumb v-if="live" :data="data" :qr-style="qrStyle" :active="visible" />
             <span class="dock-thumb-zoom icon-badge-sm bg-pop-sun"><span class="i-lucide-maximize-2" aria-hidden="true" /></span>
           </span>
           <!-- 360px 以下只留縮圖，字仍然是按鈕的名稱 -->

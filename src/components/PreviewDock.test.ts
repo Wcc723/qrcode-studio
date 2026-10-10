@@ -2,6 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import PreviewDock from './PreviewDock.vue'
+import QrThumb from './QrThumb.vue'
 import { defaultStyle } from '@/types'
 
 vi.mock('qr-code-styling', () => ({
@@ -68,6 +69,13 @@ describe('PreviewDock（手機底部預覽列）', () => {
   it('live 為 false（桌機）時不建縮圖；手機才畫', () => {
     expect(mount(PreviewDock, { props: props({ live: false }) }).find('[data-test="dock-qr"]').exists()).toBe(false)
     expect(mount(PreviewDock, { props: props({ live: true }) }).find('[data-test="dock-qr"]').exists()).toBe(true)
+  })
+
+  it('縮圖只在預覽列出現時才畫（收著時打字不重畫）', async () => {
+    const w = mount(PreviewDock, { props: props({ live: true, visible: false }) })
+    expect(w.findComponent(QrThumb).props('active')).toBe(false)
+    await w.setProps({ visible: true })
+    expect(w.findComponent(QrThumb).props('active')).toBe(true)
   })
 
   it('出現時 html 帶 has-preview-dock（留 scroll-padding），收起與卸載時拿掉', async () => {

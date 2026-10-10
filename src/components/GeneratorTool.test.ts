@@ -5,14 +5,17 @@ import GeneratorTool from './GeneratorTool.vue'
 import QrPreview from './QrPreview.vue'
 import { putScanHandoff, takeScanHandoff, clearScanHandoff } from '@/utils/scan-handoff'
 
-// 記下每個 QR Code 物件的畫法與下載呼叫：預覽框（canvas）與手機預覽列的縮圖（svg）各一份
-const qr = vi.hoisted(() => ({ made: [] as { type: string; download: (...a: unknown[]) => unknown }[] }))
+// 記下每個 QR Code 物件的畫法、重畫次數與下載呼叫：預覽框（canvas）與手機預覽列的縮圖（svg）各一份
+type Made = { type: string; download: (...a: unknown[]) => unknown; updates: number }
+const qr = vi.hoisted(() => ({ made: [] as Made[] }))
 vi.mock('qr-code-styling', () => ({
   default: class {
     download = vi.fn()
-    constructor(o: { type: string }) { qr.made.push({ type: o.type, download: this.download }) }
+    rec: Made
+    constructor(o: { type: string }) { this.rec = { type: o.type, download: this.download, updates: 0 }; qr.made.push(this.rec) }
     append() {}
-    update() {}
+    update() { this.rec.updates++ }
+    async getRawData() { return new Blob(['png'], { type: 'image/png' }) }
   },
 }))
 
@@ -212,6 +215,32 @@ describe('手機底部預覽列（#11）', () => {
     expect(document.activeElement).toBe(zone)
     expect(scroll).toHaveBeenCalledWith(expect.objectContaining({ block: 'start' }))
     w.unmount()
+  })
+
+  it('預覽列收著（打字中、鍵盤開著）時縮圖不跟著每個字重畫；出現時才畫', async () => {
+    const io = phone()
+    const w = mount(GeneratorTool, { props: { defaultType: 'text' } })
+    await io.narrow()
+    io.below(false) // 預覽列收著
+    for (const v of ['h', 'he', 'hel', 'hell', 'hello']) {
+      await w.find('textarea').setValue(v)
+      await nextTick()
+    }
+    await flushPromises()
+    expect(dockShown(w)).toBe(false)
+    expect(qr.made.filter((m) => m.type === 'svg')).toHaveLength(0)
+    const canvas = qr.made.find((m) => m.type === 'canvas')!
+    expect(canvas.updates).toBeGreaterThanOrEqual(5) // 預覽框照常跟著每個字畫
+
+    io.below(true)
+    await flushPromises()
+    expect(dockShown(w)).toBe(true)
+    const svg = qr.made.filter((m) => m.type === 'svg')
+    expect(svg).toHaveLength(1)
+    expect(svg[0].updates).toBe(0) // 建一次就畫好，沒有多畫
+    await w.find('textarea').setValue('hello!')
+    await nextTick()
+    expect(svg[0].updates).toBe(1) // 出現之後照常跟著內容變
   })
 
   it('輸入的內容不會落到網址或瀏覽器儲存空間', async () => {
