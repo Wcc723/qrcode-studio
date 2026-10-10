@@ -37,4 +37,9 @@ describe('main.css 全站契約', () => {
     expect(dock).toMatch(/bottom:\s*0/)
     expect(dock).toMatch(/env\(safe-area-inset-bottom/)
   })
+
+  it('預覽列出現時的 scroll-padding-bottom 照 PreviewDock 量到的高度（--preview-dock-h），不寫死', () => {
+    const rule = /html\.has-preview-dock\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(rule).toMatch(/scroll-padding-bottom:\s*calc\(var\(--preview-dock-h\b/)
+  })
 })

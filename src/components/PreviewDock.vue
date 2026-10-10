@@ -11,7 +11,7 @@
  * - 預覽列擺在工具卡裡，不用 Teleport：預渲染與 hydrate 照一般元件走。它的祖先不能有 transform
  *   （會把 position: fixed 的定位基準從視窗換成那個祖先），所以 main.css 的 .reveal 進場動畫結束後不留 transform。
  */
-import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
+import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import type { QrStyleOptions } from '@/types'
 import { COPY_MESSAGES, type CopyStatus } from '@/composables/useQrCode'
 import QrThumb from './QrThumb.vue'
@@ -48,7 +48,25 @@ watch(() => props.visible, async (v) => {
   const overlap = field.getBoundingClientRect().bottom - limit
   if (overlap > 0) window.scrollBy({ top: overlap + 12 })
 })
-onBeforeUnmount(() => document.documentElement.classList.remove(DOCKED))
+
+// scroll-padding-bottom 要留多少，照預覽列實際的高度（html 上的 --preview-dock-h）：複製失敗時多一行說明、
+// 字放大或換行都會變高，寫死的高度會讓焦點停在被它蓋住的那一截。收起來（display: none）時量到 0，留著上一次的值。
+const HEIGHT_VAR = '--preview-dock-h'
+let resizeObserver: ResizeObserver | undefined
+onMounted(() => {
+  if (!root.value || typeof ResizeObserver !== 'function') return
+  resizeObserver = new ResizeObserver(() => {
+    const h = root.value?.offsetHeight ?? 0
+    if (h > 0) document.documentElement.style.setProperty(HEIGHT_VAR, `${h}px`)
+  })
+  resizeObserver.observe(root.value)
+})
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  document.documentElement.classList.remove(DOCKED)
+  document.documentElement.style.removeProperty(HEIGHT_VAR)
+})
 </script>
 
 <template>

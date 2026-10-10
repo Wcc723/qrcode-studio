@@ -16,7 +16,9 @@ function props(over: Record<string, unknown> = {}) {
 
 afterEach(() => {
   document.documentElement.classList.remove('has-preview-dock')
+  document.documentElement.style.removeProperty('--preview-dock-h')
   document.body.innerHTML = ''
+  vi.unstubAllGlobals()
   vi.restoreAllMocks()
 })
 
@@ -101,6 +103,32 @@ describe('PreviewDock（手機底部預覽列）', () => {
     await w.setProps({ visible: true })
     w.unmount()
     expect(cls.contains('has-preview-dock')).toBe(false)
+  })
+
+  it('scroll-padding 照預覽列實際的高度：量到的高度寫進 html 的 --preview-dock-h（複製失敗多一行時跟著變），收起來量到 0 不蓋掉，卸載時拿掉', async () => {
+    const ro = { cb: null as ResizeObserverCallback | null, observed: [] as Element[], disconnected: false }
+    vi.stubGlobal('ResizeObserver', class {
+      constructor(cb: ResizeObserverCallback) { ro.cb = cb }
+      observe(el: Element) { ro.observed.push(el) }
+      disconnect() { ro.disconnected = true }
+    })
+    const w = mount(PreviewDock, { props: props() })
+    const dock = w.find('[data-test="preview-dock"]').element as HTMLElement
+    expect(ro.observed).toEqual([dock])
+    const height = vi.spyOn(dock, 'offsetHeight', 'get')
+    const report = (h: number) => { height.mockReturnValue(h); ro.cb?.([], {} as ResizeObserver) }
+    const value = () => document.documentElement.style.getPropertyValue('--preview-dock-h')
+    report(83)
+    expect(value()).toBe('83px')
+    await w.setProps({ copyStatus: 'failed' })
+    report(105)
+    expect(value()).toBe('105px')
+    await w.setProps({ visible: false })
+    report(0)
+    expect(value()).toBe('105px')
+    w.unmount()
+    expect(ro.disconnected).toBe(true)
+    expect(value()).toBe('')
   })
 
   it('出現的當下，正在打字的欄位被它蓋住就把頁面往上推；選單或勾選框不動', async () => {

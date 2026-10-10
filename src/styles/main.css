@@ -197,7 +197,11 @@ kbd {
 .dock-thumb-zoom { position: absolute; right: -8px; bottom: -6px; }
 .dock-enter-active, .dock-leave-active { transition: transform 0.2s ease, opacity 0.2s ease; }
 .dock-enter-from, .dock-leave-to { transform: translateY(100%); opacity: 0; }
-/* 預覽列出現時，用鍵盤移動焦點，瀏覽器捲動會多留它的高度，焦點不會躲在它後面 */
+/*
+ * 預覽列出現時，用鍵盤移動焦點，瀏覽器捲動會多留它的高度，焦點不會躲在它後面。
+ * --preview-dock-h 是 PreviewDock 量到的實際高度（已含 safe-area；複製失敗時多一行說明會變高），
+ * 還沒量到時用一般的高度（縮圖那一列 83px 加 safe-area）。
+ */
 @media (max-width: 767.98px) {
-  html.has-preview-dock { scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+  html.has-preview-dock { scroll-padding-bottom: calc(var(--preview-dock-h, 83px + env(safe-area-inset-bottom, 0px)) + 12px); }
 }
