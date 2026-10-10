@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, ref } from 'vue'
 import { createSSRApp } from 'vue'
 import { renderToString } from 'vue/server-renderer'
-import { usePreviewDock, NARROW_QUERY, KEYBOARD_MIN_PX, KEYBOARD_FIELD } from './usePreviewDock'
+import { usePreviewDock, NARROW_QUERY, KEYBOARD_MIN_PX, KEYBOARD_FIELD, KEYBOARD_ARM_MS } from './usePreviewDock'
 
 type Api = ReturnType<typeof usePreviewDock>
 
@@ -36,7 +36,11 @@ function fakeIO() {
   return { state, fire }
 }
 
-/** 假的 visualViewport：可見高度、寬度、放大倍率，改完發 resize */
+/**
+ * 假的 visualViewport（可見高度、寬度、放大倍率）與版面高度（documentElement.clientHeight），改完發 resize。
+ * - set：只有可見範圍變（iOS Safari、Android Chrome 的鍵盤，網址列收合，雙指放大）
+ * - resize：版面跟著一起變（視窗本身變矮：分割畫面、拉矮視窗；或是會縮版面的鍵盤：Android App 內建的瀏覽器）
+ */
 function fakeViewport(init = { width: 390, height: 664, scale: 1 }) {
   const listeners = new Set<() => void>()
   const vv = {
@@ -44,9 +48,13 @@ function fakeViewport(init = { width: 390, height: 664, scale: 1 }) {
     addEventListener: (_: string, f: () => void) => listeners.add(f),
     removeEventListener: (_: string, f: () => void) => listeners.delete(f),
   }
+  let layout = init.height
   vi.stubGlobal('visualViewport', vv)
-  const set = (next: Partial<typeof init>) => { Object.assign(vv, next); for (const f of listeners) f() }
-  return { vv, set, listeners }
+  vi.spyOn(document.documentElement, 'clientHeight', 'get').mockImplementation(() => layout)
+  const fire = () => { for (const f of listeners) f() }
+  const set = (next: Partial<typeof init>) => { Object.assign(vv, next); fire() }
+  const resize = (height: number) => { layout = height; vv.height = height; fire() }
+  return { vv, set, resize, listeners }
 }
 
 function fakeMatchMedia(matches: boolean) {
@@ -64,10 +72,15 @@ function focusField(tag: 'input' | 'textarea' | 'select' = 'input', type = 'url'
   el.focus()
   return el
 }
+/** 在欄位裡打字 */
+const type = (el: Element) => el.dispatchEvent(new Event('input', { bubbles: true }))
+/** 點一下（手指或滑鼠按下去） */
+const press = (el: Element) => el.dispatchEvent(new Event('pointerdown', { bubbles: true }))
 /** focusout 之後晚一拍才重新判斷 */
 const tick = () => new Promise((r) => setTimeout(r, 0))
 
 afterEach(() => {
+  vi.useRealTimers()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
   ;(document.activeElement as HTMLElement | null)?.blur?.()
@@ -123,7 +136,7 @@ describe('usePreviewDock', () => {
   it('沒有欄位在輸入時變矮不算鍵盤：分割畫面、拉矮視窗，預覽列照樣出現', () => {
     const v = fakeViewport()
     const { api } = host()
-    v.set({ height: 364 }) // 上下分割畫面，寬度不變、高度剩一半
+    v.resize(364) // 上下分割畫面，寬度不變、高度剩一半
     expect(api().keyboardOpen.value).toBe(false)
     // 分割之後點欄位：基準換成分割後的高度，鍵盤一開照樣收起來
     focusField()
@@ -132,6 +145,73 @@ describe('usePreviewDock', () => {
     v.set({ height: 164 })
     expect(api().keyboardOpen.value).toBe(true)
     v.set({ height: 364 }) // 收鍵盤（焦點還在欄位上）
+    expect(api().keyboardOpen.value).toBe(false)
+  })
+
+  it('焦點還留在剛打完字的欄位上，視窗本身變矮（拉矮視窗）不算鍵盤；之後再點欄位、鍵盤升起照樣收起來', () => {
+    const v = fakeViewport()
+    const { api } = host()
+    const field = focusField('textarea')
+    type(field)
+    v.resize(564) // 拖矮視窗：一路變矮，還沒超過門檻
+    expect(api().keyboardOpen.value).toBe(false)
+    v.resize(364) // 超過門檻：版面跟著變矮，又不是剛點了欄位
+    expect(api().keyboardOpen.value).toBe(false)
+    // 點到按鈕不算點欄位
+    const btn = document.createElement('button')
+    document.body.append(btn)
+    press(btn)
+    v.resize(164)
+    expect(api().keyboardOpen.value).toBe(false)
+    // 再點一下欄位（焦點本來就在上面，沒有 focusin），鍵盤升起：以拉矮後的高度為基準
+    press(field)
+    v.set({ height: 0 })
+    expect(api().keyboardOpen.value).toBe(true)
+  })
+
+  it('Android 按返回鍵收鍵盤（焦點留著）之後進上下分割畫面：不算鍵盤', () => {
+    const v = fakeViewport()
+    const { api } = host()
+    const field = focusField()
+    v.set({ height: 364 }) // 鍵盤升起：只縮可見範圍
+    expect(api().keyboardOpen.value).toBe(true)
+    type(field)
+    v.set({ height: 664 }) // 返回鍵收鍵盤
+    expect(api().keyboardOpen.value).toBe(false)
+    v.resize(364) // 上下分割畫面
+    expect(api().keyboardOpen.value).toBe(false)
+  })
+
+  it('只縮可見範圍、版面沒變就是鍵盤，不管多久以前點的欄位（iOS Safari、Android Chrome）', () => {
+    vi.useFakeTimers()
+    const v = fakeViewport()
+    const { api } = host()
+    const field = focusField()
+    type(field)
+    vi.advanceTimersByTime(KEYBOARD_ARM_MS * 3)
+    v.set({ height: 364 })
+    expect(api().keyboardOpen.value).toBe(true)
+  })
+
+  it('會縮版面的鍵盤（Android App 內建的瀏覽器）：剛點了欄位、還沒打字時變矮才算鍵盤', () => {
+    vi.useFakeTimers()
+    const v = fakeViewport()
+    const { api } = host()
+    const field = focusField()
+    v.resize(364) // 點了欄位，鍵盤升起、整個版面跟著縮
+    expect(api().keyboardOpen.value).toBe(true)
+    type(field)
+    v.resize(664) // 返回鍵收鍵盤
+    expect(api().keyboardOpen.value).toBe(false)
+    press(field) // 再點同一個欄位，鍵盤再出來
+    v.resize(364)
+    expect(api().keyboardOpen.value).toBe(true)
+    v.resize(664)
+    expect(api().keyboardOpen.value).toBe(false)
+    // 點了欄位之後過了一陣子才變矮：是視窗本身
+    press(field)
+    vi.advanceTimersByTime(KEYBOARD_ARM_MS + 1)
+    v.resize(364)
     expect(api().keyboardOpen.value).toBe(false)
   })
 
@@ -184,12 +264,12 @@ describe('usePreviewDock', () => {
     const { wrapper } = host()
     expect(v.listeners.size).toBe(1)
     expect(m.listeners.size).toBe(1)
-    const focusout = add.mock.calls.find(([t]) => t === 'focusout')?.[1]
-    expect(focusout).toBeTypeOf('function')
+    const added = ['focusin', 'pointerdown', 'input', 'focusout'].map((t) => add.mock.calls.find(([type]) => type === t))
+    for (const call of added) expect(call?.[1]).toBeTypeOf('function')
     wrapper.unmount()
     expect(io.state.disconnected).toBe(true)
     expect(v.listeners.size).toBe(0)
     expect(m.listeners.size).toBe(0)
-    expect(remove).toHaveBeenCalledWith('focusout', focusout)
+    for (const call of added) expect(remove).toHaveBeenCalledWith(...call!)
   })
 })
