@@ -17,8 +17,8 @@ export const KEYBOARD_FIELD = 'textarea, select, [contenteditable]:not([contente
   + 'input:not([type="checkbox"], [type="radio"], [type="color"], [type="range"], [type="file"], [type="button"], [type="submit"], [type="reset"], [type="image"])'
 
 /**
- * 點了會叫出鍵盤的欄位之後，這段時間內的變矮才可能是鍵盤升起來（鍵盤從點下去到完全升起，慢的手機也在一秒上下）。
- * 開始打字就不算了：鍵盤一定在打第一個字之前就升好了。
+ * 用手指（或觸控筆）點了會叫出鍵盤的欄位之後，這段時間內的變矮才可能是鍵盤升起來（鍵盤從點下去到完全升起，
+ * 慢的手機也在一秒上下）。開始打字就不算了：鍵盤一定在打第一個字之前就升好了。滑鼠點的不算：滑鼠點欄位不會叫出虛擬鍵盤。
  */
 export const KEYBOARD_ARM_MS = 2000
 
@@ -40,8 +40,12 @@ const ABOVE_PX = 100000
  *   - 只有可見範圍變矮、版面（documentElement.clientHeight）沒變：是鍵盤（iOS Safari、Android Chrome）。
  *     視窗本身變矮時版面一定跟著變矮。
  *   - 版面也一起變矮：可能是視窗本身（分割畫面、拉矮視窗），也可能是會縮版面的鍵盤（Android App 內建的瀏覽器）。
- *     鍵盤一定是點了欄位才升起來，所以只有剛點了欄位、還沒開始打字（KEYBOARD_ARM_MS 內）才算鍵盤；
- *     不然就是視窗變矮，現在的高度是新的基準。沒有欄位在輸入時也一樣，現在的高度就是基準。
+ *     鍵盤一定是點了欄位才升起來，所以只有剛用手指點了欄位（滑鼠點的不算）、還沒開始打字（KEYBOARD_ARM_MS 內）
+ *     才算鍵盤；不然就是視窗變矮，現在的高度是新的基準。沒有欄位在輸入時也一樣，現在的高度就是基準。
+ *   鍵盤開著時高度又變了：
+ *   - 只縮可見範圍的鍵盤（蓋在版面上）：版面高度就是視窗高度，鍵盤開著時進分割畫面、拉矮視窗，基準跟著版面一起移；
+ *     可見高度回到移過的基準附近，就是鍵盤收了（Android 按返回鍵，焦點還在欄位上），移過的基準就是新的基準。
+ *   - 會縮版面的鍵盤：收鍵盤與視窗變高看起來一樣，維持開著，等高度回到基準或焦點離開欄位。
  */
 export function usePreviewDock(end: Ref<HTMLElement | null>) {
   const narrow = ref(false)
@@ -75,8 +79,10 @@ export function usePreviewDock(end: Ref<HTMLElement | null>) {
       let width = 0
       let tallest = 0 // 這個寬度下沒有鍵盤時的可見高度（基準）
       let layout = 0 // 記下基準時的版面高度
+      let overlay = false // 鍵盤開著，而且是只縮可見範圍、版面沒變的那種（蓋在版面上）
       let armed = false // 剛點了會叫出鍵盤的欄位、還沒開始打字：接下來的變矮可能是鍵盤升起來
       let armTimer: ReturnType<typeof setTimeout> | undefined
+      let mouse = false // 最後一次按下去的是滑鼠（或觸控板）：滑鼠點欄位不會叫出虛擬鍵盤
       const isField = (el: EventTarget | Element | null) => el instanceof HTMLElement && el.matches(KEYBOARD_FIELD)
       const editing = () => isField(document.activeElement)
       // 乘上 scale：雙指放大時 visualViewport 的寬高會跟著變小，換回沒放大時的 CSS px 才比得了
@@ -84,22 +90,34 @@ export function usePreviewDock(end: Ref<HTMLElement | null>) {
         const w = Math.round(vv.width * vv.scale)
         const h = vv.height * vv.scale
         const lh = root.clientHeight
+        const rebase = (base = h) => { tallest = base; layout = lh; keyboardOpen.value = false }
         if (w !== width) { width = w; tallest = 0 } // 轉向：重新找這個寬度下的最高值
-        if (!editing() || h >= tallest) { tallest = h; layout = lh; keyboardOpen.value = false; return }
+        if (!editing()) { rebase(); return }
+        if (keyboardOpen.value && overlay) {
+          // 蓋在版面上的鍵盤開著：視窗變了（分割畫面、拉矮、拉高）的話，基準跟著版面一起移；
+          // 可見高度回到基準附近就是鍵盤收了。視窗變高時可見高度會超過舊的基準，鍵盤卻還開著，所以要先比這條
+          const base = tallest - (layout - lh)
+          if (base - h <= KEYBOARD_MIN_PX) rebase(Math.max(h, base))
+          return
+        }
+        if (h >= tallest) { rebase(); return }
         if (tallest - h <= KEYBOARD_MIN_PX) { keyboardOpen.value = false; return } // 網址列收合、鍵盤升到一半
-        if (keyboardOpen.value) return // 鍵盤開著，高度又變了一點（換輸入法、候選字列）
-        if (armed || layout - lh <= KEYBOARD_MIN_PX) keyboardOpen.value = true
-        else { tallest = h; layout = lh } // 視窗本身變矮：現在的高度就是新的基準
+        if (keyboardOpen.value) return // 會縮版面的鍵盤開著，高度又變了一點（換輸入法、候選字列）
+        if (layout - lh <= KEYBOARD_MIN_PX) { keyboardOpen.value = true; overlay = true }
+        else if (armed) { keyboardOpen.value = true; overlay = false }
+        else rebase() // 視窗本身變矮：現在的高度就是新的基準
       }
       check()
       vv.addEventListener('resize', check)
       const disarm = () => { armed = false; clearTimeout(armTimer) }
       const arm = () => { disarm(); armed = true; armTimer = setTimeout(disarm, KEYBOARD_ARM_MS) }
-      // 點到欄位或焦點移進欄位：鍵盤可能要升起來了。Android 按返回鍵收鍵盤後焦點還在，再點一下同一個欄位鍵盤會再出來，
-      // 那時沒有 focusin，所以 pointerdown 也算。
-      const onFocusIn = (e: FocusEvent) => { if (isField(e.target)) arm() }
+      // 用手指點到欄位或焦點移進欄位：鍵盤可能要升起來了。Android 按返回鍵收鍵盤後焦點還在，再點一下同一個欄位
+      // 鍵盤會再出來，那時沒有 focusin，所以 pointerdown 也算。滑鼠點的不算（focusin 緊跟在滑鼠的 pointerdown 後面），
+      // 不然窄的桌機視窗點了欄位馬上拉矮，會被當成鍵盤，預覽列要等離開欄位才出現。
+      const onFocusIn = (e: FocusEvent) => { if (!mouse && isField(e.target)) arm() }
       const onPointerDown = (e: PointerEvent) => {
-        if (e.target instanceof Element && isField(e.target.closest(KEYBOARD_FIELD))) arm()
+        mouse = e.pointerType === 'mouse'
+        if (!mouse && e.target instanceof Element && isField(e.target.closest(KEYBOARD_FIELD))) arm()
       }
       // 焦點離開欄位（點旁邊、按完成）時重新判斷，不必等下一次高度變化。focusout 的當下焦點還沒換好，晚一拍再看。
       let timer: ReturnType<typeof setTimeout> | undefined

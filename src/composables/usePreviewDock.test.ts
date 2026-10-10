@@ -39,7 +39,8 @@ function fakeIO() {
 /**
  * 假的 visualViewport（可見高度、寬度、放大倍率）與版面高度（documentElement.clientHeight），改完發 resize。
  * - set：只有可見範圍變（iOS Safari、Android Chrome 的鍵盤，網址列收合，雙指放大）
- * - resize：版面跟著一起變（視窗本身變矮：分割畫面、拉矮視窗；或是會縮版面的鍵盤：Android App 內建的瀏覽器）
+ * - resize：版面跟著一起變（視窗本身變矮：分割畫面、拉矮視窗；或是會縮版面的鍵盤：Android App 內建的瀏覽器）。
+ *   第二個參數是可見高度，給「視窗變了、蓋在版面上的鍵盤還開著」用，沒給就跟版面一樣高
  */
 function fakeViewport(init = { width: 390, height: 664, scale: 1 }) {
   const listeners = new Set<() => void>()
@@ -53,7 +54,7 @@ function fakeViewport(init = { width: 390, height: 664, scale: 1 }) {
   vi.spyOn(document.documentElement, 'clientHeight', 'get').mockImplementation(() => layout)
   const fire = () => { for (const f of listeners) f() }
   const set = (next: Partial<typeof init>) => { Object.assign(vv, next); fire() }
-  const resize = (height: number) => { layout = height; vv.height = height; fire() }
+  const resize = (height: number, visible = height) => { layout = height; vv.height = visible; fire() }
   return { vv, set, resize, listeners }
 }
 
@@ -74,8 +75,9 @@ function focusField(tag: 'input' | 'textarea' | 'select' = 'input', type = 'url'
 }
 /** 在欄位裡打字 */
 const type = (el: Element) => el.dispatchEvent(new Event('input', { bubbles: true }))
-/** 點一下（手指或滑鼠按下去） */
-const press = (el: Element) => el.dispatchEvent(new Event('pointerdown', { bubbles: true }))
+/** 按下去（預設是手指；滑鼠點欄位不會叫出虛擬鍵盤） */
+const press = (el: Element, pointerType: 'touch' | 'pen' | 'mouse' = 'touch') =>
+  el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType }))
 /** focusout 之後晚一拍才重新判斷 */
 const tick = () => new Promise((r) => setTimeout(r, 0))
 
@@ -212,6 +214,67 @@ describe('usePreviewDock', () => {
     press(field)
     vi.advanceTimersByTime(KEYBOARD_ARM_MS + 1)
     v.resize(364)
+    expect(api().keyboardOpen.value).toBe(false)
+  })
+
+  it('滑鼠點欄位不會叫出虛擬鍵盤：窄的桌機視窗點了欄位馬上拉矮（版面一起變矮）不算鍵盤；用手指點的照樣算', () => {
+    vi.useFakeTimers()
+    const v = fakeViewport()
+    const { api } = host()
+    const field = document.createElement('input')
+    field.type = 'url'
+    document.body.append(field)
+    press(field, 'mouse') // 滑鼠按下去，接著焦點移進欄位（focusin）
+    field.focus()
+    v.resize(364)
+    expect(api().keyboardOpen.value).toBe(false)
+    v.resize(664)
+    // 先用滑鼠點過別的地方，再用 Tab 移進欄位：一樣不算
+    field.blur()
+    const btn = document.createElement('button')
+    document.body.append(btn)
+    press(btn, 'mouse')
+    field.focus()
+    v.resize(364)
+    expect(api().keyboardOpen.value).toBe(false)
+    v.resize(664)
+    // 用手指點：會縮版面的鍵盤升起來
+    field.blur()
+    press(field, 'touch')
+    field.focus()
+    v.resize(364)
+    expect(api().keyboardOpen.value).toBe(true)
+    v.resize(664)
+    // 觸控筆也算；焦點本來就在欄位上，再點一下（沒有 focusin）
+    press(field, 'pen')
+    v.resize(364)
+    expect(api().keyboardOpen.value).toBe(true)
+  })
+
+  it('只縮可見範圍的鍵盤開著時進分割畫面，再按返回鍵收鍵盤（焦點留著）：預覽列回來；視窗變高、鍵盤還開著時照樣收著', () => {
+    const v = fakeViewport()
+    const { api } = host()
+    const field = focusField()
+    v.set({ height: 384 }) // 鍵盤升起：只縮可見範圍
+    expect(api().keyboardOpen.value).toBe(true)
+    type(field)
+    v.resize(364, 84) // 上下分割畫面：視窗（版面）剩 364，鍵盤還開著
+    expect(api().keyboardOpen.value).toBe(true)
+    v.set({ height: 364 }) // 返回鍵收鍵盤：可見高度回到分割後的視窗高度
+    expect(api().keyboardOpen.value).toBe(false)
+    // 分割畫面裡再點欄位，鍵盤升起照樣收起來；收鍵盤又回來
+    press(field)
+    v.set({ height: 84 })
+    expect(api().keyboardOpen.value).toBe(true)
+    v.set({ height: 364 })
+    expect(api().keyboardOpen.value).toBe(false)
+    // 鍵盤開著時離開分割畫面：視窗變高、可見高度也變高，但鍵盤還在
+    press(field)
+    v.set({ height: 84 })
+    expect(api().keyboardOpen.value).toBe(true)
+    v.resize(664, 384)
+    expect(api().keyboardOpen.value).toBe(true)
+    v.set({ height: 664 })
     expect(api().keyboardOpen.value).toBe(false)
   })
 
