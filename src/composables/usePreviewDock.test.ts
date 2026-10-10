@@ -7,7 +7,7 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, ref } from 'vue'
 import { createSSRApp } from 'vue'
 import { renderToString } from 'vue/server-renderer'
-import { usePreviewDock, NARROW_QUERY, KEYBOARD_MIN_PX } from './usePreviewDock'
+import { usePreviewDock, NARROW_QUERY, KEYBOARD_MIN_PX, KEYBOARD_FIELD } from './usePreviewDock'
 
 type Api = ReturnType<typeof usePreviewDock>
 
@@ -56,7 +56,23 @@ function fakeMatchMedia(matches: boolean) {
   return { mq, flip(v: boolean) { mq.matches = v; for (const f of listeners) f() }, listeners }
 }
 
-afterEach(() => { vi.unstubAllGlobals() })
+/** 焦點放到一個欄位上（模擬點了欄位）；回傳那個欄位 */
+function focusField(tag: 'input' | 'textarea' | 'select' = 'input', type = 'url') {
+  const el = document.createElement(tag)
+  if (el instanceof HTMLInputElement) el.type = type
+  document.body.append(el)
+  el.focus()
+  return el
+}
+/** focusout 之後晚一拍才重新判斷 */
+const tick = () => new Promise((r) => setTimeout(r, 0))
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+  ;(document.activeElement as HTMLElement | null)?.blur?.()
+  document.body.innerHTML = ''
+})
 
 describe('usePreviewDock', () => {
   it('預渲染（SSR）時三個條件都是 false', async () => {
@@ -91,15 +107,56 @@ describe('usePreviewDock', () => {
     expect(api().endBelow.value).toBe(false)
   })
 
-  it('虛擬鍵盤：可見高度比最高值少超過門檻才算開著；網址列收合那種小變化不算', () => {
+  it('虛擬鍵盤：在欄位裡輸入、可見高度又比最高值少超過門檻才算開著；網址列收合那種小變化不算', () => {
     const v = fakeViewport()
     const { api } = host()
     expect(api().keyboardOpen.value).toBe(false)
+    focusField()
     v.set({ height: 664 - (KEYBOARD_MIN_PX - 60) }) // 網址列展開
     expect(api().keyboardOpen.value).toBe(false)
     v.set({ height: 364 }) // 鍵盤開
     expect(api().keyboardOpen.value).toBe(true)
     v.set({ height: 664 }) // 鍵盤收（Android 按返回鍵時欄位還留著焦點，一樣算收起來）
+    expect(api().keyboardOpen.value).toBe(false)
+  })
+
+  it('沒有欄位在輸入時變矮不算鍵盤：分割畫面、拉矮視窗，預覽列照樣出現', () => {
+    const v = fakeViewport()
+    const { api } = host()
+    v.set({ height: 364 }) // 上下分割畫面，寬度不變、高度剩一半
+    expect(api().keyboardOpen.value).toBe(false)
+    // 分割之後點欄位：基準換成分割後的高度，鍵盤一開照樣收起來
+    focusField()
+    v.set({ height: 364 })
+    expect(api().keyboardOpen.value).toBe(false)
+    v.set({ height: 164 })
+    expect(api().keyboardOpen.value).toBe(true)
+    v.set({ height: 364 }) // 收鍵盤（焦點還在欄位上）
+    expect(api().keyboardOpen.value).toBe(false)
+  })
+
+  it('勾選框、顏色、按鈕有焦點時變矮也不算鍵盤；下拉選單算（iOS 的選單滾輪佔鍵盤的位置）', () => {
+    for (const [tag, type, expected] of [['input', 'checkbox', false], ['input', 'color', false], ['input', 'button', false], ['input', 'text', true], ['textarea', '', true], ['select', '', true]] as const) {
+      const v = fakeViewport()
+      const { api, wrapper } = host()
+      const el = focusField(tag, type)
+      expect(el.matches(KEYBOARD_FIELD), `${tag} ${type}`).toBe(expected)
+      v.set({ height: 364 })
+      expect(api().keyboardOpen.value, `${tag} ${type}`).toBe(expected)
+      wrapper.unmount()
+      el.remove()
+    }
+  })
+
+  it('鍵盤開著時焦點離開欄位（點旁邊、按完成）：馬上算收起來，不必等高度再變', async () => {
+    const v = fakeViewport()
+    const { api } = host()
+    const field = focusField('textarea')
+    v.set({ height: 364 })
+    expect(api().keyboardOpen.value).toBe(true)
+    // 離開欄位後高度沒有再變（變矮的其實是分割畫面或拉矮的視窗）：以前要等寬度改變才會重新判斷，預覽列一直不出現
+    field.blur()
+    await tick()
     expect(api().keyboardOpen.value).toBe(false)
   })
 
@@ -113,6 +170,7 @@ describe('usePreviewDock', () => {
   it('轉向（寬度變了）重新找最高值：橫向本來就比較矮，不能當成鍵盤', () => {
     const v = fakeViewport()
     const { api } = host()
+    focusField()
     v.set({ width: 664, height: 340 })
     expect(api().keyboardOpen.value).toBe(false)
   })
@@ -121,12 +179,17 @@ describe('usePreviewDock', () => {
     const io = fakeIO()
     const v = fakeViewport()
     const m = fakeMatchMedia(true)
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
     const { wrapper } = host()
     expect(v.listeners.size).toBe(1)
     expect(m.listeners.size).toBe(1)
+    const focusout = add.mock.calls.find(([t]) => t === 'focusout')?.[1]
+    expect(focusout).toBeTypeOf('function')
     wrapper.unmount()
     expect(io.state.disconnected).toBe(true)
     expect(v.listeners.size).toBe(0)
     expect(m.listeners.size).toBe(0)
+    expect(remove).toHaveBeenCalledWith('focusout', focusout)
   })
 })
