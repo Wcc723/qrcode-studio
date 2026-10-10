@@ -38,6 +38,13 @@ describe('main.css 全站契約', () => {
     expect(dock).toMatch(/env\(safe-area-inset-bottom/)
   })
 
+  it('預覽框連同下載鈕一起黏著，而且只在桌機兩欄、視窗夠高時（手機黏著只會蓋住下面的按鈕）', () => {
+    const block = /@media\s*\(min-width:\s*768px\)\s*and\s*\(min-height:\s*\d+px\)\s*\{\s*\.preview-sticky\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(block).toMatch(/position:\s*sticky/)
+    // media query 外沒有別的 .preview-sticky 規則
+    expect(css.match(/\.preview-sticky\s*\{/g)).toHaveLength(1)
+  })
+
   it('預覽列出現時的 scroll-padding-bottom 照 PreviewDock 量到的高度（--preview-dock-h），不寫死', () => {
     const rule = /html\.has-preview-dock\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
     expect(rule).toMatch(/scroll-padding-bottom:\s*calc\(var\(--preview-dock-h\b/)

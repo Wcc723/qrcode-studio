@@ -110,8 +110,11 @@ function showFullPreview() {
             <p>「複製」會把 PNG 圖片複製起來，可以直接貼進聊天或文件。</p>
           </HelpTip>
         </div>
-        <QrPreview ref="previewRef" :data="payload" :style="style" />
-        <DownloadBar :download="download" :copy="copy" :copy-status="copyStatus" :disabled="!payload || overCapacity" :describedby="`${uid}-dl-help`" />
+        <!-- 預覽框連同下載鈕一起黏著（main.css 的 .preview-sticky，只在桌機兩欄）：只黏預覽框的話，往下捲它會滑過去蓋住下載鈕 -->
+        <div class="preview-sticky" data-test="preview-sticky">
+          <QrPreview ref="previewRef" :data="payload" :style="style" />
+          <DownloadBar :download="download" :copy="copy" :copy-status="copyStatus" :disabled="!payload || overCapacity" :describedby="`${uid}-dl-help`" />
+        </div>
         <!-- 預覽區的底（零高度）：它還在視窗下方時，手機才出底部預覽列 -->
         <div ref="previewEnd" aria-hidden="true" data-test="preview-end" />
       </div>

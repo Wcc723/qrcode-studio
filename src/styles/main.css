@@ -178,6 +178,15 @@ kbd {
 .doc-chips > li { display: inline-flex; align-items: center; gap: 6px; }
 
 /*
+ * 預覽框連同下面的下載與複製按鈕一起跟著捲動（GeneratorTool 的 .preview-sticky）。
+ * - 按鈕跟預覽框黏在同一個框裡：只黏預覽框時，往下捲它會往下滑、蓋住下面的按鈕
+ * - 只在兩欄版面（md 以上）：手機一欄旁邊沒有東西要跟著看，黏著只會蓋住按鈕；手機有底部預覽列
+ * - 視窗比這一組（約 430px）矮時不黏：黏著的話按鈕會一直在視窗外
+ */
+@media (min-width: 768px) and (min-height: 480px) {
+  .preview-sticky { position: sticky; top: 16px; }
+}
+/*
  * 手機的底部預覽列（PreviewDock.vue）。出現的時機由元件決定；這裡只管長相與兩條保險：
  * - md 以上一律不出現（桌機版面不變），!important 蓋過 v-show 的行內樣式
  * - 底部留出 safe-area（有 Home 指示條的手機），bottom: 0 貼齊視窗底

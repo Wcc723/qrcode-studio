@@ -152,6 +152,14 @@ describe('手機底部預覽列（#11）', () => {
     expect(w.find('.card [data-test="preview-dock"]').exists()).toBe(true)
   })
 
+  it('預覽框與下載鈕、狀態列在同一個黏著的框裡，預覽框自己不黏（只黏它會往下滑、蓋住下載鈕）', () => {
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    const sticky = w.find('[data-test="preview-sticky"]')
+    expect(sticky.classes()).toContain('preview-sticky')
+    for (const t of ['qr-container', 'dl-png', 'dl-svg', 'dl-jpg', 'dl-copy', 'copy-status']) expect(sticky.find(`[data-test="${t}"]`).exists(), t).toBe(true)
+    expect(w.findAll('[data-test="preview-zone"] .sticky')).toHaveLength(0)
+  })
+
   it('桌機寬度（預設的 happy-dom 1024px）：輸入後也不出現，也不多建一份 QR Code', async () => {
     const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
     await w.find('input[type="url"]').setValue('https://example.com')

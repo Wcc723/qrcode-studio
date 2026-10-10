@@ -12,7 +12,7 @@ defineExpose({ download, copyImage })
 </script>
 
 <template>
-  <div class="card p-5 sticky top-4">
+  <div class="card p-5">
     <div class="relative aspect-square w-full bg-[#FFF7EA] rounded-2xl border-2 border-ink flex items-center justify-center overflow-hidden">
       <div v-if="data && error" class="flex flex-col items-center justify-center gap-2 p-4 text-center">
         <span class="icon-badge-lg bg-pop-pink"><span class="i-lucide-circle-alert" aria-hidden="true" /></span>
