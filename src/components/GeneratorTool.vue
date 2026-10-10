@@ -8,10 +8,12 @@ import QrTypeTabs from './QrTypeTabs.vue'
 import QrPreview from './QrPreview.vue'
 import StylePanel from './StylePanel.vue'
 import DownloadBar from './DownloadBar.vue'
+import PreviewDock from './PreviewDock.vue'
 import PrivacyNote from './PrivacyNote.vue'
 import HelpTip from './HelpTip.vue'
 import { inputComponents } from './inputs'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
+import { usePreviewDock } from '@/composables/usePreviewDock'
 
 const props = withDefaults(defineProps<{ defaultType?: QrType }>(), { defaultType: 'url' })
 const current = ref<QrType>(props.defaultType)
@@ -40,6 +42,20 @@ const overCapacity = computed(() => !!payload.value && exceedsQrCapacity(payload
 function onType(t: QrType) { current.value = t; payload.value = ''; initial.value = undefined }
 function download(ext: 'png' | 'svg' | 'jpeg') { previewRef.value?.download(ext) }
 async function copy() { await previewRef.value?.copyImage() }
+
+// 手機版：完整的預覽與下載在外觀設定下面，輸入後要往下捲才看得到。還沒捲到時，底部預覽列先給縮圖與下載（#11）。
+const previewZone = ref<HTMLElement | null>(null)
+const previewEnd = ref<HTMLElement | null>(null)
+const { narrow, endBelow, keyboardOpen } = usePreviewDock(previewEnd)
+const dockVisible = computed(() => !!payload.value && narrow.value && endBelow.value && !keyboardOpen.value)
+/** 點預覽列的縮圖：捲到完整的預覽框，焦點跟著移過去（預覽列接著會收起來，焦點不能留在它身上） */
+function showFullPreview() {
+  const zone = previewZone.value
+  if (!zone) return
+  const reduce = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  zone.focus({ preventScroll: true })
+  zone.scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' })
+}
 </script>
 
 <template>
@@ -58,7 +74,7 @@ async function copy() { await previewRef.value?.copyImage() }
           <StylePanel v-model="style" />
         </div>
       </div>
-      <div class="md:w-72 min-w-0">
+      <div ref="previewZone" tabindex="-1" class="md:w-72 min-w-0 scroll-mt-4" data-test="preview-zone">
         <!-- 三種格式各在什麼時候用，收在「預覽與下載」旁的「?」；下載鈕的文字不變 -->
         <div class="mb-3">
           <HelpTip name="下載格式" :id="`${uid}-dl-help`">
@@ -73,7 +89,11 @@ async function copy() { await previewRef.value?.copyImage() }
         </div>
         <QrPreview ref="previewRef" :data="payload" :style="style" />
         <DownloadBar :download="download" :copy="copy" :disabled="!payload || overCapacity" :describedby="`${uid}-dl-help`" />
+        <!-- 預覽區的底（零高度）：它還在視窗下方時，手機才出底部預覽列 -->
+        <div ref="previewEnd" aria-hidden="true" data-test="preview-end" />
       </div>
     </div>
+    <PreviewDock :visible="dockVisible" :live="narrow" :data="payload" :qr-style="style" :disabled="!payload || overCapacity"
+      :download="download" :copy="copy" @expand="showFullPreview" />
   </div>
 </template>

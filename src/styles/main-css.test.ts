@@ -22,4 +22,19 @@ describe('main.css 全站契約', () => {
     // 最後一個宣告生效；前面的 hidden 只給不認得 clip 的舊瀏覽器
     expect(decls.at(-1)).toBe('clip')
   })
+
+  it('.reveal 進場動畫結束後不留 transform（fill-mode 不用 both／forwards），手機底部預覽列才定位在視窗上', () => {
+    const rule = /\.reveal\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(rule).toMatch(/animation:/)
+    expect(rule).not.toMatch(/\b(both|forwards)\b/)
+  })
+
+  it('手機底部預覽列：md 以上一律藏起來（桌機版面不變），底部留 safe-area', () => {
+    const md = /@media\s*\(min-width:\s*768px\)\s*\{\s*\.preview-dock\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(md).toMatch(/display:\s*none\s*!important/)
+    const dock = /(?:^|\n)\.preview-dock\s*\{([^}]*)\}/.exec(css)?.[1] ?? ''
+    expect(dock).toMatch(/position:\s*fixed/)
+    expect(dock).toMatch(/bottom:\s*0/)
+    expect(dock).toMatch(/env\(safe-area-inset-bottom/)
+  })
 })

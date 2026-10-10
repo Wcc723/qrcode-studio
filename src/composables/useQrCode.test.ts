@@ -11,11 +11,13 @@ import { defaultStyle, type QrStyleOptions } from '@/types'
 const lib = vi.hoisted(() => ({
   download: vi.fn(),
   getRawData: vi.fn(async () => new Blob(['png'], { type: 'image/png' })),
+  options: [] as Record<string, unknown>[],
 }))
 vi.mock('qr-code-styling', () => ({
   default: class {
+    constructor(o: Record<string, unknown>) { lib.options.push(o) }
     append() {}
-    update() {}
+    update(o: Record<string, unknown>) { lib.options.push(o) }
     download = lib.download
     getRawData = lib.getRawData
   },
@@ -23,13 +25,13 @@ vi.mock('qr-code-styling', () => ({
 const saved = vi.hoisted(() => ({ saveBlob: vi.fn() }))
 vi.mock('@/utils/save-blob', () => saved)
 
-import { useQrCode } from './useQrCode'
+import { useQrCode, mapToQrOptions } from './useQrCode'
 
-function setup(style: Partial<QrStyleOptions>) {
+function setup(style: Partial<QrStyleOptions>, draw?: 'canvas' | 'svg') {
   let api!: ReturnType<typeof useQrCode>
   const Host = defineComponent({
     setup() {
-      api = useQrCode(ref('https://example.com'), ref({ ...defaultStyle, ...style }))
+      api = useQrCode(ref('https://example.com'), ref({ ...defaultStyle, ...style }), draw)
       return () => h('div', { ref: api.container })
     },
   })
@@ -40,6 +42,7 @@ function setup(style: Partial<QrStyleOptions>) {
 const calls: string[] = []
 beforeEach(() => {
   calls.length = 0
+  lib.options.length = 0
   lib.download.mockClear()
   saved.saveBlob.mockClear()
   vi.stubGlobal('createImageBitmap', vi.fn(async () => ({ width: 10, height: 10, close() {} })))
@@ -90,5 +93,25 @@ describe('useQrCode 下載', () => {
     await api().download('jpeg')
     expect(lib.download).toHaveBeenCalledWith({ name: 'qrcode', extension: 'jpeg' })
     expect(saved.saveBlob).not.toHaveBeenCalled()
+  })
+})
+
+describe('useQrCode 畫法', () => {
+  it('預設畫成 canvas（預覽框，下載與複製都從這一份來）', async () => {
+    setup({})
+    await flushPromises()
+    expect(lib.options.length).toBeGreaterThan(0)
+    for (const o of lib.options) expect(o.type).toBe('canvas')
+  })
+
+  it('手機預覽列的縮圖畫成 svg：除了畫法，內容與外觀跟預覽框完全一樣', async () => {
+    const style = { ...defaultStyle, dotColor: '#c2410c', useGradient: true, margin: 12 }
+    setup(style, 'svg')
+    await flushPromises()
+    expect(lib.options.length).toBeGreaterThan(0)
+    for (const o of lib.options) {
+      expect(o.type).toBe('svg')
+      expect({ ...o, type: 'canvas' }).toEqual(mapToQrOptions('https://example.com', style))
+    }
   })
 })

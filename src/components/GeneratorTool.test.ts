@@ -1,12 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { nextTick } from 'vue'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import GeneratorTool from './GeneratorTool.vue'
 import QrPreview from './QrPreview.vue'
 import { putScanHandoff, takeScanHandoff, clearScanHandoff } from '@/utils/scan-handoff'
 
+// 記下每個 QR Code 物件的畫法與下載呼叫：預覽框（canvas）與手機預覽列的縮圖（svg）各一份
+const qr = vi.hoisted(() => ({ made: [] as { type: string; download: (...a: unknown[]) => unknown }[] }))
 vi.mock('qr-code-styling', () => ({
-  default: class { append() {} update() {} download() {} },
+  default: class {
+    download = vi.fn()
+    constructor(o: { type: string }) { qr.made.push({ type: o.type, download: this.download }) }
+    append() {}
+    update() {}
+  },
 }))
 
 describe('GeneratorTool', () => {
@@ -103,5 +110,121 @@ describe('從 /scan/ 交棒過來的內容', () => {
     await nextTick()
     expect((wrapper.find('input[type="url"]').element as HTMLInputElement).value).toBe('')
     expect(takeScanHandoff()).toBeNull()
+  })
+})
+
+describe('手機底部預覽列（#11）', () => {
+  /**
+   * 手機寬度、預覽區在視窗下方。IntersectionObserver 由測試決定什麼時候通知。
+   * 螢幕寬度先是桌機、掛上之後才轉成手機（narrow() 發 change）：預覽框與縮圖同時動態 import
+   * 被 vi.mock 的套件時，vitest 會把後到的那個解析成真的套件，所以讓縮圖晚一步才建。
+   */
+  function phone() {
+    const listeners = new Set<() => void>()
+    const mq = { matches: false, addEventListener: (_: string, f: () => void) => listeners.add(f), removeEventListener: (_: string, f: () => void) => listeners.delete(f) }
+    vi.stubGlobal('matchMedia', vi.fn((q: string) => (q.includes('prefers-reduced-motion') ? { ...mq, matches: false } : mq)))
+    let cb: IntersectionObserverCallback | null = null
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(f: IntersectionObserverCallback) { cb = f }
+      observe() {}
+      disconnect() {}
+    })
+    return {
+      below: (v: boolean) => cb?.([{ isIntersecting: !v } as IntersectionObserverEntry], {} as IntersectionObserver),
+      narrow: async () => { await flushPromises(); mq.matches = true; for (const f of listeners) f(); await flushPromises() },
+    }
+  }
+  const dockShown = (w: ReturnType<typeof mount>) => (w.find('[data-test="preview-dock"]').element as HTMLElement).style.display !== 'none'
+
+  beforeEach(() => { qr.made.length = 0 })
+  afterEach(() => { vi.unstubAllGlobals(); document.documentElement.classList.remove('has-preview-dock') })
+
+  it('結構：預覽區可以接焦點、零高度的「預覽區的底」排在下載鈕後面、預覽列在工具卡裡（不用 Teleport）', () => {
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    const zone = w.find('[data-test="preview-zone"]')
+    expect(zone.attributes('tabindex')).toBe('-1')
+    expect(zone.element.lastElementChild?.getAttribute('data-test')).toBe('preview-end')
+    expect(zone.find('[data-test="dl-png"]').exists()).toBe(true)
+    expect(w.find('.card [data-test="preview-dock"]').exists()).toBe(true)
+  })
+
+  it('桌機寬度（預設的 happy-dom 1024px）：輸入後也不出現，也不多建一份 QR Code', async () => {
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    expect(dockShown(w)).toBe(false)
+    expect(qr.made.map((m) => m.type)).toEqual(['canvas'])
+  })
+
+  it('手機：輸入前不出現；輸入後、預覽區還在下方時出現；捲到預覽區就收起來', async () => {
+    const io = phone()
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await io.narrow()
+    io.below(true)
+    await nextTick()
+    expect(dockShown(w)).toBe(false)
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    expect(dockShown(w)).toBe(true)
+    io.below(false)
+    await nextTick()
+    expect(dockShown(w)).toBe(false)
+  })
+
+  it('預覽列的「下載 PNG」走預覽框（canvas）那一份，不是縮圖', async () => {
+    const io = phone()
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await io.narrow()
+    io.below(true)
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    expect(qr.made.map((m) => m.type).sort()).toEqual(['canvas', 'svg'])
+    await w.find('[data-test="dock-png"]').trigger('click')
+    await flushPromises()
+    const canvas = qr.made.find((m) => m.type === 'canvas')!
+    const svg = qr.made.find((m) => m.type === 'svg')!
+    expect(canvas.download).toHaveBeenCalledWith({ name: 'qrcode', extension: 'png' })
+    expect(svg.download).not.toHaveBeenCalled()
+  })
+
+  it('超過容量時預覽列的下載與複製也停用', async () => {
+    const io = phone()
+    const w = mount(GeneratorTool, { props: { defaultType: 'text' } })
+    await io.narrow()
+    io.below(true)
+    await w.find('textarea').setValue('a'.repeat(2954))
+    await flushPromises()
+    expect(w.find('[data-test="dock-png"]').attributes('disabled')).toBeDefined()
+    expect(w.find('[data-test="dock-copy"]').attributes('disabled')).toBeDefined()
+  })
+
+  it('點縮圖：焦點移到預覽區，再捲過去', async () => {
+    const io = phone()
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' }, attachTo: document.body })
+    await io.narrow()
+    io.below(true)
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    const zone = w.find('[data-test="preview-zone"]').element as HTMLElement
+    const scroll = vi.fn()
+    zone.scrollIntoView = scroll
+    await w.find('[data-test="dock-expand"]').trigger('click')
+    expect(document.activeElement).toBe(zone)
+    expect(scroll).toHaveBeenCalledWith(expect.objectContaining({ block: 'start' }))
+    w.unmount()
+  })
+
+  it('輸入的內容不會落到網址或瀏覽器儲存空間', async () => {
+    const io = phone()
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await io.narrow()
+    io.below(true)
+    await w.find('input[type="url"]').setValue('https://example.com/secret')
+    await flushPromises()
+    expect(dockShown(w)).toBe(true)
+    expect(window.location.search).toBe('')
+    expect(window.location.hash).toBe('')
+    expect(localStorage.length).toBe(0)
+    expect(sessionStorage.length).toBe(0)
   })
 })

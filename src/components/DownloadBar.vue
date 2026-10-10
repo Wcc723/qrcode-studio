@@ -9,9 +9,10 @@ defineProps<{
 </script>
 <template>
   <div class="grid grid-cols-2 gap-2 mt-4">
-    <button data-test="dl-png" :aria-describedby="describedby" class="btn-primary !bg-pop-sun" :disabled="disabled" @click="download('png')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>PNG</button>
-    <button data-test="dl-svg" :aria-describedby="describedby" class="btn-primary !bg-pop-mint" :disabled="disabled" @click="download('svg')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>SVG</button>
-    <button data-test="dl-jpg" :aria-describedby="describedby" class="btn-primary !bg-pop-sky" :disabled="disabled" @click="download('jpeg')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>JPG</button>
-    <button data-test="dl-copy" :aria-describedby="describedby" class="btn-primary !bg-pop-pink" :disabled="disabled" @click="copy?.()"><span class="i-lucide-copy" aria-hidden="true" />複製</button>
+    <!-- 手機上按鈕至少 44px 高（觸控目標）；桌機維持原本的高度 -->
+    <button data-test="dl-png" :aria-describedby="describedby" class="btn-primary !bg-pop-sun max-md:min-h-11" :disabled="disabled" @click="download('png')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>PNG</button>
+    <button data-test="dl-svg" :aria-describedby="describedby" class="btn-primary !bg-pop-mint max-md:min-h-11" :disabled="disabled" @click="download('svg')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>SVG</button>
+    <button data-test="dl-jpg" :aria-describedby="describedby" class="btn-primary !bg-pop-sky max-md:min-h-11" :disabled="disabled" @click="download('jpeg')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>JPG</button>
+    <button data-test="dl-copy" :aria-describedby="describedby" class="btn-primary !bg-pop-pink max-md:min-h-11" :disabled="disabled" @click="copy?.()"><span class="i-lucide-copy" aria-hidden="true" />複製</button>
   </div>
 </template>

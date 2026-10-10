@@ -56,12 +56,16 @@ kbd {
   color: #16130f; background: #fff; border: 1.5px solid #16130f; border-bottom-width: 3px; border-radius: 6px;
 }
 
-/* 進場彈跳（首屏錯落顯示） */
+/*
+ * 進場彈跳（首屏錯落顯示）。fill-mode 用 backwards 不用 both：結束後回到元素本身的樣式（跟最後一格一樣），
+ * 不再讓動畫掛著 transform。工具卡在 .reveal 裡面，掛著 transform 的祖先會把手機底部預覽列
+ * （position: fixed）的定位基準從視窗換成它自己。
+ */
 @keyframes pop-in {
   0% { opacity: 0; transform: translateY(12px) scale(0.97); }
   100% { opacity: 1; transform: none; }
 }
-.reveal { animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.reveal { animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
 .reveal-1 { animation-delay: 0.04s; }
 .reveal-2 { animation-delay: 0.12s; }
 .reveal-3 { animation-delay: 0.20s; }
@@ -172,3 +176,28 @@ kbd {
 .doc-links a:hover, .doc-chips a:hover { color: #9a3412; }
 .doc-chips { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 20px; }
 .doc-chips > li { display: inline-flex; align-items: center; gap: 6px; }
+
+/*
+ * 手機的底部預覽列（PreviewDock.vue）。出現的時機由元件決定；這裡只管長相與兩條保險：
+ * - md 以上一律不出現（桌機版面不變），!important 蓋過 v-show 的行內樣式
+ * - 底部留出 safe-area（有 Home 指示條的手機），bottom: 0 貼齊視窗底
+ */
+.preview-dock {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+  background: #fff; border-top: 3px solid #16130f; box-shadow: 0 -6px 18px rgba(22, 19, 15, 0.12);
+}
+@media (min-width: 768px) { .preview-dock { display: none !important; } }
+.dock-thumb {
+  position: relative; flex: none; display: flex; align-items: center; justify-content: center;
+  width: 64px; height: 64px; padding: 4px; border: 2px solid #16130f; border-radius: 12px; background: #fff7ea;
+}
+.dock-qr { display: block; width: 100%; height: 100%; }
+.dock-qr > svg { display: block; width: 100%; height: 100%; }
+.dock-thumb-zoom { position: absolute; right: -8px; bottom: -6px; }
+.dock-enter-active, .dock-leave-active { transition: transform 0.2s ease, opacity 0.2s ease; }
+.dock-enter-from, .dock-leave-to { transform: translateY(100%); opacity: 0; }
+/* 預覽列出現時，用鍵盤移動焦點，瀏覽器捲動會多留它的高度，焦點不會躲在它後面 */
+@media (max-width: 767.98px) {
+  html.has-preview-dock { scroll-padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+}

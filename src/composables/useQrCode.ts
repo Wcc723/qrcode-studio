@@ -51,15 +51,20 @@ export function mapToQrOptions(data: string, s: QrStyleOptions): QrOptions {
   return opts
 }
 
-export function useQrCode(data: Ref<string>, style: Ref<QrStyleOptions>) {
+/**
+ * @param draw 畫在頁面上的形式。預設 canvas（預覽框）；手機底部預覽列的縮圖用 svg，
+ *   縮成多小都清楚。兩者吃同一份 mapToQrOptions，只差這一欄，內容與外觀一模一樣。
+ */
+export function useQrCode(data: Ref<string>, style: Ref<QrStyleOptions>, draw: 'canvas' | 'svg' = 'canvas') {
   const container = ref<HTMLElement | null>(null)
   const error = ref<string | null>(null)
   let instance: import('qr-code-styling').default | null = null
+  const options = (): QrOptions => ({ ...mapToQrOptions(data.value, style.value), type: draw })
 
   async function ensureInstance() {
     if (instance || typeof window === 'undefined') return
     const { default: QRCodeStyling } = await import('qr-code-styling')
-    instance = new QRCodeStyling(mapToQrOptions(data.value, style.value))
+    instance = new QRCodeStyling(options())
     if (container.value) instance.append(container.value)
   }
 
@@ -69,7 +74,7 @@ export function useQrCode(data: Ref<string>, style: Ref<QrStyleOptions>) {
       return
     }
     error.value = null
-    instance?.update(mapToQrOptions(data.value, style.value))
+    instance?.update(options())
   }
 
   onMounted(async () => {
