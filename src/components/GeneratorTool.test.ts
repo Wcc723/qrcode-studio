@@ -4,6 +4,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import GeneratorTool from './GeneratorTool.vue'
 import QrPreview from './QrPreview.vue'
 import { putScanHandoff, takeScanHandoff, clearScanHandoff } from '@/utils/scan-handoff'
+import { COPY_MESSAGES } from '@/composables/useQrCode'
 
 // 記下每個 QR Code 物件的畫法、重畫次數與下載呼叫：預覽框（canvas）與手機預覽列的縮圖（svg）各一份
 type Made = { type: string; download: (...a: unknown[]) => unknown; updates: number }
@@ -255,5 +256,106 @@ describe('手機底部預覽列（#11）', () => {
     expect(window.location.hash).toBe('')
     expect(localStorage.length).toBe(0)
     expect(sessionStorage.length).toBe(0)
+  })
+})
+
+/**
+ * 複製：iOS 上所有瀏覽器（WebKit）只在使用者這一下點擊還有效時允許寫入剪貼簿，按鈕的 click 一路到
+ * clipboard.write 中間不能 await 任何東西，否則被拒絕而且畫面上什麼都沒說。結果一定要讓人看到。
+ */
+describe('複製圖片', () => {
+  class FakeItem { constructor(public data: Record<string, unknown>) {} }
+  function clipboard(write: () => Promise<void> = async () => {}) {
+    const spy = vi.fn(write)
+    vi.stubGlobal('ClipboardItem', FakeItem)
+    vi.spyOn(navigator, 'clipboard', 'get').mockReturnValue({ write: spy } as unknown as Clipboard)
+    return spy
+  }
+  function phone() {
+    const listeners = new Set<() => void>()
+    const mq = { matches: false, addEventListener: (_: string, f: () => void) => listeners.add(f), removeEventListener: (_: string, f: () => void) => listeners.delete(f) }
+    vi.stubGlobal('matchMedia', vi.fn(() => mq))
+    let cb: IntersectionObserverCallback | null = null
+    vi.stubGlobal('IntersectionObserver', class {
+      constructor(f: IntersectionObserverCallback) { cb = f }
+      observe() {}
+      disconnect() {}
+    })
+    return {
+      below: (v: boolean) => cb?.([{ isIntersecting: !v } as IntersectionObserverEntry], {} as IntersectionObserver),
+      narrow: async () => { await flushPromises(); mq.matches = true; for (const f of listeners) f(); await flushPromises() },
+    }
+  }
+  const status = (w: ReturnType<typeof mount>) => w.find('[data-test="copy-status"]')
+
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+    vi.restoreAllMocks()
+    document.documentElement.classList.remove('has-preview-dock')
+  })
+
+  it('按下的當下就寫剪貼簿；成功後按鈕改成「已複製」，狀態列寫出結果（螢幕報讀器會唸）', async () => {
+    const write = clipboard()
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    expect(status(w).attributes('role')).toBe('status')
+    expect(status(w).text()).toBe('')
+    const clicked = w.find('[data-test="dl-copy"]').trigger('click')
+    expect(write).toHaveBeenCalledOnce() // 同一個同步流程裡就呼叫了
+    await clicked
+    await flushPromises()
+    expect(w.find('[data-test="dl-copy"]').text()).toBe('已複製')
+    expect(status(w).text()).toBe(COPY_MESSAGES.copied)
+  })
+
+  it('「已複製」過幾秒自動收回；內容一改也馬上收回', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    clipboard()
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    await w.find('[data-test="dl-copy"]').trigger('click')
+    await flushPromises()
+    expect(status(w).text()).toBe(COPY_MESSAGES.copied)
+    vi.advanceTimersByTime(3000)
+    await nextTick()
+    expect(status(w).text()).toBe('')
+    expect(w.find('[data-test="dl-copy"]').text()).toBe('複製')
+
+    await w.find('[data-test="dl-copy"]').trigger('click')
+    await flushPromises()
+    expect(status(w).text()).toBe(COPY_MESSAGES.copied)
+    await w.find('input[type="url"]').setValue('https://example.com/other')
+    await nextTick()
+    expect(status(w).text()).toBe('')
+  })
+
+  it('手機預覽列的「複製」被拒絕（iOS 以前就是這樣）：預覽列與狀態列都說明改用下載 PNG', async () => {
+    const write = clipboard(async () => { throw new DOMException('not allowed', 'NotAllowedError') })
+    const io = phone()
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await io.narrow()
+    io.below(true)
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    const clicked = w.find('[data-test="dock-copy"]').trigger('click')
+    expect(write).toHaveBeenCalledOnce()
+    await clicked
+    await flushPromises()
+    expect(w.find('[data-test="dock-copy-failed"]').text()).toBe(COPY_MESSAGES.failed)
+    expect(status(w).text()).toBe(COPY_MESSAGES.failed)
+    expect(w.find('[data-test="dock-copy"]').text()).toBe('複製')
+  })
+
+  it('不支援複製圖片的瀏覽器：一樣說明改用下載 PNG，不是什麼都沒發生', async () => {
+    vi.stubGlobal('ClipboardItem', undefined)
+    const w = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await w.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    await w.find('[data-test="dl-copy"]').trigger('click')
+    await flushPromises()
+    expect(status(w).text()).toBe(COPY_MESSAGES.failed)
   })
 })

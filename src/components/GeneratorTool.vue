@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, useId } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, useId } from 'vue'
 import type { QrType, QrStyleOptions } from '@/types'
 import type { PayloadInputMap } from '@/pure'
 import { defaultStyle } from '@/types'
@@ -14,6 +14,7 @@ import HelpTip from './HelpTip.vue'
 import { inputComponents } from './inputs'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
 import { usePreviewDock } from '@/composables/usePreviewDock'
+import type { CopyStatus } from '@/composables/useQrCode'
 
 const props = withDefaults(defineProps<{ defaultType?: QrType }>(), { defaultType: 'url' })
 const current = ref<QrType>(props.defaultType)
@@ -41,7 +42,29 @@ const activeInput = computed(() => inputComponents[current.value])
 const overCapacity = computed(() => !!payload.value && exceedsQrCapacity(payload.value, style.value.errorCorrectionLevel))
 function onType(t: QrType) { current.value = t; payload.value = ''; initial.value = undefined }
 function download(ext: 'png' | 'svg' | 'jpeg') { previewRef.value?.download(ext) }
-async function copy() { await previewRef.value?.copyImage() }
+
+// 複製的結果一定要讓人看到：成功時按鈕暫時改成「已複製」，失敗時說明改用下載 PNG。
+// 內容或外觀一改就清掉，「已複製」才不會掛在新內容旁邊；比較晚回來的舊結果也丟掉。
+const copyStatus = ref<CopyStatus>('idle')
+let copySeq = 0
+let copyTimer: ReturnType<typeof setTimeout> | undefined
+function resetCopy() { copySeq++; clearTimeout(copyTimer); copyStatus.value = 'idle' }
+/**
+ * 不能先 await 任何東西：iOS 只在這一下點擊的同步流程裡允許寫入剪貼簿（見 useQrCode 的 copyImage），
+ * 按鈕的 click 一路到 clipboard.write 都要是同步呼叫。
+ */
+function copy() {
+  resetCopy()
+  const seq = copySeq
+  const pending = previewRef.value?.copyImage() ?? Promise.resolve(false)
+  return pending.then((ok) => {
+    if (seq !== copySeq) return
+    copyStatus.value = ok ? 'copied' : 'failed'
+    if (ok) copyTimer = setTimeout(() => { if (seq === copySeq) copyStatus.value = 'idle' }, 2500)
+  })
+}
+watch([payload, style], resetCopy, { deep: true })
+onBeforeUnmount(() => { copySeq++; clearTimeout(copyTimer) })
 
 // 手機版：完整的預覽與下載在外觀設定下面，輸入後要往下捲才看得到。還沒捲到時，底部預覽列先給縮圖與下載（#11）。
 const previewZone = ref<HTMLElement | null>(null)
@@ -88,12 +111,12 @@ function showFullPreview() {
           </HelpTip>
         </div>
         <QrPreview ref="previewRef" :data="payload" :style="style" />
-        <DownloadBar :download="download" :copy="copy" :disabled="!payload || overCapacity" :describedby="`${uid}-dl-help`" />
+        <DownloadBar :download="download" :copy="copy" :copy-status="copyStatus" :disabled="!payload || overCapacity" :describedby="`${uid}-dl-help`" />
         <!-- 預覽區的底（零高度）：它還在視窗下方時，手機才出底部預覽列 -->
         <div ref="previewEnd" aria-hidden="true" data-test="preview-end" />
       </div>
     </div>
     <PreviewDock :visible="dockVisible" :live="narrow" :data="payload" :qr-style="style" :disabled="!payload || overCapacity"
-      :download="download" :copy="copy" @expand="showFullPreview" />
+      :download="download" :copy="copy" :copy-status="copyStatus" @expand="showFullPreview" />
   </div>
 </template>

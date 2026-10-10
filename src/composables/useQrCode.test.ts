@@ -27,11 +27,11 @@ vi.mock('@/utils/save-blob', () => saved)
 
 import { useQrCode, mapToQrOptions } from './useQrCode'
 
-function setup(style: Partial<QrStyleOptions>, draw?: 'canvas' | 'svg') {
+function setup(style: Partial<QrStyleOptions>, draw?: 'canvas' | 'svg', data = 'https://example.com') {
   let api!: ReturnType<typeof useQrCode>
   const Host = defineComponent({
     setup() {
-      api = useQrCode(ref('https://example.com'), ref({ ...defaultStyle, ...style }), draw)
+      api = useQrCode(ref(data), ref({ ...defaultStyle, ...style }), draw)
       return () => h('div', { ref: api.container })
     },
   })
@@ -113,5 +113,69 @@ describe('useQrCode 畫法', () => {
       expect(o.type).toBe('svg')
       expect({ ...o, type: 'canvas' }).toEqual(mapToQrOptions('https://example.com', style))
     }
+  })
+})
+
+/**
+ * 複製：iOS 上所有瀏覽器（WebKit）只在使用者這一下點擊還有效時允許寫入剪貼簿，先 await 過任何東西
+ * （載入套件、輸出 PNG）再寫就會被拒絕（NotAllowedError），而且畫面上什麼都沒說。
+ * 所以 clipboard.write 要在呼叫 copyImage 的當下送出，PNG 用 Promise 交給 ClipboardItem。
+ */
+describe('useQrCode 複製', () => {
+  class FakeItem { constructor(public data: Record<string, unknown>) {} }
+  function clipboard(write: () => Promise<void> = async () => {}) {
+    const spy = vi.fn(write)
+    vi.stubGlobal('ClipboardItem', FakeItem)
+    vi.spyOn(navigator, 'clipboard', 'get').mockReturnValue({ write: spy } as unknown as Clipboard)
+    return spy
+  }
+  const firstItem = (write: ReturnType<typeof clipboard>) => (write.mock.calls[0] as unknown as [FakeItem[]])[0][0]
+
+  it('呼叫的當下就送出 clipboard.write（中間不 await），PNG 用 Promise 交給 ClipboardItem', async () => {
+    const write = clipboard()
+    const api = setup({})
+    await flushPromises()
+    const result = api().copyImage()
+    expect(write).toHaveBeenCalledOnce()
+    const png = firstItem(write).data['image/png']
+    expect(png).toBeInstanceOf(Promise)
+    const blob = await png
+    expect(blob).toBeInstanceOf(Blob)
+    expect((blob as Blob).type).toBe('image/png')
+    await expect(result).resolves.toBe(true)
+  })
+
+  it('剛掛上、套件還沒載完就按：一樣當下送出，PNG 等畫好再填進去', async () => {
+    const write = clipboard()
+    const api = setup({})
+    const result = api().copyImage()
+    expect(write).toHaveBeenCalledOnce()
+    await expect(firstItem(write).data['image/png']).resolves.toBeInstanceOf(Blob)
+    await expect(result).resolves.toBe(true)
+  })
+
+  it('瀏覽器拒絕寫入（NotAllowedError）時回 false，讓畫面說明改用下載', async () => {
+    const write = clipboard(async () => { throw new DOMException('not allowed', 'NotAllowedError') })
+    const api = setup({})
+    await flushPromises()
+    await expect(api().copyImage()).resolves.toBe(false)
+    expect(write).toHaveBeenCalledOnce()
+  })
+
+  it('沒有 ClipboardItem 的瀏覽器回 false，不丟例外', async () => {
+    const write = clipboard()
+    vi.stubGlobal('ClipboardItem', undefined)
+    const api = setup({})
+    await flushPromises()
+    await expect(api().copyImage()).resolves.toBe(false)
+    expect(write).not.toHaveBeenCalled()
+  })
+
+  it('超過容量時回 false，不寫剪貼簿', async () => {
+    const write = clipboard()
+    const api = setup({}, 'canvas', 'a'.repeat(3000))
+    await flushPromises()
+    await expect(api().copyImage()).resolves.toBe(false)
+    expect(write).not.toHaveBeenCalled()
   })
 })

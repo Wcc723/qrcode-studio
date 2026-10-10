@@ -51,6 +51,13 @@ export function mapToQrOptions(data: string, s: QrStyleOptions): QrOptions {
   return opts
 }
 
+/** 複製圖片的結果：GeneratorTool 記著，預覽框下的按鈕列與手機預覽列都顯示 */
+export type CopyStatus = 'idle' | 'copied' | 'failed'
+export const COPY_MESSAGES = {
+  copied: '已複製 QR Code 圖片，可以直接貼進聊天或文件。',
+  failed: '複製沒有成功，請改用下載 PNG。',
+} as const
+
 /** 內容超過容量時預覽框與縮圖顯示的錯誤 */
 export const CAPACITY_ERROR = '內容過長，超出 QR Code 容量。請縮短內容，或把耐髒程度調低。'
 
@@ -74,6 +81,7 @@ function loadLib(): Promise<QrLib> {
  *   套件自己丟的例外也當成超過容量，下次輸入再試。
  * - 套件只會往最後 append 的那個元素畫。容器元素換掉（v-if 重建）時要把圖搬過去，否則新容器一直是空的；
  *   元件那邊也盡量讓容器一直留著（錯誤用 v-show 或另一個元素蓋上去）。
+ * - 複製見 copyImage：剪貼簿要在點擊的同一個同步流程裡寫入。
  */
 export function useQrCode(
   data: Ref<string>,
@@ -150,22 +158,33 @@ export function useQrCode(
     qr.download({ name: 'qrcode', extension })
   }
 
-  async function copyImage(): Promise<boolean> {
+  async function pngBlob(): Promise<Blob> {
     const qr = await ready()
-    if (!qr) return false
+    if (!qr) throw new Error('QR Code 還沒畫好')
+    const raw = await qr.getRawData('png')
+    if (!raw) throw new Error('沒有畫出圖片')
+    // 瀏覽器裡是 Blob；Node 裡是 Buffer
+    return raw instanceof Blob ? raw : new Blob([new Uint8Array(raw as unknown as Buffer)], { type: 'image/png' })
+  }
+
+  /**
+   * 把 PNG 寫進剪貼簿，回傳是否成功。
+   *
+   * iOS 上所有瀏覽器（WebKit）只在使用者這一下點擊還有效時允許寫入，中間先 await 過任何東西就會被拒絕
+   * （NotAllowedError），所以 clipboard.write 在這裡同步呼叫，PNG 用 Promise 交給 ClipboardItem，畫好再填進去。
+   * Chromium 與 Firefox 也吃這種寫法。呼叫端（按鈕的 click 一路到這裡）同樣不能先 await 任何東西。
+   */
+  function copyImage(): Promise<boolean> {
+    if (typeof window === 'undefined' || error.value) return Promise.resolve(false)
+    const Item = (globalThis as { ClipboardItem?: typeof ClipboardItem }).ClipboardItem
+    const clipboard = typeof navigator === 'undefined' ? undefined : navigator.clipboard
+    if (typeof Item !== 'function' || typeof clipboard?.write !== 'function') return Promise.resolve(false)
+    const png = pngBlob()
+    png.catch(() => {}) // 瀏覽器直接拒絕、沒來取這張圖時，不要變成未處理的 rejection
     try {
-      const raw = await qr.getRawData('png')
-      if (!raw) return false
-      // In browser, getRawData returns a Blob; in Node it returns a Buffer.
-      // Guard: only use Clipboard API in a browser context.
-      if (typeof window === 'undefined') return false
-      if (!navigator.clipboard || typeof (window as Window & typeof globalThis & { ClipboardItem?: unknown }).ClipboardItem === 'undefined') return false
-      const blob = raw instanceof Blob ? raw : new Blob([new Uint8Array(raw as unknown as Buffer)], { type: 'image/png' })
-      const ClipboardItemCtor = (window as Window & typeof globalThis & { ClipboardItem: typeof ClipboardItem }).ClipboardItem
-      await navigator.clipboard.write([new ClipboardItemCtor({ 'image/png': blob })])
-      return true
+      return clipboard.write([new Item({ 'image/png': png })]).then(() => true, () => false)
     } catch {
-      return false
+      return Promise.resolve(false)
     }
   }
 

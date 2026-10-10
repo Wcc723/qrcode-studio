@@ -3,6 +3,7 @@ import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import PreviewDock from './PreviewDock.vue'
 import QrThumb from './QrThumb.vue'
+import { COPY_MESSAGES } from '@/composables/useQrCode'
 import { defaultStyle } from '@/types'
 
 vi.mock('qr-code-styling', () => ({
@@ -76,6 +77,18 @@ describe('PreviewDock（手機底部預覽列）', () => {
     expect(w.findComponent(QrThumb).props('active')).toBe(false)
     await w.setProps({ visible: true })
     expect(w.findComponent(QrThumb).props('active')).toBe(true)
+  })
+
+  it('複製成功：按鈕暫時改成「已複製」；失敗：預覽列上方說明改用下載 PNG（報讀交給 DownloadBar 的狀態列，這裡不重複）', async () => {
+    const w = mount(PreviewDock, { props: props() })
+    expect(w.find('[data-test="dock-copy-failed"]').exists()).toBe(false)
+    await w.setProps({ copyStatus: 'copied' })
+    expect(w.find('[data-test="dock-copy"]').text()).toBe('已複製')
+    await w.setProps({ copyStatus: 'failed' })
+    const failed = w.find('[data-test="dock-copy-failed"]')
+    expect(failed.text()).toBe(COPY_MESSAGES.failed)
+    expect(w.find('[role="status"]').exists()).toBe(false)
+    expect(w.find('[data-test="dock-copy"]').text()).toBe('複製')
   })
 
   it('出現時 html 帶 has-preview-dock（留 scroll-padding），收起與卸載時拿掉', async () => {

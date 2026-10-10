@@ -13,6 +13,7 @@
  */
 import { ref, watch, nextTick, onBeforeUnmount } from 'vue'
 import type { QrStyleOptions } from '@/types'
+import { COPY_MESSAGES, type CopyStatus } from '@/composables/useQrCode'
 import QrThumb from './QrThumb.vue'
 
 const props = defineProps<{
@@ -24,6 +25,8 @@ const props = defineProps<{
   disabled: boolean
   download: (ext: 'png' | 'svg' | 'jpeg') => void
   copy?: () => void
+  /** 複製的結果。按鈕暫時改成「已複製」；失敗時在預覽列上方說明改用下載（報讀由 DownloadBar 的狀態列負責，這裡不重複） */
+  copyStatus?: CopyStatus
 }>()
 const emit = defineEmits<{ expand: [] }>()
 
@@ -51,6 +54,7 @@ onBeforeUnmount(() => document.documentElement.classList.remove(DOCKED))
 <template>
   <Transition name="dock">
     <div v-show="visible" ref="root" class="preview-dock" data-test="preview-dock">
+      <p v-if="copyStatus === 'failed'" data-test="dock-copy-failed" class="max-w-screen-lg mx-auto px-4 pb-1.5 text-xs font-700 text-rose-600">{{ COPY_MESSAGES.failed }}</p>
       <div class="max-w-screen-lg mx-auto px-4 flex items-center gap-2">
         <button type="button" class="mr-auto min-w-0 min-h-11 flex items-center gap-2.5 p-0 bg-transparent text-left rounded-xl" data-test="dock-expand" @click="emit('expand')">
           <span class="dock-thumb" aria-hidden="true">
@@ -65,7 +69,7 @@ onBeforeUnmount(() => document.documentElement.classList.remove(DOCKED))
           </span>
         </button>
         <button type="button" data-test="dock-png" class="btn-primary !bg-pop-sun min-h-11 !px-3" :disabled="disabled" @click="download('png')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>PNG</button>
-        <button type="button" data-test="dock-copy" class="btn-primary !bg-pop-pink min-h-11 !px-3" :disabled="disabled" @click="copy?.()"><span class="i-lucide-copy" aria-hidden="true" />複製</button>
+        <button type="button" data-test="dock-copy" class="btn-primary !bg-pop-pink min-h-11 !px-3" :disabled="disabled" @click="copy?.()"><span :class="copyStatus === 'copied' ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />{{ copyStatus === 'copied' ? '已複製' : '複製' }}</button>
       </div>
     </div>
   </Transition>
