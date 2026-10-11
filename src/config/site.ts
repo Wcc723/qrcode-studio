@@ -49,6 +49,9 @@ export const publisher = {
   contactUrl: 'https://www.pocketool.app/contact',
   privacyUrl: 'https://www.pocketool.app/privacy',
   toolsUrl: 'https://www.pocketool.app/tools/',
+  // 頁尾的「回報問題」：口袋工具的問題回報頁（照口袋工具的頁尾連結契約）。網址只帶 site，
+  // 點下去才由頁尾補上目前頁面的路徑（不帶 ? 與 #）。
+  reportUrl: 'https://www.pocketool.app/feedback/?site=qrcode-studio',
 }
 
 // 教學文章的作者。

@@ -7,6 +7,12 @@ import { site, publisher } from '@/config/site'
 // 在子路徑下會連到 hub 的 404，所以從 BASE_URL 組出網址。
 const base = import.meta.env.BASE_URL
 
+// 回報問題：點下去才補目前頁面的路徑（只取 pathname，產生器與掃描器的內容都不在網址上，也不帶 ? 與 #）。
+// 中鍵、複製連結就只帶 site。
+function addReportPath(event: MouseEvent) {
+  ;(event.currentTarget as HTMLAnchorElement).href = `${publisher.reportUrl}&path=${encodeURIComponent(location.pathname)}`
+}
+
 // 頁首導覽：桌機是一排膠囊，手機在標題列下方另起一排（可橫向捲動）。
 const nav = [
   { to: '/', label: '產生器' },
@@ -75,6 +81,11 @@ const nav = [
             <li><RouterLink to="/faq/" class="hover:text-link transition">常見問題</RouterLink></li>
             <li><RouterLink to="/privacy/" class="hover:text-link transition">隱私權政策</RouterLink></li>
             <li><a :href="publisher.contactUrl" class="hover:text-link transition">聯絡我們</a></li>
+            <li>
+              <a :href="publisher.reportUrl" target="_blank" rel="nofollow noopener" referrerpolicy="no-referrer" class="hover:text-link transition" data-test="report-link" @click="addReportPath"
+                >回報問題<span class="sr-only">（另開分頁）</span></a
+              >
+            </li>
             <li><a :href="publisher.url" class="hover:text-link transition">口袋工具 Pocketool</a></li>
           </ul>
         </section>
