@@ -3,6 +3,7 @@ import type { Options as QrOptions } from 'qr-code-styling'
 import type { QrStyleOptions } from '@/types'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
 import { toQrByteString } from '@/pure/qrByteString'
+import { qrModuleCount, quietZoneGeometry, type QrGeometry } from '@/pure/qrGeometry'
 import { saveBlob } from '@/utils/save-blob'
 
 /** 把帶透明的 PNG 疊到白底上，輸出 JPEG（品質 0.92，與 canvas 預設相同）。瀏覽器不支援時回 null。 */
@@ -21,15 +22,29 @@ export async function flattenToJpeg(png: Blob, background = '#ffffff'): Promise<
   return new Promise(resolve => canvas.toBlob(b => resolve(b), 'image/jpeg', 0.92))
 }
 
+/**
+ * 下載檔的幾何：整張圖是使用者選的「圖片大小」，碼縮進四周至少 4 個模組的留白（靜區）裡。
+ * 預覽框、縮圖與 PNG／SVG／JPG 三種下載都吃 mapToQrOptions，所以全部是同一份幾何。
+ * 圖片太小、連 1 像素的模組都放不下時回 null（下載要擋下來）。
+ */
+export function qrGeometry(data: string, s: QrStyleOptions): QrGeometry | null {
+  const encoded = toQrByteString(data || ' ')
+  return quietZoneGeometry(s.width, qrModuleCount(encoded, s.errorCorrectionLevel))
+}
+
 export function mapToQrOptions(data: string, s: QrStyleOptions): QrOptions {
   const bg = s.bgColor === 'transparent' ? 'rgba(0,0,0,0)' : s.bgColor
+  const geometry = qrGeometry(data, s)
+  // 放不下時不要退回固定像素的留白：寧可畫不出來，也不輸出不合規格的圖（useQrCode 會先擋下並說明）。
+  if (!geometry) throw new Error(SIZE_ERROR)
   const opts: QrOptions = {
     width: s.width,
     height: s.width,
     type: 'canvas',
     // 非 ASCII（中文、emoji）要先轉成 UTF-8 位元組字串，原因見 qrByteString.ts。
     data: toQrByteString(data || ' '),
-    margin: s.margin,
+    // qr-code-styling 的 margin 單位是像素；用模組算好的值，四周才會留足 4 個模組。
+    margin: geometry.margin,
     qrOptions: { errorCorrectionLevel: s.errorCorrectionLevel },
     dotsOptions: { color: s.dotColor, type: 'square' },
     backgroundOptions: { color: bg },
@@ -60,6 +75,9 @@ export const COPY_MESSAGES = {
 
 /** 內容超過容量時預覽框與縮圖顯示的錯誤 */
 export const CAPACITY_ERROR = '內容過長，超出 QR Code 容量。請縮短內容，或把耐髒程度調低。'
+
+/** 圖片大小放不下內容加四周留白時的錯誤（下載會擋下來） */
+export const SIZE_ERROR = '圖片太小，放不下這些內容和四周的留白。請把圖片大小調大，或縮短內容。'
 
 type QrLib = typeof import('qr-code-styling')
 type QrInstance = InstanceType<QrLib['default']>
@@ -109,6 +127,10 @@ export function useQrCode(
     stale = false
     if (exceedsQrCapacity(data.value, style.value.errorCorrectionLevel)) {
       error.value = CAPACITY_ERROR
+      return
+    }
+    if (!qrGeometry(data.value, style.value)) {
+      error.value = SIZE_ERROR
       return
     }
     error.value = null

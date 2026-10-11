@@ -11,8 +11,8 @@
  * 兩個刻意的細節：
  * - writer 的 WASM 用 `wasmBinary` 從 node_modules 直接餵進去。zxing-wasm 預設的
  *   locateFile 會去 fastly.jsdelivr 抓，這支腳本與測試都不該碰網路。
- * - JPEG／WebP／多碼合成圖用 sharp 產生。sharp 不是本專案的直接相依，而是開發
- *   環境（wrangler → miniflare）帶進來的；只有重新產生圖時才需要它，測試不需要。
+ * - JPEG／WebP／多碼合成圖用 sharp 產生。sharp 是精確鎖版的 devDependency，
+ *   下載檔的產物測試（src/composables/qr-quiet-zone.test.ts）也用它。
  *   沒有 sharp 時腳本會明講，不會靜默跳過。
  */
 import { writeFileSync, readFileSync, mkdirSync } from 'node:fs'

@@ -106,6 +106,8 @@ describe('產生器的「?」', () => {
     const w = mount(StylePanel, { props: { modelValue: { ...defaultStyle, bgColor: 'transparent' } }, ...opts })
     expect(w.find('[data-test="transparent-jpg-note"]').exists()).toBe(true)
     expectVisible(w, 'JPG 不支援透明')
+    // 透明碼只保證放在淺色素面上：四周留白也是透明的，這句不能收起來
+    expectVisible(w, '請放在白色或淺色的素面上')
     const opaque = mount(StylePanel, { props: { modelValue: { ...defaultStyle } }, ...opts })
     expect(opaque.find('[data-test="transparent-jpg-note"]').exists()).toBe(false)
   })

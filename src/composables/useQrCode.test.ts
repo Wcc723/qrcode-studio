@@ -25,7 +25,7 @@ vi.mock('qr-code-styling', () => ({
 const saved = vi.hoisted(() => ({ saveBlob: vi.fn() }))
 vi.mock('@/utils/save-blob', () => saved)
 
-import { useQrCode, mapToQrOptions } from './useQrCode'
+import { useQrCode, mapToQrOptions, SIZE_ERROR } from './useQrCode'
 
 function setup(style: Partial<QrStyleOptions>, draw?: 'canvas' | 'svg', data = 'https://example.com') {
   let api!: ReturnType<typeof useQrCode>
@@ -87,6 +87,17 @@ describe('useQrCode 下載', () => {
     expect(saved.saveBlob).not.toHaveBeenCalled()
   })
 
+  it('圖片大小放不下內容加四周 4 模組留白時：不畫、說明原因，三種下載都擋下來', async () => {
+    const api = setup({ width: 100, errorCorrectionLevel: 'H' }, undefined, 'https://example.com/' + 'a'.repeat(400))
+    await flushPromises()
+    expect(api().error.value).toBe(SIZE_ERROR)
+    for (const ext of ['png', 'svg', 'jpeg'] as const) await api().download(ext)
+    expect(lib.options).toHaveLength(0)
+    expect(lib.download).not.toHaveBeenCalled()
+    expect(saved.saveBlob).not.toHaveBeenCalled()
+    expect(await api().copyImage()).toBe(false)
+  })
+
   it('不透明背景下載 JPG：不必另外處理', async () => {
     const api = setup({ bgColor: '#ffffff' })
     await flushPromises()
@@ -105,7 +116,7 @@ describe('useQrCode 畫法', () => {
   })
 
   it('手機預覽列的縮圖畫成 svg：除了畫法，內容與外觀跟預覽框完全一樣', async () => {
-    const style = { ...defaultStyle, dotColor: '#c2410c', useGradient: true, margin: 12 }
+    const style = { ...defaultStyle, dotColor: '#c2410c', useGradient: true, width: 600 }
     setup(style, 'svg')
     await flushPromises()
     expect(lib.options.length).toBeGreaterThan(0)

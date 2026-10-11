@@ -142,6 +142,22 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 （zxing-cpp 與 ZXingWasm.cpp 的 Apache-2.0、zint 的 BSD-3-Clause、zxing-wasm 自有碼的 MIT）
 與實際安裝的版本、WASM 雜湊、zxing-cpp commit，站上的對應說明在 `/about/`。
 
+## 下載檔的四周留白（靜區）
+
+QR Code 規格要求四邊各至少 4 個模組寬的空白。qr-code-styling 的 `margin` 單位是**像素**，v1.7.2 以前固定給 8 px，
+1000 px 的碼四周只有約 0.3 個模組。現在的規則：
+
+- **依實際模組數算。** `src/pure/qrGeometry.ts` 照規格推版本與每邊模組數（不讀套件的私有欄位 `_qr`），
+  `quietZoneGeometry` 取放得下「碼 + 兩側各 4 模組」的最大整數模組，margin 取剩下空間的一半。
+  `qrGeometry.test.ts` 逐版本拿 qrcode-generator 對帳，並照套件畫點的公式驗起點正好等於 margin。
+- **外部寬高就是「圖片大小」**，碼縮進留白裡，不放大畫布。預覽框、縮圖與 PNG／SVG／JPG 都吃 `mapToQrOptions`，
+  同一份幾何；透明背景時留白也是透明的，提醒只保證放在白色或淺色素面上。
+- **放不下就擋。** 連 1 px 的模組都放不下時（滑桿範圍內不會發生）顯示 `SIZE_ERROR`、三種下載都擋下，不退回固定像素。
+- **產物 oracle**：`src/composables/qr-quiet-zone.test.ts` 用真的 qr-code-styling 做出三種檔案（PNG／JPG 由 sharp
+  把同一份 SVG 光柵化，sharp 是精確鎖版的 devDependency），從像素量四邊留白，再用自架的 zxing-wasm 解回原本的位元組。
+  升級 qr-code-styling、換編碼器、改尺寸或留白、加新的下載格式時，這份一定要一起綠。happy-dom 的 `<img>` 不會載入，
+  有 LOGO 的案例靠 `test/helpers/qr-artifact.ts` 給套件的 `nodeCanvas.loadImage`。
+
 ## v-html 的富文字連結要自己補前綴
 
 `src/content/guide-bodies.ts` 的教學本文與 `src/config/qr-types.ts` 的 `body` 是原生

@@ -2,8 +2,7 @@ export type QrType = 'url' | 'text' | 'wifi' | 'vcard' | 'email' | 'phone' | 'sm
 export type ErrorCorrectionLevel = 'L' | 'M' | 'Q' | 'H'
 
 export interface QrStyleOptions {
-  width: number
-  margin: number
+  width: number              // 整張下載檔的寬高（像素），四周留白另外依模組數計算
   errorCorrectionLevel: ErrorCorrectionLevel
   dotColor: string
   bgColor: string            // 允許 'transparent'
@@ -16,7 +15,6 @@ export interface QrStyleOptions {
 
 export const defaultStyle: QrStyleOptions = {
   width: 1000,
-  margin: 8,
   errorCorrectionLevel: 'M',
   dotColor: '#1e293b',
   bgColor: '#ffffff',
