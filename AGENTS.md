@@ -19,7 +19,7 @@
 下載 PNG / SVG / JPG。Vue 3 + Vite + vite-ssg + UnoCSS（圖示用建置時打包的 Lucide），
 每條路由都預渲染成靜態 HTML。
 
-它是 `pocketool.app` 站群的 7 個工具站之一。站群的 hub 是
+它屬於 `pocketool.app` 站群，hub 是
 `https://www.pocketool.app`（repo `pocket-tool-blog`，workspace 內在 `../pocket-tool-blog`），
 本站已從子網域搬到 hub 的子路徑（搬站背景見 `docs/deploy.md`）。
 
@@ -39,10 +39,8 @@ npm run deploy      # 緊急備用：rm -rf dist && build && wrangler deploy
 node scripts/fixtures/gen-scan-fixtures.mjs
 ```
 
-Node 版本照 `.nvmrc`（22），但測試在 Node 25 也要過。Node 25 起全域自帶 `localStorage`／`sessionStorage`
-（沒給 `--localstorage-file` 時是沒有 `length`、`setItem` 的空物件），vitest 的 happy-dom 環境不會蓋掉它，
-所以 `test/setup/web-storage.ts` 在每個測試檔開始前換上 happy-dom 的版本。「內容不寫進儲存空間」的測試靠它才驗得到東西，
-不要拿掉；`src/utils/scan-handoff.test.ts` 會先確認讀到的是 `Storage`。
+Node 版本照 `.nvmrc`（22），但測試在 Node 25 也要過：`test/setup/web-storage.ts` 換上 happy-dom 的 Web Storage，
+「內容不寫進儲存空間」的測試靠它才驗得到東西（原因見檔頭），不要拿掉。
 
 ## 部署
 
@@ -144,19 +142,9 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 
 ## 下載檔的四周留白（靜區）
 
-QR Code 規格要求四邊各至少 4 個模組寬的空白。qr-code-styling 的 `margin` 單位是**像素**，v1.7.2 以前固定給 8 px，
-1000 px 的碼四周只有約 0.3 個模組。現在的規則：
-
-- **依實際模組數算。** `src/pure/qrGeometry.ts` 照規格推版本與每邊模組數（不讀套件的私有欄位 `_qr`），
-  `quietZoneGeometry` 取放得下「碼 + 兩側各 4 模組」的最大整數模組，margin 取剩下空間的一半。
-  `qrGeometry.test.ts` 逐版本拿 qrcode-generator 對帳，並照套件畫點的公式驗起點正好等於 margin。
-- **外部寬高就是「圖片大小」**，碼縮進留白裡，不放大畫布。預覽框、縮圖與 PNG／SVG／JPG 都吃 `mapToQrOptions`，
-  同一份幾何；透明背景時留白也是透明的，提醒只保證放在白色或淺色素面上。
-- **放不下就擋。** 連 1 px 的模組都放不下時（滑桿範圍內不會發生）顯示 `SIZE_ERROR`、三種下載都擋下，不退回固定像素。
-- **產物 oracle**：`src/composables/qr-quiet-zone.test.ts` 用真的 qr-code-styling 做出三種檔案（PNG／JPG 由 sharp
-  把同一份 SVG 光柵化，sharp 是精確鎖版的 devDependency），從像素量四邊留白，再用自架的 zxing-wasm 解回原本的位元組。
-  升級 qr-code-styling、換編碼器、改尺寸或留白、加新的下載格式時，這份一定要一起綠。happy-dom 的 `<img>` 不會載入，
-  有 LOGO 的案例靠 `test/helpers/qr-artifact.ts` 給套件的 `nodeCanvas.loadImage`。
+四邊至少 4 個模組：margin 由 `src/pure/qrGeometry.ts` 依模組數算（套件的 `margin` 是像素，不要寫死），外部寬高等於
+「圖片大小」，放不下就擋。改 qr-code-styling、尺寸、留白或下載格式時，`qrGeometry.test.ts` 與 `qr-quiet-zone.test.ts`
+都要綠。細節見 `docs/quiet-zone.md`。
 
 ## v-html 的富文字連結要自己補前綴
 
@@ -309,8 +297,8 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 ## robots.txt 與 ads.txt 由 hub 提供
 
 子路徑下爬蟲只讀根網域的 `/robots.txt`，AdSense 也只讀根網域的 `/ads.txt`，
-所以本 repo 的 `public/robots.txt` 與 `public/ads.txt` 已刪除，兩者統一由 hub
-（repo `pocket-tool-blog` 的 `public/`，workspace 內在 `../pocket-tool-blog/public/`）提供。新增路由後要記得去 hub 確認 sitemap 那行還在。
+所以本 repo 不放這兩個檔，統一由 hub（`../pocket-tool-blog/public/`）提供。
+新增路由後要記得去 hub 確認 sitemap 那行還在。
 
 ## 改動 base 相關設定後的本機驗證
 
