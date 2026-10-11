@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+// qr-code-styling 把 qrcode-generator 打包在自己的 dist 裡，這裡另外精確鎖版裝一份來對帳（devDependency）。
+// 版本要跟它打包的那一份相同：升級 qr-code-styling 時先確認，兩邊不同就一起改（見 docs/quiet-zone.md）。
 import qrcode from 'qrcode-generator'
 import { qrMode, qrVersion, qrModuleCount, quietZoneGeometry, QUIET_ZONE_MODULES } from './qrGeometry'
 import type { ErrorCorrectionLevel } from '@/types'

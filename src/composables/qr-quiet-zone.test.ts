@@ -55,6 +55,7 @@ async function check(payload: string, style: QrStyleOptions, format: ArtifactFor
   expect([art.width, art.height]).toEqual([style.width, style.width])
   expect([art.pixels.width, art.pixels.height]).toEqual([style.width, style.width])
 
+  // 擋住留白變窄的是這段像素量測，不是後面的解碼：zxing 在完全沒有留白時照樣解得出來，這幾行不能當成多餘拿掉。
   const g = measureQuietZone(art.pixels)
   expect(g.moduleCount).toBe(expected!.moduleCount)
   expect(g.moduleSize).toBeCloseTo(expected!.moduleSize, 0)
