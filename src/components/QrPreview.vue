@@ -16,7 +16,7 @@ defineExpose({ download, copyImage })
     <div class="relative aspect-square w-full bg-[#FFF7EA] rounded-2xl border-2 border-ink flex items-center justify-center overflow-hidden">
       <div v-if="data && error" class="flex flex-col items-center justify-center gap-2 p-4 text-center">
         <span class="icon-badge-lg bg-pop-pink"><span class="i-lucide-circle-alert" aria-hidden="true" /></span>
-        <p data-test="qr-capacity-error" class="text-rose-600 text-sm font-700">{{ error }}</p>
+        <p data-test="qr-capacity-error" role="alert" class="text-rose-600 text-sm font-700">{{ error }}</p>
       </div>
       <!-- 容器一直留著，超過容量或還沒輸入時只用 v-show 藏起來：qr-code-styling 只會往最後 append 的那個元素畫，
            容器被 v-if 換掉的話，內容改短之後預覽框一直是空的（縮圖卻畫得出來）。 -->

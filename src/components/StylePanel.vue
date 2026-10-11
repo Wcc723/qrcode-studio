@@ -93,7 +93,7 @@ const ecLabel: Record<ErrorCorrectionLevel, string> = {
     <div>
       <HelpTip name="圖片大小" :id="`${uid}-size-help`">
         <template #head><label :for="`${uid}-size`" class="text-sm font-700 text-ink">圖片大小：<span class="text-link">{{ modelValue.width }} 像素</span></label></template>
-        <p>下載的 PNG 與 JPG 的寬高，200 到 2000 像素，四周 4 格小方塊寬的留白（靜區）也算在裡面。以一般印刷品的精細度（300 dpi，每英吋 300 點）換算，1000 像素大約可以印 8.5 公分，2000 像素大約 16.9 公分；要印得更大請下載 SVG 向量檔，放多大都不會糊。</p>
+        <p>下載的 PNG 與 JPG 的寬高，200 到 2000 像素，四周至少 4 格小方塊寬的留白（靜區）也算在裡面，圖片小或內容長時留白會更寬。以一般印刷品的精細度（300 dpi，每英吋 300 點）換算，1000 像素大約可以印 8.5 公分，2000 像素大約 16.9 公分；要印得更大請下載 SVG 向量檔，放多大都不會糊。</p>
       </HelpTip>
       <input :id="`${uid}-size`" type="range" min="200" max="2000" step="100" :aria-describedby="`${uid}-size-help`" class="w-full mt-1.5 accent-brand" :value="modelValue.width" @input="patch({ width: Number(($event.target as HTMLInputElement).value) })" />
     </div>

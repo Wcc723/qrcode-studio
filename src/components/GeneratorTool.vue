@@ -14,7 +14,7 @@ import HelpTip from './HelpTip.vue'
 import { inputComponents } from './inputs'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
 import { usePreviewDock } from '@/composables/usePreviewDock'
-import type { CopyStatus } from '@/composables/useQrCode'
+import { qrGeometry, type CopyStatus } from '@/composables/useQrCode'
 
 const props = withDefaults(defineProps<{ defaultType?: QrType }>(), { defaultType: 'url' })
 const current = ref<QrType>(props.defaultType)
@@ -40,6 +40,8 @@ onMounted(() => {
 
 const activeInput = computed(() => inputComponents[current.value])
 const overCapacity = computed(() => !!payload.value && exceedsQrCapacity(payload.value, style.value.errorCorrectionLevel))
+/** 沒有內容、超過容量、圖片放不下內容加四周留白時（預覽框會顯示原因），下載與複製都停用，不要按了沒反應 */
+const unavailable = computed(() => !payload.value || overCapacity.value || !qrGeometry(payload.value, style.value))
 function onType(t: QrType) { current.value = t; payload.value = ''; initial.value = undefined }
 function download(ext: 'png' | 'svg' | 'jpeg') { previewRef.value?.download(ext) }
 
@@ -113,13 +115,13 @@ function showFullPreview() {
         <!-- 預覽框連同下載鈕一起黏著（main.css 的 .preview-sticky，只在桌機兩欄）：只黏預覽框的話，往下捲它會滑過去蓋住下載鈕 -->
         <div class="preview-sticky" data-test="preview-sticky">
           <QrPreview ref="previewRef" :data="payload" :style="style" />
-          <DownloadBar :download="download" :copy="copy" :copy-status="copyStatus" :disabled="!payload || overCapacity" :describedby="`${uid}-dl-help`" />
+          <DownloadBar :download="download" :copy="copy" :copy-status="copyStatus" :disabled="unavailable" :describedby="`${uid}-dl-help`" />
         </div>
         <!-- 預覽區的底（零高度）：它還在視窗下方時，手機才出底部預覽列 -->
         <div ref="previewEnd" aria-hidden="true" data-test="preview-end" />
       </div>
     </div>
-    <PreviewDock :visible="dockVisible" :live="narrow" :data="payload" :qr-style="style" :disabled="!payload || overCapacity"
+    <PreviewDock :visible="dockVisible" :live="narrow" :data="payload" :qr-style="style" :disabled="unavailable"
       :download="download" :copy="copy" :copy-status="copyStatus" @expand="showFullPreview" />
   </div>
 </template>

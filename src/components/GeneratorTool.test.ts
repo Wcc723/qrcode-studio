@@ -4,7 +4,9 @@ import { mount, flushPromises } from '@vue/test-utils'
 import GeneratorTool from './GeneratorTool.vue'
 import QrPreview from './QrPreview.vue'
 import { putScanHandoff, takeScanHandoff, clearScanHandoff } from '@/utils/scan-handoff'
-import { COPY_MESSAGES } from '@/composables/useQrCode'
+import StylePanel from './StylePanel.vue'
+import { COPY_MESSAGES, SIZE_ERROR } from '@/composables/useQrCode'
+import { defaultStyle } from '@/types'
 
 // 記下每個 QR Code 物件的畫法、重畫次數與下載呼叫：預覽框（canvas）與手機預覽列的縮圖（svg）各一份
 type Made = { type: string; download: (...a: unknown[]) => unknown; updates: number }
@@ -40,6 +42,21 @@ describe('GeneratorTool', () => {
     expect(wrapper.find('[data-test="dl-svg"]').attributes('disabled')).toBeDefined()
     expect(wrapper.find('[data-test="dl-jpg"]').attributes('disabled')).toBeDefined()
     expect(wrapper.find('[data-test="dl-copy"]').attributes('disabled')).toBeDefined()
+  })
+  it('圖片放不下內容加四周留白時，下載與複製也停用，錯誤會被念出來（滑桿範圍內不會發生）', async () => {
+    const wrapper = mount(GeneratorTool, { props: { defaultType: 'url' } })
+    await wrapper.find('input[type="url"]').setValue('https://example.com')
+    await flushPromises()
+    expect(wrapper.find('[data-test="dl-png"]').attributes('disabled')).toBeUndefined()
+    // 25 個模組加兩側各 4 個要 33 像素，30 像素連 1 像素的模組都放不下
+    wrapper.findComponent(StylePanel).vm.$emit('update:modelValue', { ...defaultStyle, width: 30 })
+    await flushPromises()
+    const err = wrapper.find('[data-test="qr-capacity-error"]')
+    expect(err.text()).toBe(SIZE_ERROR)
+    expect(err.attributes('role')).toBe('alert')
+    for (const t of ['dl-png', 'dl-svg', 'dl-jpg', 'dl-copy']) {
+      expect(wrapper.find(`[data-test="${t}"]`).attributes('disabled'), t).toBeDefined()
+    }
   })
 })
 
