@@ -3,7 +3,7 @@ import { useSeoHead } from '@/composables/useSeoHead'
 import { site, publisher } from '@/config/site'
 
 // 內容有實質變動時才改這個日期。
-const UPDATED = { iso: '2026-09-24', label: '2026 年 9 月 24 日' }
+const UPDATED = { iso: '2026-10-11', label: '2026 年 10 月 11 日' }
 
 useSeoHead({
   title: `隱私權政策｜${site.name}`,
@@ -31,6 +31,9 @@ useSeoHead({
     <h2 class="text-lg font-700 text-ink mt-7">讀取圖片（QR Code 掃描器）</h2>
     <p class="text-muted mt-3 leading-7">在<RouterLink to="/scan/">QR Code 掃描器</RouterLink>選擇、拖放或貼上的圖片，<strong>不會上傳到任何伺服器</strong>。讀取（解碼）是由本站提供的讀取程式（WebAssembly 模組，簡稱 WASM）在你的瀏覽器內執行的，這個程式本身也由本站網域提供，不向其他公司的伺服器下載（第三方 CDN）。</p>
     <p class="text-muted mt-3 leading-7">圖片內容與讀出來的結果（含網址、WiFi 密碼、名片資訊等）只在這個分頁開著的時候存在：<strong>不會存進網址或瀏覽器的任何儲存空間（Cookie、localStorage、sessionStorage），也不會留在瀏覽紀錄裡</strong>；使用數據分析的事件裡同樣沒有這些內容。關閉或重新整理分頁後就不會保留。按下「用這個內容再做一張」把內容帶回產生器時，同樣只在這個分頁裡傳遞，且只會被取用一次。</p>
+
+    <h2 class="text-lg font-700 text-ink mt-7">頁尾的「回報問題」</h2>
+    <p class="text-muted mt-3 leading-7">頁尾的「回報問題」會在新分頁開啟口袋工具的問題回報頁，那是口袋工具的另一個頁面，不是本工具。本工具不會把你在產生器輸入的內容或掃描的圖片帶過去，點連結時只帶上目前頁面的路徑（不含「?」與「#」之後的部分），要不要附上由你在回報頁決定。<strong>只有你在回報頁按下送出時，你寫的內容才會傳給站長</strong>；詳見口袋工具全站隱私權政策的<a :href="`${publisher.privacyUrl}#site-report`">問題回報段落</a>。</p>
 
     <h2 class="text-lg font-700 text-ink mt-7">使用數據分析（Google Analytics）</h2>
     <p class="text-muted mt-3 leading-7">為了解網站使用情況並持續改善，本站使用 Google Analytics（GA4）收集使用統計，例如瀏覽的頁面、停留時間、裝置與瀏覽器類型、概略地區（依 IP 推估）等。這些資料透過 Cookie（名稱是 _ga 開頭）區分不同的造訪，<strong>不包含你輸入到產生器中的任何內容</strong>，也不會用來辨識你的個人身分。相關資料由 Google 依其<a href="https://policies.google.com/privacy" target="_blank" rel="noopener">隱私權政策</a>處理；你可以安裝 <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Google Analytics 停用外掛</a>，或在瀏覽器封鎖 Cookie 來拒絕統計。</p>
