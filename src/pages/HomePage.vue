@@ -43,6 +43,7 @@ useSeoHead({
       <p class="mt-3">可自訂方塊與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或<RouterLink to="/guide/qr-code-svg/" class="text-link underline underline-offset-2 font-700">SVG 向量檔</RouterLink>（放多大都不會糊，印刷用）。產生的是<strong>靜態 QR Code</strong>（內容直接存在圖裡，不經過任何網站轉址），永久有效、不會過期，可放心印在名片、海報、產品包裝或店家招牌上。</p>
       <p class="mt-3">已經有一張 QR Code 的<strong>圖片或截圖</strong>，想知道裡面是什麼？用<RouterLink to="/scan/" class="text-link underline underline-offset-2 font-700">QR Code 掃描器</RouterLink>：拖放或貼上截圖就能在瀏覽器裡讀出內容，圖片不會上傳，結果也會先讓你確認再決定要不要開啟。</p>
       <p class="mt-3">要做的是商品包裝上那種直條條碼（<strong>一維條碼</strong>，例如 EAN-13、Code 128）嗎？請改用<RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">條碼產生器</RouterLink>。兩者用途不同：QR Code 是二維條碼，可直接存網址與長文字；一維條碼主要對應商品編號，用於零售結帳與庫存管理。</p>
+      <p class="mt-3">要一次做幾十、幾百張，例如財產標籤、商品條碼或活動序號？用<RouterLink to="/batch/" class="text-link underline underline-offset-2 font-700">批次產生 QR Code 與條碼</RouterLink>：從 Excel 貼上清單或設定連號，一次下載整包 ZIP，清單一樣不會上傳。</p>
 
       <!-- 7 種類型的專屬頁：原本是工具下方的大卡片，看起來像工具的一部分，改成說明區裡的連結列 -->
       <h2 class="text-2xl font-800 text-ink mt-10">挑一種，馬上做</h2>

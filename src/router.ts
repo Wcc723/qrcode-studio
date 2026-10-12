@@ -27,6 +27,8 @@ export const routes: RouteRecordRaw[] = [
   { path: '/barcode', name: 'barcode', component: () => import('@/pages/BarcodePage.vue') },
   // 同上：解碼器（zxing-wasm reader ＋ WASM）不能進 entry chunk，這一頁也必須是動態 import。
   { path: '/scan', name: 'scan', component: () => import('@/pages/ScanPage.vue') },
+  // 同上：批次的 QR 編碼器（qrcode-generator）、條碼編碼器、ZIP 與清單處理都不能進 entry chunk。
+  { path: '/batch', name: 'batch', component: () => import('@/pages/BatchPage.vue') },
   // 教學總覽必須排在 /guide/:slug 前面。
   { path: '/guide', name: 'guide-index', component: () => import('@/pages/GuideIndexPage.vue') },
   { path: '/guide/:slug', name: 'guide', component: () => import('@/pages/GuidePage.vue'), beforeEnter: guideGuard },

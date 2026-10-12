@@ -3,7 +3,7 @@ import { useSeoHead } from '@/composables/useSeoHead'
 import { site, publisher } from '@/config/site'
 
 // 內容有實質變動時才改這個日期。
-const UPDATED = { iso: '2026-10-11', label: '2026 年 10 月 11 日' }
+const UPDATED = { iso: '2026-10-13', label: '2026 年 10 月 13 日' }
 
 useSeoHead({
   title: `隱私權政策｜${site.name}`,
@@ -31,6 +31,10 @@ useSeoHead({
     <h2 class="text-lg font-700 text-ink mt-7">讀取圖片（QR Code 掃描器）</h2>
     <p class="text-muted mt-3 leading-7">在<RouterLink to="/scan/">QR Code 掃描器</RouterLink>選擇、拖放或貼上的圖片，<strong>不會上傳到任何伺服器</strong>。讀取（解碼）是由本站提供的讀取程式（WebAssembly 模組，簡稱 WASM）在你的瀏覽器內執行的，這個程式本身也由本站網域提供，不向其他公司的伺服器下載（第三方 CDN）。</p>
     <p class="text-muted mt-3 leading-7">圖片內容與讀出來的結果（含網址、WiFi 密碼、名片資訊等）只在這個分頁開著的時候存在：<strong>不會存進網址或瀏覽器的任何儲存空間（Cookie、localStorage、sessionStorage），也不會留在瀏覽紀錄裡</strong>；使用數據分析的事件裡同樣沒有這些內容。關閉或重新整理分頁後就不會保留。按下「用這個內容再做一張」把內容帶回產生器時，同樣只在這個分頁裡傳遞，且只會被取用一次。</p>
+
+    <h2 class="text-lg font-700 text-ink mt-7">批次產生（貼上的清單）</h2>
+    <p class="text-muted mt-3 leading-7">在<RouterLink to="/batch/">批次產生 QR Code 與條碼</RouterLink>貼上的清單、設定的連號與內容範本，以及做出來的圖片與 ZIP 檔，<strong>都只在這個分頁的記憶體裡處理，不會上傳到任何伺服器</strong>。ZIP 檔由你的瀏覽器在本機打包後直接下載；清單與產生的檔案<strong>不會存進網址或瀏覽器的任何儲存空間（Cookie、localStorage、sessionStorage、IndexedDB）</strong>，關閉或重新整理分頁後就不會保留。</p>
+    <p class="text-muted mt-3 leading-7">下載成功時，使用數據分析（Google Analytics）只會記一筆事件，內容是三個固定的選項：大概的筆數級距（例如「51 到 200 筆」）、碼的種類（例如 QR Code、EAN-13）與下載格式（PNG 或 SVG）；<strong>不包含清單內容、內容範本、檔名，也不包含確切的筆數</strong>。</p>
 
     <h2 class="text-lg font-700 text-ink mt-7">頁尾的「回報問題」</h2>
     <p class="text-muted mt-3 leading-7">頁尾的「回報問題」會在新分頁開啟口袋工具的問題回報頁，那是口袋工具的另一個頁面，不是本工具。本工具不會把你在產生器輸入的內容或掃描的圖片帶過去，點連結時只帶上目前頁面的路徑（不含「?」與「#」之後的部分），要不要附上由你在回報頁決定。<strong>只有你在回報頁按下送出時，你寫的內容才會傳給站長</strong>；詳見口袋工具全站隱私權政策的<a :href="`${publisher.privacyUrl}#site-report`">問題回報段落</a>。</p>

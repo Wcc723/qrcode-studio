@@ -48,9 +48,19 @@ describe('scan 路由', () => {
 
   it('路徑集合與預期一致（新增路由要同步改這裡與 scripts/seo/audit.mjs 的 EXPECTED_PATHS）', () => {
     expect(routes.map(r => r.path).sort()).toEqual([
-      '/', '/:pathMatch(.*)*', '/about', '/barcode', '/email', '/faq', '/guide', '/guide/:slug',
+      '/', '/:pathMatch(.*)*', '/about', '/barcode', '/batch', '/email', '/faq', '/guide', '/guide/:slug',
       '/phone', '/privacy', '/scan', '/sms', '/text', '/url', '/vcard', '/wifi',
     ])
+  })
+})
+
+describe('batch 路由', () => {
+  it('/batch 是靜態路由、走 route-level lazy loading，不加子路徑前綴', () => {
+    const r = routes.find(r => r.path === '/batch')
+    expect(r).toBeDefined()
+    expect(r!.path).not.toContain(':')
+    expect(typeof r!.component).toBe('function')
+    expect(routes.some(r => r.path === '/qrcode-studio/batch')).toBe(false)
   })
 })
 

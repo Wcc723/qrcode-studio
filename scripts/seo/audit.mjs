@@ -436,7 +436,7 @@ if (hasAds) {
 // ───────────────────────────────────────────────────────────────────
 const EXPECTED_PATHS = [
   '/',
-  '/about/', '/barcode/', '/email/', '/faq/', '/phone/', '/privacy/', '/scan/',
+  '/about/', '/barcode/', '/batch/', '/email/', '/faq/', '/phone/', '/privacy/', '/scan/',
   '/sms/', '/text/', '/url/', '/vcard/', '/wifi/',
   '/guide/', '/guide/error-correction/', '/guide/line-qr-code/', '/guide/qr-code-svg/',
   '/guide/qr-with-logo/', '/guide/scan-qr-code/', '/guide/what-is-qr-code/',
@@ -482,6 +482,25 @@ if (existsSync(scanHtmlPath)) {
   if (basePath) add('[scan] 互鏈到既有掃描教學', html.includes(`${basePath}guide/scan-qr-code/`))
   add('[scan] 解碼結果不該出現在預渲染 HTML（那是 client-only）',
     !/data-test="scan-result-text"/.test(html))
+}
+
+// ───────────────────────────────────────────────────────────────────
+// /batch/：批次產生。預渲染要有標題、說明與結構化資料；清單與預覽是 client-only，
+// 不該出現在預渲染 HTML。互鏈：首頁與條碼產生器連過來，批次頁連回兩個單張產生器。
+// ───────────────────────────────────────────────────────────────────
+const batchHtmlPath = join(distDir, 'batch', 'index.html')
+add('/batch/ 已預渲染', existsSync(batchHtmlPath))
+if (existsSync(batchHtmlPath) && basePath) {
+  const html = readFileSync(batchHtmlPath, 'utf8')
+  add('[batch] SSR HTML 已有 <h1>', /<h1[^>]*>[\s\S]*?批次產生[\s\S]*?<\/h1>/.test(html))
+  add('[batch] 有 WebApplication JSON-LD', /"@type":"WebApplication"/.test(html))
+  add('[batch] 有 BreadcrumbList JSON-LD', /"@type":"BreadcrumbList"/.test(html))
+  add('[batch] 沒有 FAQPage（FAQ 只做看得到的文字）', !/"@type":"FAQPage"/.test(html))
+  add('[batch] 連回條碼產生器與首頁', html.includes(`href="${basePath}barcode/"`) && html.includes(`href="${basePath}"`))
+  add('[batch] 預覽格是 client-only，不在預渲染 HTML', !/data-test="batch-preview"/.test(html))
+  for (const [page, file] of [['index.html', join(distDir, 'index.html')], ['barcode/index.html', join(distDir, 'barcode', 'index.html')]]) {
+    add(`[${page}] 連到批次產生`, existsSync(file) && readFileSync(file, 'utf8').includes(`href="${basePath}batch/"`))
+  }
 }
 
 const guideScanPath = join(distDir, 'guide', 'scan-qr-code', 'index.html')
@@ -549,6 +568,10 @@ for (const [page, needles] of [
     'barcode/': [
       '免費線上製作一維條碼，支援 Code 128、EAN-13、EAN-8、Code 39、ITF-14。',
       '瀏覽器內即時生成、不傳雲端，自動計算檢查碼，下載可直接印刷的 PNG 與 SVG 向量檔。',
+    ],
+    'batch/': [
+      '免費線上批次產生 QR Code 與一維條碼：從 Excel 或 Google 試算表貼上清單、每行一筆，或直接設定連號，一次做出上千張，打包成 ZIP 下載。',
+      '支援 QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14，自動補上檢查碼、逐列檢查錯誤，清單只在你的瀏覽器裡處理，不會上傳。',
     ],
   }
   // 7 個類型頁：標題下原本就是 meta description 那一句
@@ -624,6 +647,28 @@ if (wasmFiles.length === 1) {
   const wasmInHtml = pages.filter((f) => readFileSync(f, 'utf8').includes(wasmUrl))
   add('WASM 不在任何頁面被預先載入（只在使用者丟圖時才下載）', wasmInHtml.length === 0,
     wasmInHtml.map(rel).join(' '))
+}
+
+// ───────────────────────────────────────────────────────────────────
+// 編碼器與批次邏輯的資產邊界：QR 編碼器（qrcode-generator）、一維條碼編碼器、ZIP 與批次流程
+// 只在用到的頁面才下載，不能進 entry chunk。比對的是壓縮後還留著的字串；每個記號也要在某個 chunk 裡找得到，
+// 免得原始碼改了字、這裡變成永遠通過的空檢查。
+// ───────────────────────────────────────────────────────────────────
+{
+  const jsFiles = assetFiles.filter((f) => f.endsWith('.js'))
+  const homeHtml = readFileSync(join(distDir, 'index.html'), 'utf8')
+  const entryName = (homeHtml.match(/<script[^>]+type="module"[^>]+src="[^"]*\/assets\/([^"]+\.js)"/) || [])[1]
+  const entrySource = entryName ? readFileSync(join(assetsDir, entryName), 'utf8') : ''
+  for (const [label, marker] of [
+    ['QR 編碼器（qrcode-generator）', 'code length overflow'],
+    ['一維條碼編碼器（Code 128 樣式表）', '11011001100'],
+    ['批次的 ZIP', 'ZIP 裡有重複的檔名'],
+    ['批次的逐列檢查', '超過 QR Code 能放的上限'],
+    ['批次的 GA 事件', 'batch_download'],
+  ]) {
+    const holders = jsFiles.filter((f) => readFileSync(join(assetsDir, f), 'utf8').includes(marker))
+    add(`entry chunk 不含 ${label}，只在動態載入的 chunk`, !!entryName && holders.length > 0 && !entrySource.includes(marker), holders.join(' '))
+  }
 }
 
 // ───────────────────────────────────────────────────────────────────

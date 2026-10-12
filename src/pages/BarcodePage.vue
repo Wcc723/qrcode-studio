@@ -64,6 +64,10 @@ useSeoHead({
         要做掃碼開網頁、加 LINE、連 WiFi 的方形圖，請改用<RouterLink to="/" class="text-link underline font-700">免費 QR Code 產生器</RouterLink>或<RouterLink
           to="/url/" class="text-link underline font-700">網址 QR Code 產生器</RouterLink>。
       </p>
+      <p class="text-ink/80 font-600 mt-3 leading-relaxed">
+        一次要做很多張，例如整份財產清冊或一整批店內碼，請用<RouterLink to="/batch/" class="text-link underline font-700">批次產生條碼</RouterLink>：
+        從 Excel 貼上編號或設定連號，EAN-13 的檢查碼每一筆都會自動算好，打包成 ZIP 下載。
+      </p>
 
       <h3 class="text-xl font-700 text-ink mt-8">五種格式怎麼選</h3>
       <ul class="list-disc pl-5 mt-3 space-y-1 text-ink/80 font-600 leading-relaxed">

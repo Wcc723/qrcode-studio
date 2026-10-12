@@ -62,6 +62,7 @@ const nav = [
             <li><RouterLink to="/" class="hover:text-link transition">免費 QR Code 產生器</RouterLink></li>
             <li><RouterLink to="/scan/" class="hover:text-link transition">QR Code 掃描器</RouterLink></li>
             <li><RouterLink to="/barcode/" class="hover:text-link transition">條碼產生器</RouterLink></li>
+            <li><RouterLink to="/batch/" class="hover:text-link transition">批次產生 QR Code 與條碼</RouterLink></li>
             <li><a :href="publisher.toolsUrl" class="hover:text-link transition">更多免費工具</a></li>
           </ul>
         </section>

@@ -13,6 +13,7 @@ import StylePanel from './components/StylePanel.vue'
 import BarcodeTool from './components/barcode/BarcodeTool.vue'
 import ScanTool from './components/scan/ScanTool.vue'
 import ScanResultView from './components/scan/ScanResultView.vue'
+import BatchTool from './components/batch/BatchTool.vue'
 import { qrTypes } from './config/qr-types'
 import { symbologies } from './config/symbologies'
 import { toScanOutcome } from './pure/scanResult'
@@ -169,5 +170,31 @@ describe('掃描器的「?」', () => {
     expectVisible(multiple, '請把圖裁切成只剩一個條碼再試一次')
     const none = mount(ScanResultView, { props: { outcome: { status: 'none' } }, ...opts })
     expectVisible(none, '把條碼那一塊裁切出來')
+  })
+})
+
+describe('批次產生的「?」', () => {
+  it('每個「?」預設收起、欄位指得到它（QR Code 與一維條碼 PNG 兩種設定都驗）', async () => {
+    const w = mount(BatchTool, opts)
+    expectHelpContract(w)
+    await w.find('[data-test="batch-sym-ean13"]').setValue(true)
+    await flushPromises()
+    expect(w.find('[data-test="batch-scale"]').exists()).toBe(true)
+    expectHelpContract(w)
+  })
+
+  it('隱私一行、填寫規則、不能下載的原因、錯誤與重複提醒都看得到', async () => {
+    const w = mount(BatchTool, opts)
+    expectVisible(w, '只在你的瀏覽器產生，內容不上傳')
+    expectVisible(w, '請先貼上清單。')
+    await w.find('[data-test="batch-sym-ean13"]').setValue(true)
+    await flushPromises()
+    expectVisible(w, symbologies.find((s) => s.id === 'ean13')!.rule)
+    await w.find('[data-test="batch-paste"]').setValue('4710088331237\n471008833123\n471008833123')
+    await flushPromises()
+    expectVisible(w, '應該是 6')
+    expectVisible(w, '內容重複')
+    expectVisible(w, '已自動補上檢查碼')
+    expectVisible(w, '有 1 列要先修正')
   })
 })

@@ -37,11 +37,12 @@ useSeoHead({
       搜尋「QR Code 產生器」會找到很多服務，但不少產生的是<strong class="text-ink">動態 QR Code</strong>：圖裡存的其實是服務商的轉址網址，試用期結束、方案到期或服務關閉，印在名片與包裝上的 QR Code 就跟著失效；也常見把 SVG 下載或去浮水印鎖在付費方案裡。{{ site.name }}只做<strong class="text-ink">靜態 QR Code</strong>：你的內容直接存在圖裡，不經過任何轉址，印出去之後不會因為哪個服務停掉而失效。
     </p>
 
-    <h2>三個工具怎麼運作</h2>
+    <h2>每個工具怎麼運作</h2>
     <ul class="list-disc pl-5 mt-3 space-y-2">
       <li><RouterLink to="/">QR Code 產生器</RouterLink>：用公開原始碼的 qr-code-styling 套件（MIT License）在你的瀏覽器裡畫出來。每種類型都用手機相機認得的標準格式，例如 WiFi 用 <code>WIFI:</code>、電子名片用 vCard 3.0、Email 用寄信連結 <code>mailto:</code>、簡訊用 <code>SMSTO:</code>。中文與 emoji 以通行的 UTF-8 編碼。</li>
       <li><RouterLink to="/barcode/">條碼產生器</RouterLink>：產生條碼的程式是自己寫的，會依國際條碼組織 GS1 的規則自動計算 EAN-13、EAN-8、ITF-14 的檢查碼（最後一位，用來抓打錯的號碼），SVG 檔帶有毫米尺寸，置入排版軟體就是標準大小。</li>
       <li><RouterLink to="/scan/">QR Code 掃描器</RouterLink>：用 zxing-wasm 在你的瀏覽器裡讀取（解碼）截圖或圖檔。讀出來的結果先以純文字顯示，不會自動開啟連結，避免掃到偽造網址時被直接帶走。</li>
+      <li><RouterLink to="/batch/">批次產生 QR Code 與條碼</RouterLink>：把貼上的清單或連號逐列檢查後，在你的瀏覽器裡一張一張做成圖片，打包成 ZIP 直接下載。QR Code 用公開原始碼的 qrcode-generator 套件（MIT License）編碼，條碼用的是跟條碼產生器同一套自己寫的程式。</li>
     </ul>
     <p>
       使用上的細節整理在<RouterLink to="/guide/">教學總覽</RouterLink>與<RouterLink to="/faq/">常見問題</RouterLink>，資料怎麼處理寫在<RouterLink to="/privacy/">隱私權政策</RouterLink>。
@@ -56,6 +57,7 @@ useSeoHead({
       <li><a href="https://sourceforge.net/projects/zint/" target="_blank" rel="noopener">zint</a>：BSD-3-Clause License</li>
       <li>zxing-wasm 自有的程式碼：MIT License（Copyright © 2023 Ze-Zheng Wu）</li>
     </ul>
+    <p>批次產生的 QR Code 由 <a href="https://github.com/kazuhikoarase/qrcode-generator" target="_blank" rel="noopener">qrcode-generator</a>（MIT License，Copyright © 2009 Kazuhiko Arase）編碼，同樣在你的瀏覽器內執行。</p>
     <p>介面上的圖示來自 <a href="https://lucide.dev/" target="_blank" rel="noopener">Lucide</a>（ISC License，其中由 Feather 衍生的部分圖示為 MIT License），在建置時打包進本站的樣式檔，瀏覽器不會向第三方取圖。</p>
     <p>本站<RouterLink to="/barcode/">條碼產生器</RouterLink>產生條碼的程式（編碼器）是自行實作的，不使用上述任何第三方編碼器。完整版本、雜湊與授權出處記在 GitHub 上的 <a :href="`${repoUrl}/blob/main/NOTICE.md`" target="_blank" rel="noopener"><code>NOTICE.md</code></a>。</p>
 
