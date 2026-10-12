@@ -308,3 +308,11 @@ export function barcodeToSvg(p: BarcodePattern, o: BarcodeSvgOptions = {}): stri
     + `<g fill="${fg}">${g.bearer.map(rect).join('')}${g.bars.map(rect).join('')}</g>`
     + `${label}</svg>`
 }
+
+/**
+ * 下載用的 SVG 檔（條碼產生器與批次產生共用）：根元素帶 mm 實體尺寸，置入排版軟體就是標稱尺寸；
+ * 不帶 responsive 的 inline style，前面加 XML 宣告。
+ */
+export function barcodeDownloadSvg(p: BarcodePattern): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${barcodeToSvg(p, { moduleWidth: 2, height: 80, fontSize: 16, physicalUnits: true })}`
+}

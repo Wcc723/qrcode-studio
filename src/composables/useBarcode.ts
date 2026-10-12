@@ -1,9 +1,10 @@
 import { ref, computed, watch, onBeforeUnmount, type Ref } from 'vue'
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
 import { validateBarcode } from '@/pure/validateBarcode'
-import { encodeBarcode, barcodeToSvg, barcodeGeometry } from '@/pure/encodeBarcode'
+import { encodeBarcode, barcodeToSvg, barcodeGeometry, barcodeDownloadSvg } from '@/pure/encodeBarcode'
 import { symbologyById } from '@/config/symbologies'
 import { saveBlob } from '@/utils/save-blob'
+import { barcodeRasterPlan, paintPlan } from '@/pure/raster'
 
 // Code 39 把 $ / + % 當成 Full ASCII 的 shift 字元：掃描器可能把「$E」讀成
 // 控制字元 ENQ、「+G」讀成小寫 g。以獨立的 ZXing 解碼器實測確認過這個行為
@@ -62,42 +63,26 @@ export function useBarcode(raw: Ref<string>, sym: Ref<BarcodeSymbology>) {
   /** DPI = 每模組像素數 ÷ X(mm) × 25.4，與符號大小無關。 */
   function pngSize(scale: number) {
     if (!pattern.value) return null
-    const g = barcodeGeometry(pattern.value, { moduleWidth: scale, height: scale * 40, fontSize: scale * 8 })
-    return { w: g.width, h: g.height, dpi: Math.round((scale / pattern.value.xDimensionMm) * 25.4) }
+    const plan = barcodeRasterPlan(pattern.value, scale)
+    return { w: plan.width, h: plan.height, dpi: Math.round((scale / pattern.value.xDimensionMm) * 25.4) }
   }
 
   function downloadSvg() {
     if (!pattern.value) return
-    // 下載檔帶 mm 實體尺寸，置入排版軟體就是標稱尺寸；不帶 responsive 的 inline style。
-    const svg = barcodeToSvg(pattern.value, {
-      moduleWidth: 2, height: 80, fontSize: 16, physicalUnits: true,
-    })
-    saveBlob(
-      new Blob([`<?xml version="1.0" encoding="UTF-8"?>\n${svg}`], { type: 'image/svg+xml;charset=utf-8' }),
-      'barcode.svg',
-    )
+    // 下載檔帶 mm 實體尺寸，置入排版軟體就是標稱尺寸（批次產生的 SVG 是同一份）。
+    saveBlob(new Blob([barcodeDownloadSvg(pattern.value)], { type: 'image/svg+xml;charset=utf-8' }), 'barcode.svg')
   }
 
   async function downloadPng(scale = 4) {
     if (typeof window === 'undefined' || !pattern.value) return
-    // 直接畫矩形而不是把 SVG 轉圖：drawImage 縮放會在條的硬邊緣產生抗鋸齒灰邊，
-    // 那正是掃描器判斷邊界時最怕的東西。
-    const g = barcodeGeometry(pattern.value, { moduleWidth: scale, height: scale * 40, fontSize: scale * 8 })
+    // 直接畫矩形而不是把 SVG 轉圖（原因見 src/pure/raster.ts）。批次產生的 PNG 用的是同一份畫法。
+    const plan = barcodeRasterPlan(pattern.value, scale)
     const canvas = document.createElement('canvas')
-    canvas.width = g.width
-    canvas.height = g.height
+    canvas.width = plan.width
+    canvas.height = plan.height
     const ctx = canvas.getContext('2d')
     if (!ctx) return          // happy-dom 回傳 null，測試環境安靜退出
-    ctx.imageSmoothingEnabled = false
-    ctx.fillStyle = '#ffffff'
-    ctx.fillRect(0, 0, g.width, g.height)
-    ctx.fillStyle = '#000000'
-    for (const r of [...g.bearer, ...g.bars]) ctx.fillRect(r.x, r.y, r.w, r.h)
-    if (g.text) {
-      ctx.font = `${g.text.size}px monospace`
-      ctx.textAlign = 'center'
-      ctx.fillText(g.text.s, g.text.x, g.text.y)
-    }
+    paintPlan(ctx, plan)
     const blob = await new Promise<Blob | null>(res => canvas.toBlob(b => res(b), 'image/png'))
     if (blob) saveBlob(blob, 'barcode.png')
   }
