@@ -146,6 +146,10 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 「圖片大小」，放不下就擋。改 qr-code-styling、尺寸、留白或下載格式時，`qrGeometry.test.ts` 與 `qr-quiet-zone.test.ts`
 都要綠。細節見 `docs/quiet-zone.md`。
 
+## 批次產生（`/batch/`）
+
+編碼器與批次邏輯不進 entry chunk、清單只在記憶體、GA 只送三個字面值、單次上限要先實測：規則與測試見 `docs/batch.md`。
+
 ## v-html 的富文字連結要自己補前綴
 
 `src/content/guide-bodies.ts` 的教學本文與 `src/config/qr-types.ts` 的 `body` 是原生
@@ -167,7 +171,7 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 
 ## 工具區與說明文章
 
-工具頁（首頁、7 個類型頁、`/scan/`、`/barcode/`）分成上下兩塊，一眼要分得出哪裡是應用程式、哪裡是說明：
+工具頁（首頁、7 個類型頁、`/scan/`、`/barcode/`、`/batch/`）分成上下兩塊，一眼要分得出哪裡是應用程式、哪裡是說明：
 
 - **工具區**（`src/components/ToolZone.vue`）：h1、一行副標、工具卡，整條鋪淡薄荷底 `#E6F7EE`，
   下緣一條整寬黑線。它直接放在 `<main>` 底下，本來就是整個視窗寬；**不要包進有寬度上限的容器，

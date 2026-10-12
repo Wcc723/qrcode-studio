@@ -46,9 +46,18 @@ MIT 授權原文也隨套件一起安裝在 `node_modules/zxing-wasm/LICENSE`。
 
 授權原文：<https://github.com/lucide-icons/lucide/blob/main/LICENSE>
 
+## QR Code 編碼：qrcode-generator
+
+批次產生 `/batch/` 的 QR Code 由 [qrcode-generator](https://github.com/kazuhikoarase/qrcode-generator)
+在使用者的瀏覽器內編碼（單張產生器用的 qr-code-styling 內部也是同一套）。`package.json` 精確鎖版在 1.5.2。
+
+- **qrcode-generator**：MIT License（Copyright (c) 2009 Kazuhiko Arase）
+
+授權原文：<https://github.com/kazuhikoarase/qrcode-generator/blob/master/LICENSE>
+
 ## 本站自己的一維條碼編碼器
 
-本站 `/barcode/` 的一維條碼是自行實作的（`src/pure/encodeBarcode.ts`），
+本站 `/barcode/` 與 `/batch/` 的一維條碼是自行實作的（`src/pure/encodeBarcode.ts`），
 不使用 zint 或其他第三方編碼器，與上述授權無關。
 
 ## 商標

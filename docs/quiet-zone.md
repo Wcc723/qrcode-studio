@@ -17,10 +17,21 @@ QR Code 規格要求四邊各至少 4 個模組寬的空白。qr-code-styling �
 ## 測試
 
 - `src/pure/qrGeometry.test.ts`：逐版本拿 qrcode-generator 對帳模組數，並照套件畫點的公式驗起點正好等於 margin。
-  qrcode-generator 是精確鎖版的 devDependency，版本要跟 qr-code-styling 打包進去的那一份相同；
+  qrcode-generator 是精確鎖版的 dependency（批次產生 `/batch/` 直接用它編碼），版本要跟 qr-code-styling 打包進去的那一份相同；
   升級 qr-code-styling 時先確認它帶的版本，兩邊不同就一起改。
 - **產物 oracle** `src/composables/qr-quiet-zone.test.ts`：用真的 qr-code-styling 做出三種檔案（PNG／JPG 由 sharp
   把同一份 SVG 光柵化，sharp 是精確鎖版的 devDependency），從像素量四邊留白，再用自架的 zxing-wasm 解回原本的位元組。
   **擋住留白變窄的是像素量測，不是解碼**：zxing 在完全沒有留白時照樣解得出來，量測那幾行不能當成多餘拿掉。
 - 升級 qr-code-styling、換編碼器、改尺寸或留白、加新的下載格式時，這兩份一定要一起綠。happy-dom 的 `<img>` 不會載入，
   有 LOGO 的案例靠 `test/helpers/qr-artifact.ts` 給套件的 `nodeCanvas.loadImage`。
+
+## 批次產生（`/batch/`）
+
+批次不經過 qr-code-styling：`src/pure/batch/qrMatrix.ts` 直接用 qrcode-generator 算模組，編碼模式照 `qrMode`，
+同樣的內容與容錯等級做出來的碼跟單張產生器一樣。
+
+- **SVG**：viewBox 以模組為單位，碼外面固定留 4 格；寬高寫成選的圖片大小。
+- **PNG**：`qrRasterPlan` 用同一個 `quietZoneGeometry`（整數模組、四邊至少 4 格），畫法交給 `src/pure/raster.ts` 的 `paintPlan`。
+  一維條碼的 PNG 也走這支（跟條碼產生器的單張下載共用），靜區沿用 `encodeBarcode.ts` 的規範值。
+- `src/pure/batch/qrMatrix.test.ts` 驗模組數、留白與置中；`src/pure/batch/readback.test.ts` 把 ZIP 裡的 SVG 與 PNG 的畫法
+  用自架的 zxing-wasm 讀回來，每種碼制內容一字不差。改批次的編碼、留白或畫法時，這兩份要一起綠。

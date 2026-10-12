@@ -7,7 +7,7 @@
 ## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-30 共 711 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
-- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（18 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
+- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（21 條，loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
 - [x] ✅ 每頁 canonical 值帶正確子路徑前綴（audit 逐頁斷言，非只檢查標籤存在）
 - [x] ✅ 每頁內鏈皆帶 `/qrcode-studio/` 前綴（audit 逐頁斷言，擋住 v-html 富文字繞過 Vite base 的漏網之魚）
 - [x] ✅ 每頁有唯一 `<title>`（非空、跨頁不重複）
