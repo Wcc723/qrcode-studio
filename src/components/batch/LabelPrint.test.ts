@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises, type VueWrapper } from '@vue/test-utils'
 import BatchTool from './BatchTool.vue'
 import { OFFSET_STORAGE_KEY } from '@/utils/batch-label-offset'
+import { BARCODE_WARN_X_MM, PRINTER_EDGE_RANGE } from '@/pure/batch/paper'
 
 const opts = { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } }, attachTo: document.body }
 const $ = (w: VueWrapper, t: string) => w.find(`[data-test="${t}"]`)
@@ -270,6 +271,20 @@ describe('擋下與提醒', () => {
     expect($(w, 'label-print-btn').attributes('disabled')).toBeUndefined()
   })
 
+  it('條碼偏細只提醒，建議的寬度照 paper.ts 寫：ITF-14 物流外箱、Code 128', async () => {
+    const itf = await mountLabels('15400141288763\n')
+    await itf.find('[data-test="batch-sym-itf14"]').setValue(true)
+    await flushPromises()
+    expect($(itf, 'label-notice-barcode-thin').text()).toContain(`外箱給物流掃描時建議 ${BARCODE_WARN_X_MM.itf14} mm 以上`)
+    expect($(itf, 'label-print-btn').attributes('disabled')).toBeUndefined()
+
+    const c128 = await mountLabels('A001\n')
+    await c128.find('[data-test="batch-sym-code128"]').setValue(true)
+    await $(c128, 'label-sheet-select').setValue('longder-LD-8101')
+    await flushPromises()
+    expect($(c128, 'label-notice-barcode-thin').text()).toContain(`建議 ${BARCODE_WARN_X_MM.code128} mm 以上`)
+  })
+
   it('一維條碼下方印號碼，同一張的字另外排在下面', async () => {
     const w = await mountLabels(LIST)
     await w.find('[data-test="batch-sym-code128"]').setValue(true)
@@ -295,6 +310,7 @@ describe('擋下與提醒', () => {
     await $(w, 'label-sheet-select').setValue('herwood-C3070')
     await flushPromises()
     expect($(w, 'label-notice-edge').text()).toContain('有 22 格貼近紙邊')
+    expect($(w, 'label-notice-edge').text()).toContain(`印不到紙邊 ${PRINTER_EDGE_RANGE}`)
     expect($(w, 'label-notice-edge').text()).toContain('已經自動往內縮')
     const svg = filledCells(w)[0]!.find('svg.label-code')
     // 內距 1.5 mm 不夠，內縮到離紙邊 5 mm

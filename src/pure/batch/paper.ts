@@ -25,10 +25,14 @@ export const PAGE_RULE = '@page { size: A4; margin: 0; }'
 export const PAGE_FIT_GUARD_MM = 0.5
 
 /**
- * 多數雷射與噴墨印表機印不到紙邊 3 到 5 mm（無邊界列印除外）。全版切割或貼著紙邊的型號，
- * 最外圈格子裡的碼與文字自動縮進這條線以內（可以關掉）。
+ * 多數雷射與噴墨印表機印不到紙邊 PRINTER_EDGE_FROM_MM 到 PRINTER_EDGE_MM（無邊界列印除外）。全版切割或貼著紙邊的型號，
+ * 最外圈格子裡的碼與文字自動縮進 PRINTER_EDGE_MM 這條線以內（可以關掉）。
  */
 export const PRINTER_EDGE_MM = 5
+/** 印不到的紙邊常見的下緣，只用在說明文字；內縮一律照 PRINTER_EDGE_MM */
+export const PRINTER_EDGE_FROM_MM = 3
+/** 說明文字用的「3 到 5 mm」 */
+export const PRINTER_EDGE_RANGE = `${PRINTER_EDGE_FROM_MM} 到 ${PRINTER_EDGE_MM} mm`
 
 /** 每格四周的內距：模切與送紙的誤差，碼與字不貼著標籤的邊 */
 export const CELL_PADDING_MM = 1.5

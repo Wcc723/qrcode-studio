@@ -7,6 +7,10 @@ import { describe, it, expect } from 'vitest'
 import { readFileSync, readdirSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { join } from 'node:path'
+import * as paper from './pure/batch/paper'
+import { checkRows, type BatchSymbology } from './pure/batch/rows'
+import { CODE128_MAX_LENGTH, CODE39_MAX_LENGTH } from './pure/validateBarcode'
+import { site } from './config/site'
 
 const root = fileURLToPath(new URL('..', import.meta.url))
 const read = (rel: string) => readFileSync(join(root, rel), 'utf8')
@@ -156,6 +160,25 @@ describe('印成 A4 標籤紙', () => {
     }
   })
 
+  it('畫面上的說明也不把 paper.ts 的列印規格寫死（例如「0.495 mm」「3 到 5 mm」「5 公分校正尺」）', () => {
+    // 會寫進說明的規格：窄條上下限、印不到的紙邊、條高、QR Code 小方塊、位移範圍、校正尺
+    const specs = new Set<number>([
+      ...Object.values(paper.BARCODE_MIN_X_MM), ...Object.values(paper.BARCODE_WARN_X_MM),
+      paper.PRINTER_EDGE_MM, paper.PRINTER_EDGE_FROM_MM, paper.BARCODE_MIN_BAR_HEIGHT_MM,
+      paper.QR_MIN_MODULE_MM, paper.QR_WARN_MODULE_MM, paper.OFFSET_LIMIT_MM, paper.OFFSET_STEP_MM,
+    ])
+    const esc = (n: number) => String(n).replace('.', '\\.')
+    const mmText = new RegExp(`(?<![\\d.])(?:${[...specs].map(esc).join('|')})\\s*(?:mm|公釐|毫米)(?![A-Za-z])`, 'g')
+    const cmText = new RegExp(`(?<![\\d.])${esc(paper.CALIBRATION_MM / 10)}\\s*公分`, 'g')
+    const files = [...LABEL_COMPONENTS, 'src/composables/useBatchLabels.ts', 'src/pages/BatchPage.vue']
+    for (const file of files) {
+      const source = readCode(file)
+      expect(source.match(mmText), `${file} 寫死了 paper.ts 的毫米數字`).toBeNull()
+      expect(source.match(cmText), `${file} 寫死了校正尺的長度`).toBeNull()
+    }
+    expect(paper.PRINTER_EDGE_RANGE).toBe(`${paper.PRINTER_EDGE_FROM_MM} 到 ${paper.PRINTER_EDGE_MM} mm`)
+  })
+
   it('列印規則：@page 不寫死在 CSS（只在列印區顯示時加進 <head>），縮放只在 @media screen，列印時只印列印區', () => {
     const sheets = readCode('src/components/batch/LabelSheets.vue')
     const css = sheets.slice(sheets.indexOf('<style>'))
@@ -168,6 +191,11 @@ describe('印成 A4 標籤紙', () => {
     expect(css).not.toMatch(/transform:\s*scale/)
     const print = css.slice(css.indexOf('@media print'))
     expect(print).toContain('body:has(.label-print-area) :not(:has(.label-print-area)):not(.label-print-area):not(.label-print-area *)')
+    // 換頁之後這份 CSS 還留在 <head>：碰 html、body 的規則一律限定在有列印區的頁面，不影響其他頁的列印
+    const selectors = [...print.matchAll(/([^{}]+)\{/g)].flatMap(m => m[1]!.split(',')).map(x => x.trim()).filter(x => x && !x.startsWith('@'))
+    const pageLevel = selectors.filter(x => /^(html|body)\b/.test(x))
+    expect(pageLevel.length).toBeGreaterThan(0)
+    for (const sel of pageLevel) expect(sel, sel).toMatch(/^(html|body):has\(\.label-print-area\)/)
     expect(print).toMatch(/\.label-sheet \{[^}]*break-after: page/)
   })
 
@@ -190,6 +218,51 @@ describe('印成 A4 標籤紙', () => {
   })
 })
 
+describe('常見問題對得上程式', () => {
+  it('「有數量或使用次數的限制嗎？」先說使用次數沒有限制，再說批次有單次上限，不前後矛盾', () => {
+    const answer = read('src/pages/FaqPage.vue').match(/q: '有數量或使用次數的限制嗎？', a: '([^']*)'/)![1]!
+    expect(answer.startsWith('使用次數沒有限制')).toBe(true)
+    expect(answer).not.toMatch(/^沒有。/)
+    expect(answer).toContain('超過單次上限就分幾批')
+  })
+
+  it('批次頁「為什麼有些列被標成紅色？」寫的每個原因，逐列檢查真的會擋；長度上限從常數帶出', () => {
+    const answer = read('src/pages/BatchPage.vue').match(/q: '為什麼有些列被標成紅色？', a: `([^`]*)`/)![1]!
+    expect(answer).toContain('Code 128 超過 ${CODE128_MAX_LENGTH} 個字元')
+    expect(answer).toContain('Code 39 超過 ${CODE39_MAX_LENGTH} 個字元')
+    for (const word of ['QR Code 的內容太長', 'EAN-13、EAN-8、ITF-14', '檢查碼不符', '中文', '# @ &', '內容空白', '略過有問題的列']) {
+      expect(answer).toContain(word)
+    }
+    const fails = (symbology: BatchSymbology, value: string) =>
+      !checkRows([{ line: 1, value, name: null }], { symbology, ec: 'M', template: '' })[0]!.ok
+    expect(fails('qr', 'x'.repeat(3000))).toBe(true)
+    for (const sym of ['ean13', 'ean8', 'itf14'] as const) {
+      expect(fails(sym, 'ABCDEFGHIJKL'), sym).toBe(true)
+      expect(fails(sym, '123'), sym).toBe(true)
+    }
+    expect(fails('ean13', '4710088331237')).toBe(true)
+    expect(fails('ean8', '55123458')).toBe(true)
+    expect(fails('itf14', '15400141288764')).toBe(true)
+    expect(fails('ean13', '471-0088-33123 6')).toBe(false)
+    expect(fails('code128', 'A'.repeat(CODE128_MAX_LENGTH + 1))).toBe(true)
+    expect(fails('code128', 'A'.repeat(CODE128_MAX_LENGTH))).toBe(false)
+    expect(fails('code39', 'A'.repeat(CODE39_MAX_LENGTH + 1))).toBe(true)
+    expect(fails('code39', 'A'.repeat(CODE39_MAX_LENGTH))).toBe(false)
+    for (const sym of ['code128', 'code39'] as const) expect(fails(sym, '財產 01'), sym).toBe(true)
+    for (const ch of ['#', '@', '&']) {
+      expect(fails('code39', `A${ch}B`), ch).toBe(true)
+      expect(fails('code128', `A${ch}B`), ch).toBe(false)
+    }
+    for (const sym of ['qr', 'ean13', 'code128'] as const) expect(fails(sym, ''), sym).toBe(true)
+  })
+
+  it('批次頁「為什麼沒有顏色和 LOGO？」連到首頁，錨文字是「免費 QR Code 產生器」', () => {
+    const page = read('src/pages/BatchPage.vue')
+    expect(page).toMatch(/q: '為什麼沒有顏色和 LOGO？'[^\n]*link: \{ lead: '[^']+', to: '\/', text: '免費 QR Code 產生器' \}/)
+    expect(page).toContain('<RouterLink :to="f.link.to"')
+  })
+})
+
 describe('隱私權頁與站內互鏈', () => {
   it('隱私權頁說明批次的清單只在記憶體、GA 只記級距；記住位移只存兩個數字', () => {
     const privacy = read('src/pages/PrivacyPage.vue')
@@ -199,6 +272,17 @@ describe('隱私權頁與站內互鏈', () => {
     expect(privacy).toMatch(/不包含清單內容/)
     expect(privacy).toMatch(/記住這台印表機的位移/)
     expect(privacy).toMatch(/兩個數字/)
+  })
+
+  it('關於頁的 meta description 提到批次產生：動詞開頭、90 到 130 字、不寫工具數量', () => {
+    const raw = read('src/pages/AboutPage.vue').match(/description: `([^`]*)`/)![1]!
+    const desc = raw.replaceAll('${site.name}', site.name)
+    expect(desc).not.toContain('${')
+    expect(desc).toMatch(/批次產生/)
+    expect(desc.startsWith('認識')).toBe(true)
+    expect([...desc].length).toBeGreaterThanOrEqual(90)
+    expect([...desc].length).toBeLessThanOrEqual(130)
+    expect(desc).not.toMatch(/[\d一二三四五六七八九十幾]+ ?(?:個|種|款|套)(?:免費)?(?:線上)?工具/)
   })
 
   it('首頁、條碼產生器、頁尾都連到批次頁，批次頁連回單張的兩個產生器', () => {

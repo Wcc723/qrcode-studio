@@ -15,7 +15,7 @@ const changelog = [
 
 useSeoHead({
   title: `關於 ${site.name}｜口袋工具`,
-  description: `${site.name}是口袋工具的免費 QR Code 產生器、掃描器與一維條碼產生器：所有圖片都在你的瀏覽器內產生與解讀，內容不傳雲端、沒有浮水印、不會過期。這裡說明誰在維護、為什麼做、怎麼運作與更新紀錄。`,
+  description: `認識 ${site.name}：口袋工具的免費 QR Code 產生器、掃描器與條碼產生器，還能貼上 Excel 清單批次產生、打包成 ZIP 下載。圖片都在你的瀏覽器內產生與解讀，不傳雲端、沒有浮水印、不會過期。看誰在維護、怎麼運作與更新紀錄。`,
   path: '/about',
   kind: 'page',
   pageType: 'AboutPage',

@@ -5,20 +5,26 @@ import { useSeoHead } from '@/composables/useSeoHead'
 import { site } from '@/config/site'
 import { BATCH_MAX_ROWS } from '@/pure/batch/rows'
 import { formatCount } from '@/pure/batch/sequence'
+import { BARCODE_MIN_X_MM, CALIBRATION_MM, PRINTER_EDGE_RANGE } from '@/pure/batch/paper'
+import { CODE128_MAX_LENGTH, CODE39_MAX_LENGTH } from '@/pure/validateBarcode'
 
 const max = formatCount(BATCH_MAX_ROWS)
+/** 校正尺的長度（公分）與條碼最細的線的下限：數字從 paper.ts 來 */
+const rulerCm = CALIBRATION_MM / 10
+const code128MinMm = BARCODE_MIN_X_MM.code128
 
-// privacy：答案後面接「詳見隱私權政策」的站內連結（模板裡用 RouterLink，不走 v-html）
-const faqs: { q: string; a: string; privacy?: true }[] = [
+// link：答案後面接一段文字與站內連結（模板裡用 RouterLink，不走 v-html），最後補句號
+interface BatchFaq { q: string; a: string; link?: { lead: string; to: string; text: string } }
+const faqs: BatchFaq[] = [
   { q: 'Excel 的清單怎麼一次轉成 QR Code 或條碼？', a: '在 Excel 或 Google 試算表選取整塊儲存格（可以連欄名那一列）複製，回到這頁選「從 Excel 貼上」並貼進輸入框，再選內容欄、檔名欄與碼的種類，按「下載 ZIP」就好，不用裝增益集、條碼字型或寫公式。' },
   { q: '一次可以做幾張？', a: `一次最多 ${max} 筆，PNG、SVG 都一樣。全部在你的瀏覽器裡產生，張數越多、圖片越大，需要的時間越久，畫面上會顯示進度，隨時可以取消。更多的話請分成幾批產生。` },
-  { q: '我貼上的清單會上傳嗎？', a: '不會。清單、連號與做好的圖片只在這個分頁的記憶體裡，ZIP 也是在你的瀏覽器裡打包好直接下載，不會上傳到任何伺服器，也不會存進網址、Cookie 或瀏覽器的儲存空間。網站的流量統計只記大概幾筆（例如 51 到 200 筆）、哪一種碼、下載 PNG 還是 SVG，不含清單內容與檔名。', privacy: true },
-  { q: '為什麼有些列被標成紅色？', a: '那一列做不成碼：QR Code 的內容太長、EAN 的位數或檢查碼不對、Code 39 有不支援的字元（例如中文或 # @ 這類符號），或是內容空白。可以回到 Excel 修正後重新貼上，或選「略過有問題的列」先產生其他的。內容重複只會提醒，照樣產生。' },
+  { q: '我貼上的清單會上傳嗎？', a: '不會。清單、連號與做好的圖片只在這個分頁的記憶體裡，ZIP 也是在你的瀏覽器裡打包好直接下載，不會上傳到任何伺服器，也不會存進網址、Cookie 或瀏覽器的儲存空間。網站的流量統計只記大概幾筆（例如 51 到 200 筆）、哪一種碼、下載 PNG 還是 SVG，不含清單內容與檔名。', link: { lead: '詳見', to: '/privacy/', text: '隱私權政策' } },
+  { q: '為什麼有些列被標成紅色？', a: `那一列做不成碼，紅字會寫出原因，常見的有：QR Code 的內容太長，超過能放的上限；EAN-13、EAN-8、ITF-14 混了數字以外的字（空白與 - 會自動去掉）、位數不對或檢查碼不符；Code 128 超過 ${CODE128_MAX_LENGTH} 個字元、Code 39 超過 ${CODE39_MAX_LENGTH} 個字元，或是有不支援的字元，例如中文，Code 39 也不收 # @ & 這類符號；或是內容空白。可以選「略過有問題的列」先產生其他的，或回到 Excel 修好再重新貼上。內容重複只會提醒，照樣產生。` },
   { q: 'EAN-13 的檢查碼要自己算嗎？', a: '不用。輸入 12 位會自動補上第 13 位；輸入 13 位會驗證，不符的那一列會標紅並告訴你正確的檢查碼應該是多少。用連號產生的店內碼也一樣，每一筆都會算好。' },
   { q: '檔名怎麼決定？', a: '從 Excel 貼上時可以選「檔名欄」，例如財產編號；每行一筆與連號可以用內容本身或流水號（001、002…）。檔名不能用的字元（/ \\ : * ? " < > |）會換成底線，重複的檔名自動加上 (2)、(3)。' },
-  { q: '為什麼沒有顏色和 LOGO？', a: '標籤與條碼用黑白最好掃，批次產生只做黑白。要做彩色、加 LOGO 的單張 QR Code，請用免費 QR Code 產生器。' },
+  { q: '為什麼沒有顏色和 LOGO？', a: '標籤與條碼用黑白最好掃，批次產生只做黑白。', link: { lead: '要做彩色、加 LOGO 的單張 QR Code，請用', to: '/', text: '免費 QR Code 產生器' } },
   { q: '可以直接印在 A4 標籤貼紙上嗎？', a: '可以。輸出方式選「印成 A4 標籤紙」，再選鶴屋或龍德的型號（找不到可以自訂尺寸），每一格是一個碼加一到三行字，按「列印標籤」用瀏覽器直接印。本站不產生 PDF 檔，想存成 PDF，可以在列印視窗的目的地選「另存為 PDF」。' },
-  { q: '印出來的位置跟標籤對不準怎麼辦？', a: '先用白紙印「對位測試頁」，量上面的校正尺是不是剛好 5 公分：短了就是列印設定有縮放，請把縮放改成「實際大小（100%）」、邊界選「無」，不要選「符合頁面大小」。尺寸對了但整批往同一邊偏，就把測試頁疊在標籤紙上對著光看偏了多少，填進「位移微調」再印一次；勾選「記住這台印表機的位移」，下次就不用重量。' },
+  { q: '印出來的位置跟標籤對不準怎麼辦？', a: `先用白紙印「對位測試頁」，量上面的校正尺是不是剛好 ${rulerCm} 公分：短了就是列印設定有縮放，請把縮放改成「實際大小（100%）」、邊界選「無」，不要選「符合頁面大小」。尺寸對了但整批往同一邊偏，就把測試頁疊在標籤紙上對著光看偏了多少，填進「位移微調」再印一次；勾選「記住這台印表機的位移」，下次就不用重量。` },
   { q: '標籤紙用掉一半，可以接著印嗎？', a: '可以。在「從第幾格開始印」填第一張還沒用的格子號碼（由左到右、由上到下數），前面的格子會留白。只有第一張受影響，第二張起從第 1 格開始。' },
 ]
 
@@ -88,14 +94,14 @@ useSeoHead({
         <li><strong class="text-ink">選型號</strong>：內建鶴屋與龍德常見的型號，從 2 × 5 的 10 格到 7 × 16 的 112 格，格子的位置照兩家官網提供的 Word 範本設定。同樣格數的型號，邊界可能差到 2 mm，請選包裝上寫的型號；清單裡沒有的，選「自訂尺寸」自己量。</li>
         <li><strong class="text-ink">從第幾格開始</strong>：用掉一半的標籤紙，填第一張還沒用的格子號碼，前面的格子留白，接著印下去。</li>
         <li><strong class="text-ink">每筆印幾份</strong>：同一筆連續印好幾張，例如一張貼在設備上、一張貼在財產卡上。</li>
-        <li><strong class="text-ink">全版切割</strong>：整張都是標籤、四邊沒有留白的型號，多數印表機印不到紙邊 3 到 5 mm，最外圈格子裡的碼與字會自動往內縮。</li>
-        <li><strong class="text-ink">印不出能掃的大小就擋下</strong>：條碼在小格子裡會被壓得太窄，例如 EAN-13 低於標準尺寸的 80%、Code 128 最細的線不到 0.19 mm，工具會說明原因並停用列印，不會印出掃不到的標籤。</li>
+        <li><strong class="text-ink">全版切割</strong>：整張都是標籤、四邊沒有留白的型號，多數印表機印不到紙邊 {{ PRINTER_EDGE_RANGE }}，最外圈格子裡的碼與字會自動往內縮。</li>
+        <li><strong class="text-ink">印不出能掃的大小就擋下</strong>：條碼在小格子裡會被壓得太窄，例如 EAN-13 低於標準尺寸的 80%、Code 128 最細的線不到 {{ code128MinMm }} mm，工具會說明原因並停用列印，不會印出掃不到的標籤。</li>
       </ul>
 
       <h3 class="text-xl font-700 text-ink mt-6">印之前先對位</h3>
       <ol class="list-decimal pl-5 mt-3 space-y-1">
-        <li>在「要印什麼」選「對位測試頁」，用一般白紙印一張：上面只有每一格的框線、格號與一把 5 公分校正尺。</li>
-        <li>量校正尺：剛好 5 公分才是實際大小。短了就是列印設定有縮放，請把縮放改成「實際大小（100%）」或「預設」，邊界選「無」，不要選「符合頁面大小」。</li>
+        <li>在「要印什麼」選「對位測試頁」，用一般白紙印一張：上面只有每一格的框線、格號與一把 {{ rulerCm }} 公分校正尺。</li>
+        <li>量校正尺：剛好 {{ rulerCm }} 公分才是實際大小。短了就是列印設定有縮放，請把縮放改成「實際大小（100%）」或「預設」，邊界選「無」，不要選「符合頁面大小」。</li>
         <li>把印好的白紙疊在標籤紙上，對著光看，格線要落在標籤的切線上。整批往同一個方向偏，就在「位移微調」填偏了多少（mm），再印一次確認；勾選「記住這台印表機的位移」，下次不用重量。</li>
         <li>對準了，再放標籤紙，選回「標籤」按「列印標籤」。</li>
       </ol>
@@ -119,7 +125,7 @@ useSeoHead({
       <div class="doc-faq">
         <details v-for="(f, i) in faqs" :key="i">
           <summary>{{ f.q }}<span class="i-lucide-chevron-down faq-chevron" aria-hidden="true" /></summary>
-          <p>{{ f.a }}<template v-if="f.privacy">詳見<RouterLink to="/privacy/" class="text-link underline underline-offset-2 font-700">隱私權政策</RouterLink>。</template></p>
+          <p>{{ f.a }}<template v-if="f.link">{{ f.link.lead }}<RouterLink :to="f.link.to" class="text-link underline underline-offset-2 font-700">{{ f.link.text }}</RouterLink>。</template></p>
         </details>
       </div>
     </article>

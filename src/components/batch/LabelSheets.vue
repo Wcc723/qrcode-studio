@@ -195,7 +195,8 @@ const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).
 }
 
 @media print {
-  html, body {
+  /* 只在有列印區的頁面生效：這份 CSS 換頁後還留在 <head>，不能動到其他頁的列印 */
+  html:has(.label-print-area), body:has(.label-print-area) {
     background: #fff !important;
     margin: 0 !important;
     padding: 0 !important;

@@ -496,7 +496,15 @@ if (existsSync(batchHtmlPath) && basePath) {
   add('[batch] 有 WebApplication JSON-LD', /"@type":"WebApplication"/.test(html))
   add('[batch] 有 BreadcrumbList JSON-LD', /"@type":"BreadcrumbList"/.test(html))
   add('[batch] 沒有 FAQPage（FAQ 只做看得到的文字）', !/"@type":"FAQPage"/.test(html))
-  add('[batch] 連回條碼產生器與首頁', html.includes(`href="${basePath}barcode/"`) && html.includes(`href="${basePath}"`))
+  // 只看說明文章、比對錨文字：頁首站徽、導覽列與頁尾每一頁都連到首頁，只比 href 一定會過
+  const batchDoc = (html.match(/<article\b[^>]*data-test="doc"[^>]*>([\s\S]*?)<\/article>/) || [])[1] || ''
+  const linksTo = (fragment, href, text) => [...fragment.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)]
+    .some(([, attrs, inner]) => (attrs.match(/\bhref="([^"]*)"/) || [])[1] === href && inner.replace(/<[^>]+>/g, '').trim() === text)
+  add('[batch] 說明文章用錨文字連回條碼產生器與首頁（「條碼產生器」「免費 QR Code 產生器」）',
+    linksTo(batchDoc, `${basePath}barcode/`, '條碼產生器') && linksTo(batchDoc, basePath, '免費 QR Code 產生器'))
+  // 常見問題「為什麼沒有顏色和 LOGO？」的答案也連到首頁
+  const colorFaq = (batchDoc.match(/<details\b[^>]*>(?:(?!<\/details>)[\s\S])*?為什麼沒有顏色和 LOGO？[\s\S]*?<\/details>/) || [])[0] || ''
+  add('[batch] 常見問題「為什麼沒有顏色和 LOGO？」連到首頁（錨文字「免費 QR Code 產生器」）', linksTo(colorFaq, basePath, '免費 QR Code 產生器'))
   add('[batch] 預覽格是 client-only，不在預渲染 HTML', !/data-test="batch-preview"/.test(html))
   // 標籤紙的設定與 A4 預覽要等使用者選「印成 A4 標籤紙」才出現；@page 也只在那時才加進 <head>
   add('[batch] 標籤紙的列印區是 client-only，不在預渲染 HTML', !/label-print-area|data-test="label-print"/.test(html))

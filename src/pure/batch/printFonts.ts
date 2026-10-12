@@ -1,7 +1,7 @@
 /**
  * 標籤上的字用的系統字型：標楷體、微軟正黑體、新細明體三選一，不向第三方載入網頁字型。
- * 行政人員多半用 Windows 的 Edge 或 Chrome 列印，這三套一定在；Mac 與手機沒有標楷體與新細明體，
- * 瀏覽器會改用堆疊後面的字型，所以要偵測、要在畫面上講清楚「會被替換」。
+ * 行政人員多半用 Windows 的 Edge 或 Chrome 列印，這三套一定在；Mac 與手機沒有微軟正黑體與新細明體，
+ * 標楷體只有 Mac 下載了內附的「標楷體-繁」才有，瀏覽器會改用堆疊後面的字型，所以要偵測、要在畫面上講清楚「會被替換」。
  *
  * 偵測用量字寬（`detectFont`）：同一串字分別用「候選字型, 後備字型」與「後備字型」量，寬度不同就代表候選字型真的在。
  * `document.fonts.check()` 對沒有 @font-face 的系統字型一律回 true，不能用。量測函式由呼叫端注入
@@ -33,8 +33,10 @@ export const PRINT_FONTS: readonly PrintFont[] = [
   {
     id: 'kai',
     label: '標楷體',
-    stack: '"DFKai-SB", "標楷體", "BiauKai", "Kaiti TC", "STKaiti", serif',
-    probes: ['DFKai-SB', '標楷體', 'BiauKai'],
+    // macOS 內附的標楷體（字體簿裡叫「標楷體-繁」，可能要先下載）家族名是 BiauKaiTC；
+    // 只寫 BiauKai 在新版 macOS 的 Chrome 對不到，會被當成沒有、也印不出楷書。BiauKai 留給舊版 macOS。
+    stack: '"DFKai-SB", "標楷體", "BiauKaiTC", "BiauKai", "Kaiti TC", "STKaiti", serif',
+    probes: ['DFKai-SB', '標楷體', 'BiauKaiTC', 'BiauKai'],
     fallbackNote: '會改用其他楷書或明體字型，字寬與筆畫會不同',
   },
   {

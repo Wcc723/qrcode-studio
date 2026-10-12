@@ -12,7 +12,7 @@ import type { ParsedTable } from '@/pure/batch/table'
 import type { BatchSymbology, ReadyRow } from '@/pure/batch/rows'
 import { formatCount } from '@/pure/batch/sequence'
 import { encodeBarcode, type BarcodePattern } from '@/pure/encodeBarcode'
-import { BARCODE_MIN_X_MM, MIN_LABEL_FONT_PT } from '@/pure/batch/paper'
+import { BARCODE_MIN_X_MM, BARCODE_WARN_X_MM, MIN_LABEL_FONT_PT, PRINTER_EDGE_RANGE } from '@/pure/batch/paper'
 import { BRAND_NAMES, DEFAULT_SHEET_ID, LABEL_SHEETS, sheetById, sheetCells, type LabelGrid } from '@/pure/batch/labelSheets'
 import {
   LABEL_MAX_CELLS, LABEL_MAX_COPIES, clampOffset, contentBox, customInputFrom, edgeCellCount, normalizePlacement,
@@ -352,9 +352,11 @@ export function useBatchLabels(src: LabelSourceRefs) {
       out.push({ id: 'qr-tiny', level: 'block', text: `${whichLines(lines('qr-tiny'), unit)}：QR Code 的小方塊只有 ${fmt(min('qr-tiny'))} mm，印出來手機很難掃。請縮短內容、把耐髒程度調低、減少每格的文字，或選大一點的標籤紙。` })
     }
     if (p.has('barcode-thin')) {
+      // 只有 BARCODE_WARN_X_MM 有值的碼制（Code 128、Code 39、ITF-14）才會有 barcode-thin
+      const warnMm = sym === 'qr' ? undefined : BARCODE_WARN_X_MM[sym]
       const advice = sym === 'itf14'
-        ? '外箱給物流掃描時建議 0.495 mm 以上（選 2 欄的大標籤）'
-        : '建議 0.25 mm 以上，比較舊的掃描槍可能要多掃幾次'
+        ? `外箱給物流掃描時建議 ${warnMm} mm 以上（選 2 欄的大標籤）`
+        : `建議 ${warnMm} mm 以上，比較舊的掃描槍可能要多掃幾次`
       out.push({ id: 'barcode-thin', level: 'warn', text: `${whichLines(lines('barcode-thin'), unit)}：條碼最細的線只有 ${fmt(min('barcode-thin'))} mm，${advice}。整批印之前請先實際掃一張。` })
     }
     if (p.has('qr-small')) {
@@ -365,8 +367,8 @@ export function useBatchLabels(src: LabelSourceRefs) {
     }
     if (edgeCount.value) {
       out.push(avoidEdge.value
-        ? { id: 'edge', level: 'info', text: `這個型號有 ${edgeCount.value} 格貼近紙邊，多數印表機印不到紙邊 3 到 5 mm：這幾格的碼與字已經自動往內縮，避開印不到的範圍。` }
-        : { id: 'edge', level: 'warn', text: `這個型號有 ${edgeCount.value} 格貼近紙邊，多數印表機印不到紙邊 3 到 5 mm，碼與字可能被切掉。印表機能無邊界列印時才關掉內縮。` })
+        ? { id: 'edge', level: 'info', text: `這個型號有 ${edgeCount.value} 格貼近紙邊，多數印表機印不到紙邊 ${PRINTER_EDGE_RANGE}：這幾格的碼與字已經自動往內縮，避開印不到的範圍。` }
+        : { id: 'edge', level: 'warn', text: `這個型號有 ${edgeCount.value} 格貼近紙邊，多數印表機印不到紙邊 ${PRINTER_EDGE_RANGE}，碼與字可能被切掉。印表機能無邊界列印時才關掉內縮。` })
     }
     return out
   })
