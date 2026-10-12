@@ -9,8 +9,8 @@
  *   所以結尾的換行只去掉一個；再多的就是使用者真的留下的空白列
  * - 開頭是雙引號、卻找不到「雙引號接著 Tab 或換行或結尾」的格子，照字面收（例如 `"5" 吋`）
  *
- * 空白列保留、位置不動；`rowStartLines` 是這一列在文字框裡從第幾行開始（引號內換行的儲存格會佔好幾行），
- * 錯誤訊息的「第幾列」用它對回使用者看到的位置。
+ * 空白列保留、位置不動：錯誤訊息的「第幾列」是列的索引加 1，跟試算表左邊的列號一致
+ * （引號內換行的儲存格在文字框裡佔好幾行，但在試算表裡還是同一列）。
  */
 
 export interface ParsedTable {
@@ -22,8 +22,6 @@ export interface ParsedTable {
   truncated: boolean
   /** 最寬那一列的欄數 */
   columnCount: number
-  /** 每一列在原始文字的第幾行開始（0 起算） */
-  rowStartLines: number[]
 }
 
 /**
@@ -62,23 +60,17 @@ function nextDelimiter(text: string, from: number): number {
 export function parseClipboardTable(input: string, maxRows = Number.POSITIVE_INFINITY): ParsedTable {
   const withoutBom = input.startsWith('﻿') ? input.slice(1) : input
   const normalized = withoutBom.replace(/\r\n?/g, '\n')
-  if (normalized === '') return { rows: [], totalRows: 0, truncated: false, columnCount: 0, rowStartLines: [] }
+  if (normalized === '') return { rows: [], totalRows: 0, truncated: false, columnCount: 0 }
   // 複製範圍結尾的那一個換行不是一列
   const text = normalized.endsWith('\n') ? normalized.slice(0, -1) : normalized
 
   const rows: string[][] = []
-  const rowStartLines: number[] = []
   let totalRows = 0
-  let line = 0
   let row: string[] = []
-  let rowStart = 0
   let i = 0
   const pushRow = () => {
     totalRows += 1
-    if (rows.length < maxRows) {
-      rows.push(row)
-      rowStartLines.push(rowStart)
-    }
+    if (rows.length < maxRows) rows.push(row)
     row = []
   }
 
@@ -88,7 +80,6 @@ export function parseClipboardTable(input: string, maxRows = Number.POSITIVE_INF
     const quoted = text[i] === '"' ? readQuoted(text, i) : null
     if (quoted) {
       value = quoted.value
-      line += (value.match(/\n/g) ?? []).length
       i = quoted.end
     } else {
       const stop = nextDelimiter(text, i)
@@ -106,13 +97,11 @@ export function parseClipboardTable(input: string, maxRows = Number.POSITIVE_INF
     }
     // 換行：這一列結束
     i += 1
-    line += 1
     pushRow()
-    rowStart = line
   }
 
   const columnCount = rows.reduce((max, cells) => Math.max(max, cells.length), 0)
-  return { rows, totalRows, truncated: totalRows > rows.length, columnCount, rowStartLines }
+  return { rows, totalRows, truncated: totalRows > rows.length, columnCount }
 }
 
 /** 整列都是空白（含只有空白字元的格子） */
@@ -144,7 +133,7 @@ function looksStructured(value: string): boolean {
  * 「財產編號」「商品名稱」「購置日期」這類可以帶前綴；「單位」「部門」「位置」只認整格：
  * 「總務單位」「資訊部門」也可能是資料列裡的值。
  */
-const HEADER_WORDS = /^(?:.{0,6}(?:編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|條碼|名稱|品名|網址|連結|日期|檔名)|品項|內容|備註|說明|保管人|保管單位|使用單位|單位|部門|位置|儲位|地點|數量|價格|規格|類別|url|link|sku|id|no\.?|name|title|code|barcode|item|asset|content|file ?name)$/i
+const HEADER_WORDS = /^(?:.{0,6}(?:編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|條碼|名稱|品名|網址|連結|日期|檔名)|(?:ean|gtin|upc)(?:[- ]?\d+)?|品項|內容|備註|說明|保管人|保管單位|使用單位|單位|部門|位置|儲位|地點|數量|價格|規格|類別|url|link|sku|id|no\.?|name|title|code|barcode|item|asset|content|file ?name)$/i
 
 export interface HeaderGuess {
   /** 欄名列的索引（第一個不是空白的列）；沒有欄名列是 -1 */
@@ -174,7 +163,10 @@ export function detectHeaderRow(rows: readonly string[][]): HeaderGuess {
 }
 
 const CONTENT_HEADER = /網址|連結|內容|url|link|content|qr/i
-const NAME_HEADER = /編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|檔名|sku|^id$|^no\.?$|code|file ?name/i
+/** 欄名是條碼的那一欄也是要做成碼的內容；同時有網址欄時，網址欄優先 */
+const BARCODE_HEADER = /條碼|barcode|(?:^|[^a-z])(?:ean|gtin|upc)(?![a-z])/i
+// code 認「Item code」「ItemCode」，不吃「barcode」「QRcode」：那兩種是要做成碼的內容
+const NAME_HEADER = /編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|檔名|sku|^id$|^no\.?$|(?:^|[^r])code|file ?name/i
 
 export interface ColumnGuess {
   /** 內容欄（0 起算） */
@@ -185,7 +177,7 @@ export interface ColumnGuess {
 
 /**
  * 猜「內容欄」與「檔名欄」。畫面上一律讓使用者用下拉選單改，這裡只給預設值：
- * - 內容欄：欄名像「網址、連結、內容」的那一欄；沒有欄名時，值多半是網址的那一欄；都沒有就第一欄
+ * - 內容欄：欄名像「網址、連結、內容」的那一欄，其次是「條碼、EAN、GTIN」；沒有欄名時，值多半是網址的那一欄；都沒有就第一欄
  * - 檔名欄：欄名像「編號、代號、SKU」的另一欄；內容是網址時改用另一欄（網址當檔名很長又難認）；
  *   只有一欄而且內容不是網址時就用內容本身，否則用流水號
  */
@@ -201,6 +193,7 @@ export function guessColumns(rows: readonly string[][], headerIndex: number): Co
   const columns = Array.from({ length: columnCount }, (_, i) => i)
 
   let content = header ? columns.find(i => CONTENT_HEADER.test(header[i] ?? '')) : undefined
+  if (header) content ??= columns.find(i => BARCODE_HEADER.test(header[i] ?? ''))
   content ??= columns.find(i => urlRatio(i) >= 0.8)
   content ??= 0
 

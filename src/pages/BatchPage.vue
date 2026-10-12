@@ -8,9 +8,11 @@ import { formatCount } from '@/pure/batch/sequence'
 
 const max = formatCount(BATCH_MAX_ROWS)
 
-const faqs = [
+// privacy：答案後面接「詳見隱私權政策」的站內連結（模板裡用 RouterLink，不走 v-html）
+const faqs: { q: string; a: string; privacy?: true }[] = [
+  { q: 'Excel 的清單怎麼一次轉成 QR Code 或條碼？', a: '在 Excel 或 Google 試算表選取整塊儲存格（可以連欄名那一列）複製，回到這頁選「從 Excel 貼上」並貼進輸入框，再選內容欄、檔名欄與碼的種類，按「下載 ZIP」就好，不用裝增益集、條碼字型或寫公式。' },
   { q: '一次可以做幾張？', a: `一次最多 ${max} 筆，PNG、SVG 都一樣。全部在你的瀏覽器裡產生，張數越多、圖片越大，需要的時間越久，畫面上會顯示進度，隨時可以取消。更多的話請分成幾批產生。` },
-  { q: '我貼上的清單會上傳嗎？', a: '不會。清單、連號與做好的圖片只在這個分頁的記憶體裡，ZIP 也是在你的瀏覽器裡打包好直接下載，不會上傳到任何伺服器，也不會存進網址、Cookie 或瀏覽器的儲存空間。網站的流量統計只記大概幾筆（例如 51 到 200 筆）、哪一種碼、下載 PNG 還是 SVG，不含清單內容與檔名。' },
+  { q: '我貼上的清單會上傳嗎？', a: '不會。清單、連號與做好的圖片只在這個分頁的記憶體裡，ZIP 也是在你的瀏覽器裡打包好直接下載，不會上傳到任何伺服器，也不會存進網址、Cookie 或瀏覽器的儲存空間。網站的流量統計只記大概幾筆（例如 51 到 200 筆）、哪一種碼、下載 PNG 還是 SVG，不含清單內容與檔名。', privacy: true },
   { q: '為什麼有些列被標成紅色？', a: '那一列做不成碼：QR Code 的內容太長、EAN 的位數或檢查碼不對、Code 39 有不支援的字元（例如中文或 # @ 這類符號），或是內容空白。可以回到 Excel 修正後重新貼上，或選「略過有問題的列」先產生其他的。內容重複只會提醒，照樣產生。' },
   { q: 'EAN-13 的檢查碼要自己算嗎？', a: '不用。輸入 12 位會自動補上第 13 位；輸入 13 位會驗證，不符的那一列會標紅並告訴你正確的檢查碼應該是多少。用連號產生的店內碼也一樣，每一筆都會算好。' },
   { q: '檔名怎麼決定？', a: '從 Excel 貼上時可以選「檔名欄」，例如財產編號；每行一筆與連號可以用內容本身或流水號（001、002…）。檔名不能用的字元（/ \\ : * ? " < > |）會換成底線，重複的檔名自動加上 (2)、(3)。' },
@@ -25,8 +27,8 @@ const steps = [
 ]
 
 useSeoHead({
-  title: '批次產生 QR Code 與條碼｜Excel 貼上、連號流水號，免費下載 ZIP',
-  description: '一次產生上千張 QR Code 或條碼：從 Excel 貼上清單、設定連號流水號或套用網址範本，自動補 EAN-13 檢查碼、逐列抓出錯誤，免費免註冊、清單不上傳，立即下載 PNG 或 SVG 的 ZIP 檔。',
+  title: '批次產生 QR Code 與條碼｜Excel 貼上、流水號，免費下載 ZIP',
+  description: '免費批次產生 QR Code 與條碼，一次做上千張：從 Excel 貼上清單、設定流水號或套用網址範本，自動補 EAN-13 檢查碼、逐列抓錯，清單不上傳，立即下載 PNG 或 SVG 的 ZIP 檔。',
   path: '/batch',
   appName: '批次產生 QR Code 與條碼',
   appType: 'WebApplication',
@@ -48,7 +50,7 @@ useSeoHead({
       <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
       <p class="text-lg text-ink" data-test="doc-lead">
         免費線上批次產生 QR Code 與一維條碼：從 Excel 或 Google 試算表貼上清單、每行一筆，或直接設定連號，一次做出上千張，打包成 ZIP 下載。
-        支援 QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14，自動補上檢查碼、逐列檢查錯誤，清單只在你的瀏覽器裡處理，不會上傳。
+        支援 QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14，自動補上檢查碼（條碼最後一位，用來抓打錯的號碼）、逐列檢查錯誤，清單只在你的瀏覽器裡處理，不會上傳。
       </p>
 
       <h2 class="text-2xl font-800 text-ink mt-8">三種輸入方式</h2>
@@ -78,7 +80,7 @@ useSeoHead({
 
       <h2 class="text-2xl font-800 text-ink mt-10">一維條碼還是 QR Code？</h2>
       <p class="mt-3">要給掃描槍讀編號、跟收銀或庫存系統對接，用一維條碼：Code 128 最通用，零售商品用 EAN-13。要讓手機相機一掃就打開網頁、表單或說明頁，用 QR Code。兩種都要也可以，同一份清單先做一次 QR Code，再切到 Code 128 做一次。</p>
-      <p class="mt-3">只要做一張的話，用<RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">條碼產生器</RouterLink>或<RouterLink to="/" class="text-link underline underline-offset-2 font-700">免費 QR Code 產生器</RouterLink>，可以調顏色、加 LOGO。</p>
+      <p class="mt-3">只要做一張的話，用<RouterLink to="/barcode/" class="text-link underline underline-offset-2 font-700">條碼產生器</RouterLink>或<RouterLink to="/" class="text-link underline underline-offset-2 font-700">免費 QR Code 產生器</RouterLink>；QR Code 產生器還可以調顏色、加 LOGO。</p>
 
       <h2 class="text-2xl font-800 text-ink mt-10">印出去的碼不會過期，網址要選你能長期維持的</h2>
       <p class="mt-3">本站做的是靜態 QR Code：網址直接存在圖裡，不經過任何轉址服務，印出去之後不會因為哪個服務停掉而失效。但碼裡的網址要一直打得開：請用你自己能長期維持的網址，不要用短網址服務，也避免之後會改的網址（例如表單換一份、網站改版換路徑）。網址一改，已經貼出去的標籤就得重印。</p>
@@ -95,7 +97,7 @@ useSeoHead({
       <div class="doc-faq">
         <details v-for="(f, i) in faqs" :key="i">
           <summary>{{ f.q }}<span class="i-lucide-chevron-down faq-chevron" aria-hidden="true" /></summary>
-          <p>{{ f.a }}<template v-if="i === 1">詳見<RouterLink to="/privacy/" class="text-link underline underline-offset-2 font-700">隱私權政策</RouterLink>。</template></p>
+          <p>{{ f.a }}<template v-if="f.privacy">詳見<RouterLink to="/privacy/" class="text-link underline underline-offset-2 font-700">隱私權政策</RouterLink>。</template></p>
         </details>
       </div>
     </article>

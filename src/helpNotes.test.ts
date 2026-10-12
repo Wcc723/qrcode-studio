@@ -197,4 +197,13 @@ describe('批次產生的「?」', () => {
     expectVisible(w, '已自動補上檢查碼')
     expectVisible(w, '有 1 列要先修正')
   })
+
+  it('Code 39 含 $ / + % 的提醒看得到（跟條碼產生器同一條）', async () => {
+    const w = mount(BatchTool, opts)
+    await w.find('[data-test="batch-sym-code39"]').setValue(true)
+    await w.find('[data-test="batch-paste"]').setValue('TP-0001\nA/B')
+    await flushPromises()
+    expectVisible(w, '有 1 筆內容含 $ / + % 這幾個符號')
+    expectVisible(w, '有些掃描器會把它們跟下一個字合在一起讀')
+  })
 })

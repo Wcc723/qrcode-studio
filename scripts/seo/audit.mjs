@@ -571,7 +571,7 @@ for (const [page, needles] of [
     ],
     'batch/': [
       '免費線上批次產生 QR Code 與一維條碼：從 Excel 或 Google 試算表貼上清單、每行一筆，或直接設定連號，一次做出上千張，打包成 ZIP 下載。',
-      '支援 QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14，自動補上檢查碼、逐列檢查錯誤，清單只在你的瀏覽器裡處理，不會上傳。',
+      '支援 QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14，自動補上檢查碼（條碼最後一位，用來抓打錯的號碼）、逐列檢查錯誤，清單只在你的瀏覽器裡處理，不會上傳。',
     ],
   }
   // 7 個類型頁：標題下原本就是 meta description 那一句

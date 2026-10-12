@@ -1,16 +1,10 @@
 import { ref, computed, watch, onBeforeUnmount, type Ref } from 'vue'
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
-import { validateBarcode } from '@/pure/validateBarcode'
+import { validateBarcode, CODE39_SHIFT_CHARS } from '@/pure/validateBarcode'
 import { encodeBarcode, barcodeToSvg, barcodeGeometry, barcodeDownloadSvg } from '@/pure/encodeBarcode'
 import { symbologyById } from '@/config/symbologies'
 import { saveBlob } from '@/utils/save-blob'
 import { barcodeRasterPlan, paintPlan } from '@/pure/raster'
-
-// Code 39 把 $ / + % 當成 Full ASCII 的 shift 字元：掃描器可能把「$E」讀成
-// 控制字元 ENQ、「+G」讀成小寫 g。以獨立的 ZXing 解碼器實測確認過這個行為
-// （ZXing 自家編碼器產出的圖也是同樣結果），所以這不是 bug 而是 Code 39 的規範，
-// 但使用者一定會踩到，必須先講。
-const CODE39_SHIFT_CHARS = /[$/+%]/
 
 export function useBarcode(raw: Ref<string>, sym: Ref<BarcodeSymbology>) {
   const validation = computed(() => validateBarcode(sym.value, raw.value))

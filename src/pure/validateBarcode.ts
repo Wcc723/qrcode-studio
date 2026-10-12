@@ -17,6 +17,12 @@ export interface BarcodeValidation {
 
 // 43 個字元，順序即 mod-43 權值。* 是起始／結束符號，不是資料字元，故不在其中。
 export const CODE39_CHARSET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-. $/+%'
+// Code 39 把 $ / + % 當成 Full ASCII 的 shift 字元：掃描器可能把「$E」讀成
+// 控制字元 ENQ、「+G」讀成小寫 g。以獨立的 ZXing 解碼器實測確認過這個行為
+// （ZXing 自家編碼器產出的圖也是同樣結果），所以這不是 bug 而是 Code 39 的規範，
+// 但使用者一定會踩到，必須先講。這些仍是合法的 Code 39，只提醒、不擋下載；
+// 條碼產生器（useBarcode）與批次產生（useBatch）共用這一份。
+export const CODE39_SHIFT_CHARS = /[$/+%]/
 // 實務上限，非標準限制：0.25mm X 尺寸下 48 字元已達約 200mm 寬。
 export const CODE39_MAX_LENGTH = 48
 // 同上，80 字元約 229mm。

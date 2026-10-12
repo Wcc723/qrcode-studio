@@ -7,6 +7,18 @@ const saved: { blob: Blob; name: string }[] = []
 vi.mock('@/utils/save-blob', () => ({
   saveBlob: (blob: Blob, name: string) => { saved.push({ blob, name }) },
 }))
+// 測試可以讓產生停在半路（hold），看產生途中的畫面；平常直接走真的 exportZip
+const gate = vi.hoisted(() => ({ hold: null as Promise<void> | null }))
+vi.mock('@/utils/batch-export', async (orig) => {
+  const mod = await orig<typeof import('@/utils/batch-export')>()
+  return {
+    ...mod,
+    exportZip: async (...args: Parameters<typeof mod.exportZip>) => {
+      if (gate.hold) await gate.hold
+      return mod.exportZip(...args)
+    },
+  }
+})
 
 const opts = { global: { stubs: { RouterLink: { template: '<a><slot /></a>' } } } }
 const $ = (w: VueWrapper, t: string) => w.find(`[data-test="${t}"]`)
@@ -16,7 +28,7 @@ async function paste(w: VueWrapper, text: string) {
   await flushPromises()
 }
 
-beforeEach(() => { saved.length = 0 })
+beforeEach(() => { saved.length = 0; gate.hold = null })
 afterEach(() => { Reflect.deleteProperty(window, 'gtag') })
 
 describe('從 Excel 貼上', () => {
@@ -73,6 +85,27 @@ describe('逐列檢查', () => {
     await paste(w, 'A001\nA002\nA001')
     expect($(w, 'batch-duplicates').text()).toContain('第 1、3 列都是「A001」')
     expect($(w, 'batch-download').attributes('disabled')).toBeUndefined()
+  })
+
+  it('Code 39 含 $ / + % 時提醒讀回來可能不一樣，但不擋下載；其他碼制不提醒', async () => {
+    const w = mount(BatchTool, opts)
+    await w.find('[data-test="batch-sym-code39"]').setValue(true)
+    await paste(w, 'AB$E1\nTP+G01\nX%U\nA/B\nTP-0001')
+    expect($(w, 'batch-summary').text()).toContain('5 筆可以產生')
+    expect($(w, 'batch-code39-shift').text()).toContain('有 4 筆內容含 $ / + % 這幾個符號')
+    expect($(w, 'batch-code39-shift').text()).toContain('改用 Code 128')
+    expect($(w, 'batch-download').attributes('disabled')).toBeUndefined()
+    await paste(w, 'TP-0001\nTP 0002')
+    expect($(w, 'batch-code39-shift').exists()).toBe(false)
+    // 同樣的內容換成 Code 128 或 QR Code 就讀得回原樣，不提醒
+    await paste(w, 'A/B')
+    expect($(w, 'batch-code39-shift').exists()).toBe(true)
+    await w.find('[data-test="batch-sym-code128"]').setValue(true)
+    await flushPromises()
+    expect($(w, 'batch-code39-shift').exists()).toBe(false)
+    await w.find('[data-test="batch-sym-qr"]').setValue(true)
+    await flushPromises()
+    expect($(w, 'batch-code39-shift').exists()).toBe(false)
   })
 
   it('店內碼提醒只在 EAN-13 是 2 開頭時出現', async () => {
@@ -134,6 +167,29 @@ describe('內容範本', () => {
 })
 
 describe('下載 ZIP 與隱私', () => {
+  it('鍵盤操作：產生途中焦點在「取消」，結束後回到下載鈕，不會掉到頁面最上面', async () => {
+    let release!: () => void
+    gate.hold = new Promise<void>((r) => { release = r })
+    const w = mount(BatchTool, { ...opts, attachTo: document.body })
+    await w.find('[data-test="batch-format-svg"]').setValue(true)
+    await paste(w, 'A001\nA002')
+    const btn = $(w, 'batch-download').element as HTMLButtonElement
+    btn.focus()
+    await $(w, 'batch-download').trigger('click')
+    await flushPromises()
+    // 產生途中下載鈕不能按（瀏覽器會把焦點丟到 body），焦點要在「取消」
+    expect(btn.disabled).toBe(true)
+    expect(document.activeElement).toBe($(w, 'batch-cancel').element)
+    release()
+    await vi.waitFor(() => expect(saved).toHaveLength(1))
+    await flushPromises()
+    // 「取消」消失之後焦點回到下載鈕
+    expect($(w, 'batch-cancel').exists()).toBe(false)
+    expect(btn.disabled).toBe(false)
+    expect(document.activeElement).toBe(btn)
+    w.unmount()
+  })
+
   it('SVG：打包全部可以產生的列，檔名去重；GA 只收到級距、碼制、格式；什麼都沒寫進儲存空間或網址', async () => {
     const gtag = vi.fn()
     Object.assign(window, { gtag })

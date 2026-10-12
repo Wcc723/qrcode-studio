@@ -13,6 +13,9 @@
   貼上的內容一律文字節點，預覽用 Vue 直接畫 `<svg>`，不用 `v-html`。`src/batch-gates.test.ts` 掃原始碼；隱私權頁「批次產生」那段跟著改。
 - **單次上限 `BATCH_MAX_ROWS`**（`src/pure/batch/rows.ts`，註解有實測數字）。要調高或加更大的圖片大小，先在 Chromium 與 WebKit
   實測 2,000 張 PNG 的時間與 ZIP 大小。
+- **Code 39 的 $ / + % 一律提醒，不擋下載。** 掃描器會把它們跟下一個字合起來讀（`A/B` 讀成 `A"`），批次一次印幾百張，
+  不講就是整批讀錯。判斷用 `src/pure/validateBarcode.ts` 的 `CODE39_SHIFT_CHARS`，條碼產生器與批次共用；提醒在「檢查結果」
+  （`data-test="batch-code39-shift"`），`helpNotes.test.ts` 鎖它看得到，`readback.test.ts` 鎖讀回值真的會變。
 - **靜區與畫法**：見 `docs/quiet-zone.md` 的「批次產生」。PNG 的畫法（`src/pure/raster.ts`）與條碼產生器的單張下載共用。
   `src/pure/batch/readback.test.ts` 把每種碼制的 SVG 與 PNG 用自架的 zxing-wasm 讀回來，改編碼、留白或畫法時要綠。
 

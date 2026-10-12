@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useId } from 'vue'
+import { computed, nextTick, ref, useId } from 'vue'
 import type { ErrorCorrectionLevel } from '@/types'
 import { useBatch, PREVIEW_COUNT, ISSUE_LIST_LIMIT } from '@/composables/useBatch'
 import { symbologies, symbologyById, pngPresets } from '@/config/symbologies'
@@ -19,7 +19,7 @@ const {
   mode, lineUnit, pasteText, linesText, seq, hasHeader, contentCol, nameCol, linesName, seqName,
   template, symbology, ec, onError, format, qrSize, barcodeScale,
   table, headerIndex, headerCells, sequence, sequenceShown, sourceRows, linesLookTabular,
-  templateCheck, checked, ready, failed, duplicates, appendedCount, hasStoreCodes, fileNames, blocker,
+  templateCheck, checked, ready, failed, duplicates, appendedCount, hasStoreCodes, code39ShiftCount, fileNames, blocker,
   previewTiles, busy, progress, status, exportError, download, cancel,
 } = useBatch()
 
@@ -83,6 +83,22 @@ const downloadLabel = computed(() => (ready.value.length
   ? `下載 ZIP（${formatCount(ready.value.length)} 張 ${format.value === 'png' ? 'PNG' : 'SVG'}）`
   : '下載 ZIP'))
 const percent = computed(() => (progress.value.total ? Math.round((progress.value.done / progress.value.total) * 100) : 0))
+
+const downloadBtn = ref<HTMLButtonElement | null>(null)
+const cancelBtn = ref<HTMLButtonElement | null>(null)
+/**
+ * 按下去之後下載鈕在產生途中不能按，焦點會掉到頁面最上面，鍵盤使用者得從頭找回來：
+ * 產生途中把焦點放在「取消」，結束（完成、取消或失敗）後焦點沒有被移到別處的話，再放回下載鈕。
+ */
+async function startDownload() {
+  const run = download()
+  await nextTick()
+  if (busy.value) cancelBtn.value?.focus()
+  await run
+  await nextTick()
+  const active = document.activeElement
+  if (!active || active === document.body) downloadBtn.value?.focus()
+}
 </script>
 
 <template>
@@ -294,7 +310,7 @@ const percent = computed(() => (progress.value.total ? Math.round((progress.valu
     <!-- ③ 檢查結果 -->
     <section :aria-labelledby="id('check-title')" data-test="batch-check">
       <p :id="id('check-title')" class="zone-label"><span class="icon-badge-sm bg-pop-pink"><span class="i-lucide-list-checks" aria-hidden="true" /></span>檢查結果</p>
-      <p v-if="!checked.length" class="text-sm text-muted font-600">輸入清單之後，這裡會逐列檢查：太長、位數不對、檢查碼不符、不支援的字元、空白。</p>
+      <p v-if="!checked.length" class="text-sm text-muted font-600">輸入清單之後，這裡會逐列檢查：太長、位數不對、檢查碼（條碼最後一位）不符、不支援的字元、空白。</p>
       <template v-else>
         <p class="text-sm font-700 text-ink" data-test="batch-summary">
           共 {{ formatCount(checked.length) }} {{ lineUnit }}：<span class="text-emerald-700">{{ formatCount(ready.length) }} 筆可以產生</span><template v-if="failed.length">、<span class="text-rose-600">{{ formatCount(failed.length) }} {{ lineUnit }}有問題</span></template><template v-if="duplicates.length">、{{ formatCount(duplicates.length) }} 組內容重複</template>
@@ -304,6 +320,10 @@ const percent = computed(() => (progress.value.total ? Math.round((progress.valu
         </p>
         <p v-if="hasStoreCodes" class="text-sm text-ink font-600 mt-1" data-test="batch-store-code">
           <span class="i-lucide-info mr-1" aria-hidden="true" />20 到 29 開頭的 EAN-13 是店內碼，只在你自己的店裡有效，不能拿去通路上架；要上架請向 GS1 台灣申請正式的商品條碼。
+        </p>
+        <!-- 合法的 Code 39，照樣產生；但讀回來可能變成別的字，整批印出去之前一定要知道 -->
+        <p v-if="code39ShiftCount" class="text-sm text-ink font-600 mt-1" data-test="batch-code39-shift">
+          <span class="i-lucide-triangle-alert mr-1 text-amber-700" aria-hidden="true" />有 {{ formatCount(code39ShiftCount) }} 筆內容含 $ / + % 這幾個符號，有些掃描器會把它們跟下一個字合在一起讀，讀出來可能跟你輸入的不一樣。要給機器讀取時，請先實際掃一張，或改用 Code 128。
         </p>
 
         <div v-if="failed.length" class="mt-3">
@@ -348,11 +368,11 @@ const percent = computed(() => (progress.value.total ? Math.round((progress.valu
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
         <button
-          type="button" data-test="batch-download" class="btn-primary !bg-pop-sun"
-          :disabled="!!blocker || busy" :aria-describedby="id('dl-status')" @click="download">
+          ref="downloadBtn" type="button" data-test="batch-download" class="btn-primary !bg-pop-sun"
+          :disabled="!!blocker || busy" :aria-describedby="id('dl-status')" @click="startDownload">
           <span class="i-lucide-download" aria-hidden="true" />{{ downloadLabel }}
         </button>
-        <button v-if="busy" type="button" data-test="batch-cancel" class="chip bg-white !text-sm !px-3 !py-1.5 hover:bg-pop-pink transition" @click="cancel">
+        <button v-if="busy" ref="cancelBtn" type="button" data-test="batch-cancel" class="chip bg-white !text-sm !px-3 !py-1.5 hover:bg-pop-pink transition" @click="cancel">
           <span class="i-lucide-x" aria-hidden="true" />取消
         </button>
       </div>

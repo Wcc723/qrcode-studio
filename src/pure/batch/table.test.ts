@@ -25,8 +25,6 @@ describe('parseClipboardTable：Excel 貼上的文字還原成列與欄', () => 
   it('引號包住的儲存格：格內換行、Tab 與兩個雙引號', () => {
     const t = parseClipboardTable('"第一行\n第二行"\tx\n"有""引號""\t也有 Tab"\ty\n')
     expect(t.rows).toEqual([['第一行\n第二行', 'x'], ['有"引號"\t也有 Tab', 'y']])
-    // 第二列在文字框裡從第 2 行（0 起算）開始：第一列的儲存格佔了兩行
-    expect(t.rowStartLines).toEqual([0, 2])
   })
 
   it('開頭是雙引號但不成對的格子照字面收', () => {
@@ -74,6 +72,11 @@ describe('detectHeaderRow：第一列是不是欄名', () => {
     expect(detectHeaderRow([['桌子', '總務單位'], ['椅子', '資訊部門']]).index).toBe(-1)
   })
 
+  it('EAN、GTIN 這類條碼欄名也認得', () => {
+    expect(detectHeaderRow([['EAN-13', '品名'], ['4710088331236', '綠茶']]).index).toBe(0)
+    expect(detectHeaderRow([['GTIN', 'Name'], ['4710088331236', 'Tea']]).index).toBe(0)
+  })
+
   it('只有一列時不算有欄名', () => {
     expect(detectHeaderRow([['財產編號']]).index).toBe(-1)
   })
@@ -93,6 +96,22 @@ describe('guessColumns：預設的內容欄與檔名欄', () => {
   it('內容不是網址就用內容本身當檔名', () => {
     expect(guessColumns([['TP-0001'], ['TP-0002']], -1)).toEqual({ content: 0, name: 0 })
     expect(guessColumns([['財產編號', '名稱'], ['TP-0001', '筆電']], 0)).toEqual({ content: 0, name: 0 })
+  })
+
+  it('欄名是「條碼」「EAN」的那一欄做內容，檔名用「編號」欄', () => {
+    expect(guessColumns([['編號', '條碼'], ['A1', '4710088331236']], 0)).toEqual({ content: 1, name: 0 })
+    expect(guessColumns([['品名', '商品條碼', '貨號'], ['綠茶', '4710088331236', 'G-01']], 0)).toEqual({ content: 1, name: 2 })
+    expect(guessColumns([['Item code', 'EAN-13'], ['A1', '4710088331236']], 0)).toEqual({ content: 1, name: 0 })
+    expect(guessColumns([['Name', 'Barcode'], ['Tea', '4710088331236']], 0)).toEqual({ content: 1, name: 1 })
+    expect(guessColumns([['Barcode', 'ItemCode'], ['4710088331236', 'G-01']], 0)).toEqual({ content: 0, name: 1 })
+  })
+
+  it('同時有網址欄與條碼欄時，網址欄做內容', () => {
+    expect(guessColumns([['條碼', '網址'], ['4710088331236', 'https://example.com/p/1']], 0)).toEqual({ content: 1, name: 0 })
+  })
+
+  it('欄名裡的 ocean、mean 不會被當成 EAN', () => {
+    expect(guessColumns([['編號', 'Ocean'], ['A1', 'Pacific']], 0)).toEqual({ content: 0, name: 0 })
   })
 
   it('只有一欄網址時用流水號', () => {

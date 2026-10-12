@@ -144,3 +144,22 @@ describe('批次產物回讀：每種碼制的 SVG 與 PNG 都讀得回原本的
     }
   }, 30_000)
 })
+
+describe('Code 39 的 $ / + %：合法但讀回來會變', () => {
+  // 這幾筆是合法的 Code 39，照樣產生；但掃描器會把 $ / + % 跟下一個字合起來讀（Full ASCII），讀回來的值變了。
+  // 批次頁的「檢查結果」因此一律提醒（data-test="batch-code39-shift"），這裡鎖住提醒存在的理由。
+  it('Code 39 含 $ / + % 時，讀回來的值跟原本不一樣', async () => {
+    const lines = ['A/B', 'TP+G01', 'AB$E1', 'X%U']
+    const ready = checkRows(rowsFromLines(lines.join('\n')), { symbology: 'code39', ec: 'M', template: '' })
+      .filter((r): r is ReadyRow => r.ok)
+    expect(ready.map(r => r.normalized)).toEqual(lines)
+    const texts: string[] = []
+    for (const r of ready) {
+      const got = await readOne(rasterize(artifactPlan(r.normalized, { symbology: 'code39', ec: 'M', qrSize: 600, barcodeScale: 4 })!))
+      expect(got.format).toBe('code39')
+      texts.push(got.text)
+    }
+    // 讀取器把控制字元寫成 <ENQ>、<NUL> 這樣的文字
+    expect(texts).toEqual(['A"', 'TPg01', 'AB<ENQ>1', 'X<NUL>'])
+  }, 30_000)
+})

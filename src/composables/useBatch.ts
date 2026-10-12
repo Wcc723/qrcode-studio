@@ -17,6 +17,7 @@ import {
 import { makeQrMatrix, qrPathData } from '@/pure/batch/qrMatrix'
 import { QUIET_ZONE_MODULES } from '@/pure/qrGeometry'
 import { barcodeGeometry, encodeBarcode, type BarcodeGeometry } from '@/pure/encodeBarcode'
+import { CODE39_SHIFT_CHARS } from '@/pure/validateBarcode'
 import { exportZip } from '@/utils/batch-export'
 import { saveBlob } from '@/utils/save-blob'
 import { trackBatchDownload } from '@/utils/batch-analytics'
@@ -28,6 +29,8 @@ export type OutputFormat = 'png' | 'svg'
 export const PREVIEW_COUNT = 24
 /** 有問題的列最多列出幾列，其餘只說還有幾列 */
 export const ISSUE_LIST_LIMIT = 100
+/** ZIP 的物件網址多久之後回收：幾十 MB 的 Blob，Safari 與 iOS 要比較久才讀完（常見的下載函式庫也是等 40 秒） */
+export const ZIP_REVOKE_AFTER_MS = 40_000
 
 export type PreviewTile =
   | { key: string; line: number; name: string; content: string; kind: 'qr'; viewBox: string; d: string }
@@ -113,6 +116,9 @@ export function useBatch() {
   /** EAN-13 的 20 到 29 開頭是店內碼 */
   const hasStoreCodes = computed(() =>
     symbology.value === 'ean13' && ready.value.some(r => /^2\d/.test(r.normalized)))
+  /** Code 39 含 $ / + % 的筆數：仍是合法的 Code 39，但有些掃描器會讀成別的字，只提醒、不擋下載 */
+  const code39ShiftCount = computed(() =>
+    (symbology.value === 'code39' ? ready.value.filter(r => CODE39_SHIFT_CHARS.test(r.normalized)).length : 0))
 
   const nameSource = computed<NameSource>(() => {
     if (mode.value === 'paste') return nameCol.value < 0 ? 'serial' : nameCol.value === contentCol.value ? 'value' : 'column'
@@ -177,6 +183,9 @@ export function useBatch() {
     const items = rows.map((r, i) => ({ normalized: r.normalized, name: names[i]! }))
     const fmt = format.value
     const sym = symbology.value
+    // 完成訊息照按下去那一刻的清單寫：產生途中改了貼上的內容，ZIP 不受影響，訊息也不該跟著變
+    const skipped = failed.value.length
+    const unit = lineUnit.value
     controller = new AbortController()
     busy.value = true
     status.value = ''
@@ -188,9 +197,7 @@ export function useBatch() {
         signal: controller.signal,
         onProgress: (done, total) => { progress.value = { done, total } },
       })
-      saveBlob(blob, `${sym === 'qr' ? 'qrcode' : sym}-batch-${items.length}.zip`)
-      const skipped = failed.value.length
-      const unit = lineUnit.value
+      saveBlob(blob, `${sym === 'qr' ? 'qrcode' : sym}-batch-${items.length}.zip`, ZIP_REVOKE_AFTER_MS)
       status.value = `已下載 ${formatCount(items.length)} 張${fmt === 'png' ? ' PNG' : ' SVG'}${skipped ? `，略過 ${formatCount(skipped)} ${unit}有問題的` : ''}。`
       trackBatchDownload(items.length, sym, fmt)
     } catch (e) {
@@ -211,7 +218,7 @@ export function useBatch() {
     mode, lineUnit, pasteText, linesText, seq, hasHeader, contentCol, nameCol, linesName, seqName,
     template, symbology, ec, onError, format, qrSize, barcodeScale,
     table, headerIndex, headerCells, sequence, sequenceShown, sourceRows, tooMany, linesLookTabular,
-    templateCheck, checked, ready, failed, duplicates, appendedCount, hasStoreCodes, fileNames, blocker,
+    templateCheck, checked, ready, failed, duplicates, appendedCount, hasStoreCodes, code39ShiftCount, fileNames, blocker,
     previewTiles, busy, progress, status, exportError, download, cancel,
   }
 }
