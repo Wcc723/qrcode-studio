@@ -97,4 +97,28 @@ describe('exportZip：PNG', () => {
     vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => (tag === 'canvas' ? canvas : real(tag))) as typeof document.createElement)
     await expect(exportZip(items(6), { ...qr, format: 'png' })).rejects.toThrow(/記憶體不足/)
   })
+
+  it('讀 PNG 內容失敗（記憶體不足）時一樣丟出看得懂的錯誤，不會一直等下去', async () => {
+    const real = document.createElement.bind(document)
+    const failing = { arrayBuffer: () => Promise.reject(new DOMException('out of memory', 'NotReadableError')) } as unknown as Blob
+    const canvas = { ...fakeCanvas(), toBlob: (cb: (b: Blob | null) => void) => setTimeout(() => cb(failing), 0) }
+    vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => (tag === 'canvas' ? canvas : real(tag))) as typeof document.createElement)
+    for (const n of [1, 6]) {
+      await expect(exportZip(items(n), { ...qr, format: 'png' })).rejects.toSatisfy(
+        (e: unknown) => e instanceof BatchExportError && /記憶體不足/.test(e.message),
+      )
+    }
+  })
+
+  it('瀏覽器遲遲不交回 PNG 時，取消照樣馬上停', async () => {
+    const real = document.createElement.bind(document)
+    const canvas = { ...fakeCanvas(), toBlob: () => {} }
+    vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => (tag === 'canvas' ? canvas : real(tag))) as typeof document.createElement)
+    for (const n of [2, 9]) {
+      const controller = new AbortController()
+      const run = exportZip(items(n), { ...qr, format: 'png', signal: controller.signal })
+      setTimeout(() => controller.abort(), 10)
+      await expect(run).rejects.toMatchObject({ name: 'AbortError' })
+    }
+  })
 })

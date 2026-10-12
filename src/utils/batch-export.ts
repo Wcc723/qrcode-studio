@@ -2,7 +2,7 @@
  * 把檢查過的清單做成一包 ZIP（只在瀏覽器裡、只在記憶體裡）。
  *
  * - 分批做：每做一小段就讓出主執行緒一次，進度條才會動、取消鈕才按得到。
- * - 取消：呼叫端 abort 之後，下一張開始前就停，丟出 AbortError，已經做好的檔案全部丟掉。
+ * - 取消：呼叫端 abort 之後，下一張開始前就停（等背景編碼時也是），丟出 AbortError，已經做好的檔案全部丟掉。
  * - PNG 用同一張 canvas 一張一張畫。toBlob 在呼叫當下就複製了畫面，所以不必等它編碼完才畫下一張，
  *   同時最多讓 PNG_IN_FLIGHT 張在背景編碼。
  * - 產物不寫進任何儲存空間；ZIP 的 Blob 交給 saveBlob 下載後就由瀏覽器回收。
@@ -39,12 +39,33 @@ function throwIfAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('已取消', 'AbortError')
 }
 
+const OUT_OF_MEMORY = '瀏覽器沒有畫出圖片，可能是記憶體不足。請減少筆數或改小圖片大小再試一次。'
+
+/**
+ * 每一條失敗的路都要 reject：toBlob 回 null、讀 Blob 失敗（例如記憶體不足）都算。
+ * 少一條，外層就永遠等不到結果，畫面會一直停在「正在產生」。
+ */
 function toPngBytes(canvas: HTMLCanvasElement): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob(async (blob) => {
-      if (!blob) { reject(new BatchExportError('瀏覽器沒有畫出圖片，可能是記憶體不足。請減少筆數或改小圖片大小再試一次。')); return }
-      resolve(new Uint8Array(await blob.arrayBuffer()))
+    canvas.toBlob((blob) => {
+      if (!blob) { reject(new BatchExportError(OUT_OF_MEMORY)); return }
+      blob.arrayBuffer().then(
+        buf => resolve(new Uint8Array(buf)),
+        () => reject(new BatchExportError(OUT_OF_MEMORY)),
+      )
     }, 'image/png')
+  })
+}
+
+/** 等背景編碼時也聽取消：瀏覽器的 toBlob 遲遲不回來，按「取消」還是馬上停 */
+function unlessAborted<T>(task: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return task
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => reject(new DOMException('已取消', 'AbortError'))
+    if (signal.aborted) onAbort()
+    else signal.addEventListener('abort', onAbort, { once: true })
+    // 一律接住 task：先取消的話它之後再失敗，也不會變成沒人處理的錯誤
+    task.then(resolve, reject).finally(() => signal.removeEventListener('abort', onAbort))
   })
 }
 
@@ -91,9 +112,9 @@ export async function exportZip(items: readonly ExportItem[], opts: ExportOption
       // 失敗由下面的 race／all 丟出來；這裡先接住，同一批其他張再失敗時才不會變成沒人處理的錯誤
       job.catch(() => {})
       pending.add(job)
-      if (pending.size >= PNG_IN_FLIGHT) await Promise.race(pending)
+      if (pending.size >= PNG_IN_FLIGHT) await unlessAborted(Promise.race(pending), opts.signal)
     }
-    await Promise.all(pending)
+    await unlessAborted(Promise.all(pending), opts.signal)
     throwIfAborted(opts.signal)
   }
 

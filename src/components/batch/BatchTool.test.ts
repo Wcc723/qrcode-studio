@@ -190,6 +190,35 @@ describe('下載 ZIP 與隱私', () => {
     w.unmount()
   })
 
+  it('PNG 做到一半記憶體不足：顯示原因、下載鈕恢復可按、「取消」收起來，不會一直停在產生中', async () => {
+    const gtag = vi.fn()
+    Object.assign(window, { gtag })
+    const real = document.createElement.bind(document)
+    const failing = { arrayBuffer: () => Promise.reject(new DOMException('out of memory', 'NotReadableError')) } as unknown as Blob
+    const canvas = {
+      width: 0, height: 0,
+      getContext: () => ({ fillStyle: '', font: '', textAlign: 'center', imageSmoothingEnabled: true, fillRect: () => {}, fillText: () => {} }),
+      toBlob: (cb: (b: Blob | null) => void) => setTimeout(() => cb(failing), 0),
+    }
+    const w = mount(BatchTool, opts)
+    await paste(w, 'A001\nA002\nA003')
+    // 掛載時量字型也會建 canvas，所以掛好之後才換成假的
+    const spy = vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => (tag === 'canvas' ? canvas : real(tag))) as typeof document.createElement)
+    try {
+      await $(w, 'batch-download').trigger('click')
+      await vi.waitFor(() => expect($(w, 'batch-status').text()).toContain('記憶體不足'))
+      await flushPromises()
+      expect($(w, 'batch-cancel').exists()).toBe(false)
+      expect($(w, 'batch-progress').exists()).toBe(false)
+      expect($(w, 'batch-download').attributes('disabled')).toBeUndefined()
+      expect(saved).toHaveLength(0)
+      expect(gtag).not.toHaveBeenCalled()
+    } finally {
+      spy.mockRestore()
+      w.unmount()
+    }
+  })
+
   it('SVG：打包全部可以產生的列，檔名去重；GA 只收到級距、碼制、格式；什麼都沒寫進儲存空間或網址', async () => {
     const gtag = vi.fn()
     Object.assign(window, { gtag })
