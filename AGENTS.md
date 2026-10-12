@@ -148,7 +148,8 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 
 ## 批次產生（`/batch/`）
 
-編碼器與批次邏輯不進 entry chunk、清單只在記憶體、GA 只送三個字面值、單次上限要先實測：規則與測試見 `docs/batch.md`。
+編碼器與批次邏輯不進 entry chunk、清單只在記憶體、GA 只送三個字面值、單次上限要先實測；印成 A4 標籤紙的毫米數字只在 `paper.ts`、
+`@page` 只在列印區顯示時才加、不產生 PDF：規則、測試與實機驗收清單見 `docs/batch.md`。
 
 ## v-html 的富文字連結要自己補前綴
 

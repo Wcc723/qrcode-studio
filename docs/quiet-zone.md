@@ -33,5 +33,7 @@ QR Code 規格要求四邊各至少 4 個模組寬的空白。qr-code-styling �
 - **SVG**：viewBox 以模組為單位，碼外面固定留 4 格；寬高寫成選的圖片大小。
 - **PNG**：`qrRasterPlan` 用同一個 `quietZoneGeometry`（整數模組、四邊至少 4 格），畫法交給 `src/pure/raster.ts` 的 `paintPlan`。
   一維條碼的 PNG 也走這支（跟條碼產生器的單張下載共用），靜區沿用 `encodeBarcode.ts` 的規範值。
+- **印成 A4 標籤紙**：QR Code 的 4 格留白算在碼的範圍裡（`labelContent.ts` 的 `qrLabelModules`），一維條碼的靜區與 ITF-14 的外框
+  也算在條碼寬度裡，碼的範圍再放進每格扣掉內距的範圍，留白不會被相鄰的標籤或格子邊吃掉。`labelReadback.test.ts` 照標籤的實際大小讀回。
 - `src/pure/batch/qrMatrix.test.ts` 驗模組數、留白與置中；`src/pure/batch/readback.test.ts` 把 ZIP 裡的 SVG 與 PNG 的畫法
   用自架的 zxing-wasm 讀回來，每種碼制內容一字不差。改批次的編碼、留白或畫法時，這兩份要一起綠。
