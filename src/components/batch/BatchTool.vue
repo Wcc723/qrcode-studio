@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useId } from 'vue'
 import type { ErrorCorrectionLevel } from '@/types'
-import { useBatch, PREVIEW_COUNT, ISSUE_LIST_LIMIT } from '@/composables/useBatch'
+import { useBatch, PREVIEW_COUNT, ISSUE_LIST_LIMIT, type OutputMode } from '@/composables/useBatch'
+import { useBatchLabels } from '@/composables/useBatchLabels'
 import { symbologies, symbologyById, pngPresets } from '@/config/symbologies'
-import { columnLetter } from '@/pure/batch/table'
 import { formatCount, MAX_PAD } from '@/pure/batch/sequence'
 import { TEMPLATE_TOKEN, applyTemplate } from '@/pure/batch/template'
 import { BATCH_MAX_ROWS, type BatchSymbology } from '@/pure/batch/rows'
@@ -11,17 +11,21 @@ import HelpTip from '../HelpTip.vue'
 import PrivacyNote from '../PrivacyNote.vue'
 import PillGroup from './PillGroup.vue'
 import BatchPreviewGrid from './BatchPreviewGrid.vue'
+import LabelPrint from './LabelPrint.vue'
 
 const uid = useId()
 const id = (name: string) => `${uid}-${name}`
 
 const {
   mode, lineUnit, pasteText, linesText, seq, hasHeader, contentCol, nameCol, linesName, seqName,
-  template, symbology, ec, onError, format, qrSize, barcodeScale,
-  table, headerIndex, headerCells, sequence, sequenceShown, sourceRows, linesLookTabular,
+  template, symbology, ec, onError, output, format, qrSize, barcodeScale,
+  table, headerCells, columns, sequence, sequenceShown, sourceRows, linesLookTabular,
   templateCheck, checked, ready, failed, duplicates, appendedCount, hasStoreCodes, code39ShiftCount, fileNames, blocker,
   previewTiles, busy, progress, status, exportError, download, cancel,
 } = useBatch()
+
+// 標籤紙的設定跟著工具卡：切回「下載 ZIP」再切回來，型號、起始格、位移都還在
+const labels = useBatchLabels({ ready, mode, table, headerCells, columns, contentCol, symbology, ec, blocker, lineUnit })
 
 const modeOptions = [
   { value: 'paste', label: '從 Excel 貼上' },
@@ -32,6 +36,11 @@ const modeOptions = [
 const symbologyOptions: { value: BatchSymbology; label: string }[] = [
   { value: 'qr', label: 'QR Code' },
   ...symbologies.map(s => ({ value: s.id, label: s.label })),
+]
+
+const outputOptions: { value: OutputMode; label: string }[] = [
+  { value: 'zip', label: '下載 ZIP' },
+  { value: 'label', label: '印成 A4 標籤紙' },
 ]
 
 const formatOptions = [
@@ -48,14 +57,6 @@ const qrSizes = [300, 600, 1000, 1500]
 
 const clip = (s: string, n = 40) => (s.length > n ? `${s.slice(0, n)}…` : s)
 
-
-/** 下拉選單裡的欄名：有欄名列就寫欄名，沒有就寫第一個值當例子 */
-const columns = computed(() => Array.from({ length: table.value.columnCount }, (_, i) => {
-  const head = headerCells.value?.[i]?.trim()
-  if (head) return { index: i, label: `${columnLetter(i)} 欄：${clip(head, 18)}` }
-  const first = table.value.rows.find((cells, r) => r !== headerIndex.value && (cells[i] ?? '').trim())?.[i]?.trim() ?? ''
-  return { index: i, label: `${columnLetter(i)} 欄${first ? `（例：${clip(first, 18)}）` : ''}` }
-}))
 
 const isBarcode = computed(() => symbology.value !== 'qr')
 /** 有檢查碼的三種，以及不含檢查碼時要幾位 */
@@ -276,32 +277,46 @@ async function startDownload() {
         </div>
 
         <!-- .zone-label 在 main.css 有 margin，要用 ! 才蓋得過 -->
-        <p class="zone-label !mt-7"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-folder-archive" aria-hidden="true" /></span>下載格式</p>
-        <HelpTip name="下載格式" :id="id('fmt-help')">
-          <template #head><span class="text-sm text-muted" aria-hidden="true">每一張的檔案格式</span></template>
-          <p>PNG 是一般圖片，Word、簡報、通訊軟體都能直接用。SVG 是向量圖，放大縮小都不會糊，適合送印刷與排版軟體；條碼的 SVG 帶有毫米尺寸，置入排版軟體就是標準大小。</p>
-          <p>全部的檔案會打包成一個 ZIP，解壓縮後就是一張一張的圖。</p>
+        <p class="zone-label !mt-7"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-folder-archive" aria-hidden="true" /></span>輸出方式</p>
+        <HelpTip name="輸出方式" :id="id('output-help')">
+          <template #head><span class="text-sm text-muted" aria-hidden="true">下載圖檔，或直接印在標籤紙上</span></template>
+          <p>下載 ZIP：每一筆一個圖檔，打包成一個 ZIP，適合放進 Word、簡報或送印刷廠。</p>
+          <p>印成 A4 標籤紙：照鶴屋、龍德的標籤紙型號排好，碼旁邊可以加一到三行字，用瀏覽器直接印在貼紙上；可以從第幾格開始印，用掉一半的標籤紙也能接著用。</p>
         </HelpTip>
-        <PillGroup v-model="format" :options="formatOptions" name="batch-format" legend="下載格式" :describedby="id('fmt-help')" test-id="batch-format" />
+        <PillGroup v-model="output" :options="outputOptions" name="batch-output" legend="輸出方式" :describedby="id('output-help')" test-id="batch-output" />
 
-        <div v-if="!isBarcode" class="mt-3">
-          <HelpTip name="圖片大小" :id="id('size-help')">
-            <template #head><label :for="id('size')" class="text-sm font-700 text-ink">圖片大小</label></template>
-            <p>每張 PNG 的寬高（像素），四周至少 4 格小方塊寬的留白（靜區）也算在裡面。以一般印刷品的精細度（300 dpi）換算，600 像素大約可以印 5 公分、1000 像素大約 8.5 公分。SVG 是向量圖，這個數字只是置入文件時的預設大小。</p>
-          </HelpTip>
-          <select :id="id('size')" v-model.number="qrSize" data-test="batch-qr-size" :aria-describedby="id('size-help')" class="input-base mt-1">
-            <option v-for="s in qrSizes" :key="s" :value="s">{{ s }} × {{ s }} 像素</option>
-          </select>
-        </div>
-        <div v-else-if="format === 'png'" class="mt-3">
-          <HelpTip name="PNG 清晰度" :id="id('scale-help')">
-            <template #head><label :for="id('scale')" class="text-sm font-700 text-ink">PNG 清晰度</label></template>
-            <p>網頁用、一般列印、高品質印刷分別讓最細的線佔 2、4、8 像素。PNG 檔不會記錄該印多大，拉進 Word 這類軟體隨手縮放，線會被壓得太細而掃不到；需要精確尺寸時請下載 SVG。</p>
-          </HelpTip>
-          <select :id="id('scale')" v-model.number="barcodeScale" data-test="batch-scale" :aria-describedby="id('scale-help')" class="input-base mt-1">
-            <option v-for="p in pngPresets" :key="p.id" :value="p.scale">{{ p.label }}</option>
-          </select>
-        </div>
+        <template v-if="output === 'zip'">
+          <div class="mt-4">
+            <HelpTip name="下載格式" :id="id('fmt-help')">
+              <template #head><span class="text-sm font-700 text-ink" aria-hidden="true">每一張的檔案格式</span></template>
+              <p>PNG 是一般圖片，Word、簡報、通訊軟體都能直接用。SVG 是向量圖，放大縮小都不會糊，適合送印刷與排版軟體；條碼的 SVG 帶有毫米尺寸，置入排版軟體就是標準大小。</p>
+              <p>全部的檔案會打包成一個 ZIP，解壓縮後就是一張一張的圖。</p>
+            </HelpTip>
+            <PillGroup v-model="format" :options="formatOptions" name="batch-format" legend="下載格式" :describedby="id('fmt-help')" test-id="batch-format" />
+          </div>
+
+          <div v-if="!isBarcode" class="mt-3">
+            <HelpTip name="圖片大小" :id="id('size-help')">
+              <template #head><label :for="id('size')" class="text-sm font-700 text-ink">圖片大小</label></template>
+              <p>每張 PNG 的寬高（像素），四周至少 4 格小方塊寬的留白（靜區）也算在裡面。以一般印刷品的精細度（300 dpi）換算，600 像素大約可以印 5 公分、1000 像素大約 8.5 公分。SVG 是向量圖，這個數字只是置入文件時的預設大小。</p>
+            </HelpTip>
+            <select :id="id('size')" v-model.number="qrSize" data-test="batch-qr-size" :aria-describedby="id('size-help')" class="input-base mt-1">
+              <option v-for="s in qrSizes" :key="s" :value="s">{{ s }} × {{ s }} 像素</option>
+            </select>
+          </div>
+          <div v-else-if="format === 'png'" class="mt-3">
+            <HelpTip name="PNG 清晰度" :id="id('scale-help')">
+              <template #head><label :for="id('scale')" class="text-sm font-700 text-ink">PNG 清晰度</label></template>
+              <p>網頁用、一般列印、高品質印刷分別讓最細的線佔 2、4、8 像素。PNG 檔不會記錄該印多大，拉進 Word 這類軟體隨手縮放，線會被壓得太細而掃不到；需要精確尺寸時請下載 SVG。</p>
+            </HelpTip>
+            <select :id="id('scale')" v-model.number="barcodeScale" data-test="batch-scale" :aria-describedby="id('scale-help')" class="input-base mt-1">
+              <option v-for="p in pngPresets" :key="p.id" :value="p.scale">{{ p.label }}</option>
+            </select>
+          </div>
+        </template>
+        <p v-else class="text-sm text-ink font-600 mt-3" data-test="batch-label-hint">
+          <span class="i-lucide-arrow-down mr-1" aria-hidden="true" />標籤紙型號、從第幾格開始、每格的字與位移，在下方「印成 A4 標籤紙」設定。
+        </p>
       </section>
     </div>
 
@@ -360,8 +375,9 @@ async function startDownload() {
 
     <hr class="border-t-2 border-dashed border-ink/15 my-6" />
 
-    <!-- ④ 預覽與下載 -->
-    <section :aria-labelledby="id('dl-title')">
+    <!-- ④ 預覽與下載（ZIP），或印成 A4 標籤紙 -->
+    <LabelPrint v-if="output === 'label'" :labels="labels" :line-unit="lineUnit" />
+    <section v-else :aria-labelledby="id('dl-title')">
       <p :id="id('dl-title')" class="zone-label"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-download" aria-hidden="true" /></span>預覽與下載</p>
       <BatchPreviewGrid v-if="previewTiles.length" :tiles="previewTiles" :total="ready.length" :wide="isBarcode" />
       <p v-else class="text-sm text-muted font-600">可以產生的前 {{ PREVIEW_COUNT }} 張會顯示在這裡。</p>

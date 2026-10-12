@@ -498,6 +498,9 @@ if (existsSync(batchHtmlPath) && basePath) {
   add('[batch] 沒有 FAQPage（FAQ 只做看得到的文字）', !/"@type":"FAQPage"/.test(html))
   add('[batch] 連回條碼產生器與首頁', html.includes(`href="${basePath}barcode/"`) && html.includes(`href="${basePath}"`))
   add('[batch] 預覽格是 client-only，不在預渲染 HTML', !/data-test="batch-preview"/.test(html))
+  // 標籤紙的設定與 A4 預覽要等使用者選「印成 A4 標籤紙」才出現；@page 也只在那時才加進 <head>
+  add('[batch] 標籤紙的列印區是 client-only，不在預渲染 HTML', !/label-print-area|data-test="label-print"/.test(html))
+  add('[batch] 說明文章有標籤紙列印與對位的段落', /印成 A4 標籤紙/.test(html) && /對位測試頁/.test(html) && /從第幾格開始/.test(html))
   for (const [page, file] of [['index.html', join(distDir, 'index.html')], ['barcode/index.html', join(distDir, 'barcode', 'index.html')]]) {
     add(`[${page}] 連到批次產生`, existsSync(file) && readFileSync(file, 'utf8').includes(`href="${basePath}batch/"`))
   }
@@ -572,6 +575,7 @@ for (const [page, needles] of [
     'batch/': [
       '免費線上批次產生 QR Code 與一維條碼：從 Excel 或 Google 試算表貼上清單、每行一筆，或直接設定連號，一次做出上千張，打包成 ZIP 下載。',
       '支援 QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14，自動補上檢查碼（條碼最後一位，用來抓打錯的號碼）、逐列檢查錯誤，清單只在你的瀏覽器裡處理，不會上傳。',
+      '也可以直接排在鶴屋、龍德的 A4 標籤紙上用瀏覽器列印：每格一個碼加一到三行字，從第幾格開始印都可以。',
     ],
   }
   // 7 個類型頁：標題下原本就是 meta description 那一句
@@ -665,10 +669,15 @@ if (wasmFiles.length === 1) {
     ['批次的 ZIP', 'ZIP 裡有重複的檔名'],
     ['批次的逐列檢查', '超過 QR Code 能放的上限'],
     ['批次的 GA 事件', 'batch_download'],
+    ['標籤紙型號資料', 'LD-8108'],
+    ['標籤紙的版面規格', '@page { size: A4; margin: 0; }'],
   ]) {
     const holders = jsFiles.filter((f) => readFileSync(join(assetsDir, f), 'utf8').includes(marker))
     add(`entry chunk 不含 ${label}，只在動態載入的 chunk`, !!entryName && holders.length > 0 && !entrySource.includes(marker), holders.join(' '))
   }
+  // @page（A4、邊界 0）只在標籤紙的列印區顯示時才加進 <head>；寫死在 CSS 裡會讓每一頁都沒有列印邊界
+  const cssWithPage = assetFiles.filter((f) => f.endsWith('.css') && /@page/.test(readFileSync(join(assetsDir, f), 'utf8')))
+  add('CSS 沒有寫死 @page（只在標籤紙列印區顯示時才加）', cssWithPage.length === 0, cssWithPage.join(' '))
 }
 
 // ───────────────────────────────────────────────────────────────────

@@ -11,8 +11,10 @@ describe('批次下載的 GA 事件只送三個字面值', () => {
       .toEqual(['1-10', '1-10', '11-50', '11-50', '51-200', '51-200', '201-500', '201-500', '501-1000', '501-1000', '1001+', '1001+'])
   })
 
-  it('事件只有筆數級距、碼制、輸出格式三個欄位', () => {
+  it('事件只有筆數級距、碼制、輸出方式三個欄位', () => {
     expect(batchDownloadEvent(137, 'ean13', 'png')).toEqual({ count_range: '51-200', symbology: 'ean13', output: 'png' })
+    // 印成 A4 標籤紙：輸出方式是 label，不送型號、起始格、份數或位移
+    expect(batchDownloadEvent(24, 'code128', 'label')).toEqual({ count_range: '11-50', symbology: 'code128', output: 'label' })
   })
 
   it('正式主機上（有 gtag）送一次 batch_download', () => {

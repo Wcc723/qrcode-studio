@@ -34,7 +34,8 @@ useSeoHead({
 
     <h2 class="text-lg font-700 text-ink mt-7">批次產生（貼上的清單）</h2>
     <p class="text-muted mt-3 leading-7">在<RouterLink to="/batch/">批次產生 QR Code 與條碼</RouterLink>貼上的清單、設定的連號與內容範本，以及做出來的圖片與 ZIP 檔，<strong>都只在這個分頁的記憶體裡處理，不會上傳到任何伺服器</strong>。ZIP 檔由你的瀏覽器在本機打包後直接下載；清單與產生的檔案<strong>不會存進網址或瀏覽器的任何儲存空間（Cookie、localStorage、sessionStorage、IndexedDB）</strong>，關閉或重新整理分頁後就不會保留。</p>
-    <p class="text-muted mt-3 leading-7">下載成功時，使用數據分析（Google Analytics）只會記一筆事件，內容是三個固定的選項：大概的筆數級距（例如「51 到 200 筆」）、碼的種類（例如 QR Code、EAN-13）與下載格式（PNG 或 SVG）；<strong>不包含清單內容、內容範本、檔名，也不包含確切的筆數</strong>。</p>
+    <p class="text-muted mt-3 leading-7">選「印成 A4 標籤紙」時，排版同樣只在你的瀏覽器裡進行，標籤由瀏覽器自己的列印功能送到印表機，本站不產生、也不上傳任何 PDF 或圖檔。唯一會留在瀏覽器裡的，是你勾選「記住這台印表機的位移」時存的<strong>左右與上下位移兩個數字</strong>（存在這台電腦的 localStorage，例如 0.5 與 -1），下次打開就不用重量；<strong>不包含清單、標籤上的字或標籤紙型號</strong>，取消勾選就刪除。</p>
+    <p class="text-muted mt-3 leading-7">下載成功或按下「列印標籤」時，使用數據分析（Google Analytics）只會記一筆事件，內容是三個固定的選項：大概的筆數級距（例如「51 到 200 筆」）、碼的種類（例如 QR Code、EAN-13）與輸出方式（PNG、SVG 或 A4 標籤紙）；<strong>不包含清單內容、內容範本、檔名、標籤紙型號與位移，也不包含確切的筆數</strong>。</p>
 
     <h2 class="text-lg font-700 text-ink mt-7">頁尾的「回報問題」</h2>
     <p class="text-muted mt-3 leading-7">頁尾的「回報問題」會在新分頁開啟口袋工具的問題回報頁，那是口袋工具的另一個頁面，不是本工具。本工具不會把你在產生器輸入的內容或掃描的圖片帶過去，點連結時只帶上目前頁面的路徑（不含「?」與「#」之後的部分），要不要附上由你在回報頁決定。<strong>只有你在回報頁按下送出時，你寫的內容才會傳給站長</strong>；詳見口袋工具全站隱私權政策的<a :href="`${publisher.privacyUrl}#site-report`">問題回報段落</a>。</p>

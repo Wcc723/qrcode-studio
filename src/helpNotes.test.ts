@@ -207,3 +207,46 @@ describe('批次產生的「?」', () => {
     expectVisible(w, '有些掃描器會把它們跟下一個字合在一起讀')
   })
 })
+
+describe('印成 A4 標籤紙的「?」', () => {
+  async function labelPanel() {
+    const w = mount(BatchTool, opts)
+    await w.find('[data-test="batch-output-label"]').setValue(true)
+    await flushPromises()
+    return w
+  }
+
+  it('每個「?」預設收起、欄位指得到它（含自訂尺寸與對位測試頁）', async () => {
+    const w = await labelPanel()
+    expectHelpContract(w)
+    await w.find('[data-test="label-sheet-select"]').setValue('custom')
+    await w.find('[data-test="label-target-test"]').setValue(true)
+    await flushPromises()
+    expectHelpContract(w)
+  })
+
+  it('型號的格子尺寸、起始格、列印設定的重點、不能列印的原因一律看得到', async () => {
+    const w = await labelPanel()
+    expectVisible(w, '每張 24 格（3 欄 × 8 列）')
+    expectVisible(w, '從左上角第 1 格開始')
+    expectVisible(w, '縮放選「實際大小（100%）」、邊界選「無」，不要選「符合頁面大小」')
+    expectVisible(w, '請先貼上清單。')
+  })
+
+  it('條碼放不下、紙邊內縮、自訂尺寸的錯誤看得到', async () => {
+    const w = await labelPanel()
+    await w.find('[data-test="batch-sym-ean13"]').setValue(true)
+    await w.find('[data-test="batch-paste"]').setValue('4710088331236')
+    await w.find('[data-test="label-sheet-select"]').setValue('longder-LD-8101')
+    await flushPromises()
+    expectVisible(w, '條碼在這個格子裡太窄')
+    await w.find('[data-test="label-sheet-select"]').setValue('herwood-C3070')
+    await flushPromises()
+    expectVisible(w, '已經自動往內縮')
+    await w.find('[data-test="label-sheet-select"]').setValue('custom')
+    await flushPromises()
+    await w.find('[data-test="label-custom-rows"]').setValue('99')
+    await flushPromises()
+    expectVisible(w, '列數請填 1 到 40 的整數。')
+  })
+})

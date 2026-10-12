@@ -7,7 +7,7 @@
  */
 import { computed, reactive, ref, watch, onBeforeUnmount } from 'vue'
 import type { ErrorCorrectionLevel } from '@/types'
-import { detectHeaderRow, guessColumns, isBlankRow, parseClipboardTable } from '@/pure/batch/table'
+import { columnLetter, detectHeaderRow, guessColumns, isBlankRow, parseClipboardTable } from '@/pure/batch/table'
 import { buildSequence, formatCount, sequencePreview, type SequenceSpec } from '@/pure/batch/sequence'
 import { checkTemplate } from '@/pure/batch/template'
 import {
@@ -24,6 +24,12 @@ import { trackBatchDownload } from '@/utils/batch-analytics'
 
 export type InputMode = 'paste' | 'lines' | 'sequence'
 export type OutputFormat = 'png' | 'svg'
+/** 輸出方式：下載 ZIP，或排在 A4 標籤紙上用瀏覽器列印 */
+export type OutputMode = 'zip' | 'label'
+
+export interface ColumnOption { index: number; label: string }
+
+const clip = (s: string, n: number) => (s.length > n ? `${s.slice(0, n)}…` : s)
 
 /** 預覽只畫前幾格：清單再長，畫面上也只放這麼多個圖 */
 export const PREVIEW_COUNT = 24
@@ -57,6 +63,7 @@ export function useBatch() {
   const symbology = ref<BatchSymbology>('qr')
   const ec = ref<ErrorCorrectionLevel>('M')
   const onError = ref<'block' | 'skip'>('block')
+  const output = ref<OutputMode>('zip')
   const format = ref<OutputFormat>('png')
   const qrSize = ref(1000)
   const barcodeScale = ref(4)
@@ -80,6 +87,14 @@ export function useBatch() {
       nameCol.value = guess.name
     },
   )
+
+  /** 下拉選單裡的欄名：有欄名列就寫欄名，沒有就寫第一個值當例子（內容欄、檔名欄、標籤上的字共用） */
+  const columns = computed<ColumnOption[]>(() => Array.from({ length: table.value.columnCount }, (_, i) => {
+    const head = headerCells.value?.[i]?.trim()
+    if (head) return { index: i, label: `${columnLetter(i)} 欄：${clip(head, 18)}` }
+    const first = table.value.rows.find((cells, r) => r !== headerIndex.value && (cells[i] ?? '').trim())?.[i]?.trim() ?? ''
+    return { index: i, label: `${columnLetter(i)} 欄${first ? `（例：${clip(first, 18)}）` : ''}` }
+  }))
 
   /** 「第幾列」的說法跟著輸入方式：貼上是列、每行一筆是行、連號是第幾筆 */
   const lineUnit = computed(() => (mode.value === 'paste' ? '列' : mode.value === 'lines' ? '行' : '筆'))
@@ -216,8 +231,8 @@ export function useBatch() {
 
   return {
     mode, lineUnit, pasteText, linesText, seq, hasHeader, contentCol, nameCol, linesName, seqName,
-    template, symbology, ec, onError, format, qrSize, barcodeScale,
-    table, headerIndex, headerCells, sequence, sequenceShown, sourceRows, tooMany, linesLookTabular,
+    template, symbology, ec, onError, output, format, qrSize, barcodeScale,
+    table, headerIndex, headerCells, columns, sequence, sequenceShown, sourceRows, tooMany, linesLookTabular,
     templateCheck, checked, ready, failed, duplicates, appendedCount, hasStoreCodes, code39ShiftCount, fileNames, blocker,
     previewTiles, busy, progress, status, exportError, download, cancel,
   }
