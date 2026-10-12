@@ -11,6 +11,9 @@
 - **清單與產物只在記憶體。** 不寫網址、Cookie、localStorage、sessionStorage、IndexedDB；ZIP 在瀏覽器裡組好（`src/pure/batch/zip.ts`，
   零相依 STORE、UTF-8 檔名）直接下載。GA 只在 `src/utils/batch-analytics.ts` 送 `batch_download`：筆數級距、碼制、格式三個字面值。
   貼上的內容一律文字節點，預覽用 Vue 直接畫 `<svg>`，不用 `v-html`。`src/batch-gates.test.ts` 掃原始碼；隱私權頁「批次產生」那段跟著改。
+- **PNG 匯出的每一條失敗路徑都要 reject**（`src/utils/batch-export.ts`）：toBlob 回 null、讀 Blob 失敗（記憶體不足）都丟
+  `BatchExportError`，畫面顯示原因、下載鈕恢復可按；等背景編碼時也聽取消，瀏覽器遲遲不交回圖片，按「取消」照樣馬上停。
+  少一條，畫面就會一直停在「正在產生」（`batch-export.test.ts`、`BatchTool.test.ts`）。
 - **單次上限 `BATCH_MAX_ROWS`**（`src/pure/batch/rows.ts`，註解有實測數字）。要調高或加更大的圖片大小，先在 Chromium 與 WebKit
   實測 2,000 張 PNG 的時間與 ZIP 大小。
 - **Code 39 的 $ / + % 一律提醒，不擋下載。** 掃描器會把它們跟下一個字合起來讀（`A/B` 讀成 `A"`），批次一次印幾百張，
@@ -26,7 +29,9 @@
 以下幾件事改錯都不會有錯誤訊息，只會印歪、印到紙邊外，或印出掃不到的標籤：
 
 - **毫米數字只在 `src/pure/batch/paper.ts`**：紙張、印表機印不到的紙邊（5 mm）、每格內距、字級、一維條碼與 QR Code 的最小尺寸、
-  位移範圍、校正尺、對位測試頁。元件用常數與 `mm()` 組 CSS，不寫 `12mm`、`mm(12)` 這種字面值（`src/batch-gates.test.ts` 掃）。
+  位移範圍、校正尺、對位測試頁。元件用常數與 `mm()` 組 CSS，不寫 `12mm`、`mm(12)` 這種字面值；畫面上的說明（提醒、批次頁的說明與常見問題、
+  校正尺的「5 公分」）也從常數帶出，例如 `PRINTER_EDGE_RANGE`、`BARCODE_WARN_X_MM`、`CALIBRATION_MM / 10`。
+  `src/batch-gates.test.ts` 兩種都掃：CSS 的字面值，以及標籤元件、`useBatchLabels.ts`、`BatchPage.vue` 裡寫死的 paper.ts 規格數字。
 - **型號資料是純資料**（`src/pure/batch/labelSheets.ts`）：品牌＋型號，每筆單格寬高、上與左邊界、欄距列距、是否全版切割、範本代碼。
   數字是鶴屋、龍德官網 Word 範本的版面設定（不是實測），同格數的型號邊界會差到 2 mm，所以一律做到型號。橫向範本（例如鶴屋 C59105）
   已換算成直向；右邊界與下邊界用紙的寬高反推。新增或修改型號時 `labelSheets.test.ts` 要綠：每格都在 A4 裡、左右邊界相差 1 mm 以內、
@@ -41,17 +46,30 @@
   螢幕上標出原因）；偏細（Code 128 低於 0.25 mm、ITF-14 低於 0.495 mm、QR Code 低於 0.3 mm）只提醒。對位測試頁不受影響。
 - **全版切割與貼著紙邊的型號**：最外圈的格子，碼與字縮進離紙邊 5 mm 以內（預設開，關掉時改成提醒）。
 - **列印 CSS**（`src/components/batch/LabelSheets.vue` 的 `<style>`）：`@media print` 只留列印區（`:has()` 保留祖先、其他元素
-  `display: none`），每張紙 210 × 296.5 mm（扣 0.5 mm 免得多印一張白紙）、`break-after: page`。`@page { size: A4; margin: 0; }`
+  `display: none`），每張紙 210 × 296.5 mm（扣 0.5 mm 免得多印一張白紙）、`break-after: page`。這份 CSS 沒有 scoped，
+  SPA 換頁之後還留在 `<head>`，所以碰 `html`、`body` 的規則一律寫成 `html:has(.label-print-area)`、`body:has(.label-print-area)`，
+  其他頁的列印不受影響（`batch-gates.test.ts` 驗）。`@page { size: A4; margin: 0; }`
   不寫在 CSS 裡，列印區掛載時才加進 `<head>`、卸載就拿掉，其他頁照一般網頁列印（`seo:audit` 驗 CSS 沒有 `@page`）。
   螢幕預覽的縮放用 CSS `zoom`，只寫在 `@media screen`；螢幕上只畫前 3 張，其他張在列印時才出現。
 - **碼是向量 SVG**（viewBox 以模組為單位、寬高寫 mm，跟批次下載的 SVG 同一份路徑），字是系統字型（微軟正黑體、標楷體、新細明體，
-  掛載後用 canvas 量字寬、偵測這台電腦有沒有選的字型）。
+  掛載後用 canvas 量字寬、偵測這台電腦有沒有選的字型）。偵測的名字都要寫進 CSS 堆疊，認得出來才真的用它印：macOS 內附的標楷體
+  （字體簿裡的「標楷體-繁」，可能要先下載）家族名是 `BiauKaiTC`，只寫 `BiauKai` 在新版 macOS 的 Chrome 對不到（`printFonts.test.ts`）。
 - **隱私**：清單一樣只在記憶體。唯一的例外是使用者勾選「記住這台印表機的位移」時，`src/utils/batch-label-offset.ts` 在 localStorage
   存 `{"x":數字,"y":數字}`，取消勾選就刪掉；批次的檔案只有它能碰儲存空間（`batch-gates.test.ts` 驗）。按「列印標籤」時送一次
   `batch_download`，輸出方式是 `label`，不送型號、起始格、份數或位移；對位測試頁不送。隱私權頁「批次產生」那段跟著改。
-- **驗收**：`labelReadback.test.ts` 照標籤的實際大小以 300 dpi 光柵化，再用自架的 zxing-wasm 讀回；瀏覽器列印模式量 DOM（每頁 210 mm 寬、
-  抽樣型號的格子左上角跟資料相差 0.1 mm 以內、頁數等於按鈕上的張數）與截圖回讀在 Chromium 與 WebKit 跑。實體印表機的對位與縮放
-  agent 驗不到，上線前照 `docs/label-print-acceptance.md` 實機印。
+- **驗收**：repo 裡的自動測試只到純函式與元件。`labelReadback.test.ts` 照標籤的實際大小以 300 dpi 光柵化，再用自架的 zxing-wasm 讀回；
+  格子座標、起始格、份數與跨頁由 `labelLayout.test.ts` 驗，每格的排法由 `labelContent.test.ts` 驗，畫面與列印區的內容由
+  `LabelPrint.test.ts`（happy-dom，沒有真的排版）驗。**瀏覽器列印模式的量測沒有自動測試**：改列印 CSS、`paper.ts`、`labelSheets.ts`
+  或新增型號時，上線前手動在桌機的 Chromium 與 WebKit 各跑一次（例如用 Playwright 寫一支臨時腳本，不進 repo）：
+  1. `npm run build` 後 `npm run preview`，開 `/qrcode-studio/batch/`，GA 與廣告請求一律擋掉。貼上測試清單、切到「印成 A4 標籤紙」，
+     抽樣型號：有留白的鶴屋 L3464、全版切割的鶴屋 C3070、標籤尺寸是推回來的鶴屋 L2437。
+  2. 切到列印模式（Playwright 的 `page.emulateMedia({ media: 'print' })`），量每個 `.label-sheet` 的 `getBoundingClientRect()`：
+     寬 210 mm（約 793.7 px），張數等於按鈕上的張數；抽幾格 `.label-cell` 的左上角換算成 mm，跟型號資料加上位移相差 0.1 mm 以內；
+     列印區以外的元素都是 `display: none`。
+  3. 截圖列印模式的列印區，用自架的 zxing-wasm 讀回每一格的碼，內容跟清單一致。
+  4. 從批次頁換到首頁（不重新整理），再切到列印模式：`html`、`body` 的背景、邊界與內距照該頁原本的樣式，沒有被批次頁的列印規則改到。
+
+  實體印表機的對位與縮放 agent 驗不到，上線前照 `docs/label-print-acceptance.md` 實機印。
 
 ## 檔案
 
