@@ -1,6 +1,19 @@
+// @vitest-environment node
 import { describe, it, expect } from 'vitest'
+import { existsSync, readFileSync, statSync } from 'node:fs'
+import { fileURLToPath, pathToFileURL } from 'node:url'
+import { join } from 'node:path'
 import { qrTypes, qrTypeByPath } from './qr-types'
 import { findGuide } from '@/content/guides'
+
+interface Card {
+  out: string; page?: string; icon?: string; art: string
+  lines: { text: string }[]; banner: string; chips: string[]; tag?: { text: string }
+}
+const root = fileURLToPath(new URL('../..', import.meta.url))
+// cards.mjs 是產圖腳本用的純資料（沒有型別宣告），用動態 import 讀進來
+const { CARDS } = (await import(pathToFileURL(join(root, 'scripts/brand/cards.mjs')).href)) as { CARDS: Card[] }
+const squash = (s: string) => s.replace(/\s+/g, '')
 
 describe('qrTypeByPath 斜線容錯', () => {
   it('每個類型路徑「無斜線」與「帶斜線」都能解析到同一筆 meta', () => {
@@ -48,5 +61,59 @@ describe('類型頁的 FAQ 與延伸閱讀', () => {
   it('每種類型都有建置時打包的 Lucide 圖示', () => {
     for (const t of qrTypes) expect(t.icon, t.type).toMatch(/^i-lucide-[a-z0-9-]+$/)
     expect(new Set(qrTypes.map(t => t.icon)).size).toBe(qrTypes.length)
+  })
+})
+
+/**
+ * 類型頁各自的分享圖（#22）：cards.mjs 的 page 對到類型的網址，檔名 og-<type>.png，替代文字（ogAlt）跟圖上的字一致。
+ * 產物層級（頁面的 og:image、twitter:image 真的換成這張）由 scripts/seo/audit.mjs 驗。
+ */
+describe('類型頁的分享圖', () => {
+  const cardOf = (t: (typeof qrTypes)[number]) => CARDS.find((c) => c.page === `${t.path}/`)
+
+  it('每個類型都有自己的一張卡片，檔名是 og-<type>.png', () => {
+    for (const t of qrTypes) expect(cardOf(t)?.out, t.type).toBe(`og-${t.type}.png`)
+  })
+
+  it('右邊是這一頁網址的 QR Code，中間的圖示跟產生器分頁上的一樣', () => {
+    for (const t of qrTypes) {
+      const card = cardOf(t)!
+      expect(card.art, t.type).toBe('qr')
+      expect(`i-lucide-${card.icon}`, t.type).toBe(t.icon)
+    }
+  })
+
+  it('替代文字以圖上的大標開頭，寫著橫幅那句、每個小標籤與圖角標籤的字；大標是 title 的一段', () => {
+    for (const t of qrTypes) {
+      const card = cardOf(t)!
+      const alt = squash(t.ogAlt)
+      const headline = squash(card.lines.map((l) => l.text).join(''))
+      expect(alt.startsWith(headline), `${t.type}：${alt}`).toBe(true)
+      expect(alt, t.type).toContain(squash(card.banner))
+      for (const chip of card.chips) expect(alt, t.type).toContain(squash(chip))
+      expect(card.tag, t.type).toBeDefined()
+      expect(alt, t.type).toContain(squash(`「${card.tag!.text}」`))
+      expect(squash(t.title), t.type).toContain(headline)
+    }
+  })
+
+  it('替代文字與圖上的字不用破折號「——」', () => {
+    for (const t of qrTypes) {
+      const card = cardOf(t)!
+      for (const text of [t.ogAlt, ...card.lines.map((l) => l.text), card.banner, ...card.chips, card.tag?.text ?? '']) {
+        expect(text, t.type).not.toContain('——')
+      }
+    }
+  })
+
+  it('圖檔已經產生在 public/：1200×630 的 PNG，200 KB 以內', () => {
+    for (const t of qrTypes) {
+      const file = join(root, 'public', `og-${t.type}.png`)
+      expect(existsSync(file), file).toBe(true)
+      const buf = readFileSync(file)
+      expect(buf.toString('latin1', 1, 4), file).toBe('PNG')
+      expect([buf.readUInt32BE(16), buf.readUInt32BE(20)], file).toEqual([1200, 630])
+      expect(statSync(file).size, file).toBeLessThan(200 * 1024)
+    }
   })
 })

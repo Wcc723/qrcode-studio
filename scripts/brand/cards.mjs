@@ -1,5 +1,6 @@
 // 分享圖（1200×630）的文字正本。版面在 render.mjs，站名不寫在這裡：render.mjs 從 src/config/site.ts 讀 siteName（英文卡讀 siteNameEn）。
-// 分享圖的 alt 寫在頁面的 useSeoHead（首頁用 site.ts 的 ogImage.alt，/scan/ 與 /barcode/ 在各自的頁面，教學在 src/content/guide-og.ts），
+// 分享圖的 alt 寫在頁面的 useSeoHead（首頁用 site.ts 的 ogImage.alt，/scan/、/barcode/、/batch/ 與教學總覽在各自的頁面，
+// 七個類型頁在 src/config/qr-types.ts 的 ogAlt，教學在 src/content/guide-og.ts），
 // 改了圖上的字記得一起看 alt 還對不對。seo:audit 會拿這份對帳：根目錄的 og:image 要是這裡的某個 out，alt 要寫著大標（lines），
 // 專屬分享圖（og-default 以外）的大標要在 title 裡、alt 以大標開頭並有 banner；每一張都要有頁面用到，教學每篇都要用自己那張。
 // 所以頁面的 title 改了說法，這裡跟著改再重跑 render.mjs。
@@ -24,6 +25,104 @@ export const CARDS = [
     lines: [{ text: '條碼', color: 'sun' }, { text: '產生器', color: 'pink' }],
     banner: 'EAN-13、Code 128 線上製作',
     chips: ['自動算檢查碼', '下載 SVG', '免費'],
+  },
+  // 繁中批次頁、七個類型頁與教學總覽（#22）：page 是這張卡用在哪一頁（站內路徑、帶尾斜線），seo:audit 驗那一頁的 og:image 是它。
+  // 替代文字以大標開頭，接著橫幅那句、每個小標籤，最後一句講右邊的圖，寫著圖角標籤（tag）的字；批次頁再寫出每格標籤上的字（labels）。
+  // 圖裡的 QR Code 一律是該頁自己的網址（render.mjs 用 page 接上 site.ts 的 url），掃了就打開那一頁，不放任何範例帳號或聯絡資料。
+  // icon 是 QR Code 中間的 Lucide 圖示，跟 qr-types.ts 那個類型在產生器分頁上的圖示同一個（qr-types.test.ts 驗）。
+  {
+    out: 'og-batch.png',
+    page: '/batch/',
+    art: 'labels',
+    tag: { text: '標籤紙', color: 'sun', side: 'right' },
+    // 每格的 Code 128 與底下那行字：跟批次頁的連號一樣依序編（四位數補零），條碼的內容就是那行字
+    labels: ['0001', '0002', '0003', '0004', '0005', '0006'],
+    // 第二行最長，跟 Excel 教學那張一樣縮小字級、往下移一點
+    titleSize: 76,
+    titleTop: 188,
+    lines: [{ text: '批次產生', color: 'sun' }, { text: 'QR Code 與條碼', color: 'pink' }],
+    banner: 'Excel 貼上，下載 ZIP、印標籤紙',
+    chips: ['連號', '自動補檢查碼', '清單不上傳'],
+  },
+  {
+    out: 'og-url.png',
+    page: '/url/',
+    art: 'qr',
+    icon: 'link',
+    tag: { text: '網址', color: 'sun', side: 'right' },
+    lines: [{ text: '網址轉', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
+    banner: '貼上網址，手機一掃就開',
+    chips: ['下載 PNG／SVG', '可加 LOGO', '永久有效'],
+  },
+  {
+    out: 'og-wifi.png',
+    page: '/wifi/',
+    art: 'qr',
+    icon: 'wifi',
+    tag: { text: 'WiFi', color: 'sky' },
+    lines: [{ text: 'WiFi', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
+    banner: '掃碼免輸密碼，自動連線',
+    chips: ['WPA/WPA2', 'iPhone、Android', '密碼不上傳'],
+  },
+  {
+    out: 'og-vcard.png',
+    page: '/vcard/',
+    art: 'qr',
+    icon: 'contact',
+    tag: { text: '電子名片', color: 'mint', side: 'right' },
+    lines: [{ text: '電子名片', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
+    banner: 'vCard 一掃存入通訊錄',
+    chips: ['一鍵加入聯絡人', '可加 LOGO', '資料不上傳'],
+  },
+  {
+    out: 'og-text.png',
+    page: '/text/',
+    art: 'qr',
+    icon: 'type',
+    tag: { text: '文字', color: 'pink' },
+    lines: [{ text: '文字', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
+    banner: '任意文字，掃描直接顯示',
+    chips: ['產品序號', '闖關暗號', '不會開網頁'],
+  },
+  {
+    out: 'og-email.png',
+    page: '/email/',
+    art: 'qr',
+    icon: 'mail',
+    tag: { text: 'Email', color: 'sun', side: 'right' },
+    lines: [{ text: 'Email', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
+    banner: '掃碼直接寄信，帶好主旨內文',
+    chips: ['客服報修', '活動報名', '不會自動寄出'],
+  },
+  {
+    out: 'og-phone.png',
+    page: '/phone/',
+    art: 'qr',
+    icon: 'phone',
+    tag: { text: '電話', color: 'mint' },
+    lines: [{ text: '電話', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
+    banner: '掃碼一鍵撥號，號碼帶好',
+    chips: ['店家招牌', '客服專線', '不會自動撥出'],
+  },
+  {
+    out: 'og-sms.png',
+    page: '/sms/',
+    art: 'qr',
+    icon: 'message-square',
+    tag: { text: '簡訊', color: 'sky', side: 'right' },
+    lines: [{ text: '簡訊', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
+    banner: '掃碼帶入號碼與內容',
+    chips: ['活動報名', '抽獎投票', '不會自動送出'],
+  },
+  {
+    out: 'og-guide.png',
+    page: '/guide/',
+    art: 'qr',
+    icon: 'book-open',
+    tag: { text: '教學', color: 'sun' },
+    lines: [{ text: 'QR Code', color: 'sun' }, { text: '教學總覽', color: 'pink' }],
+    banner: '從原理到印刷，一次看懂',
+    chips: ['原理與掃描', '容錯與 LOGO', '印刷與 Excel'],
   },
   // 英文版（/en/ 三頁）：站名用 site.ts 的 siteNameEn，標題全是英文字，用 Fredoka、字級小一點才放得下
   {

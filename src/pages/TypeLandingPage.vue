@@ -16,6 +16,8 @@ useSeoHead({
   title: meta.value.title, description: meta.value.description,
   path: meta.value.path,
   appName: meta.value.h1,
+  // 每個類型自己的分享圖（scripts/brand/cards.mjs 的 page 對到這一頁，render.mjs 產到 public/og-<type>.png）
+  ogImage: { path: `/og-${meta.value.type}.png`, width: 1200, height: 630, alt: meta.value.ogAlt },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: `${meta.value.label} QR Code`, url: `${site.url}${meta.value.path}/` },

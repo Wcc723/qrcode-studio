@@ -211,6 +211,14 @@ for (const f of pages) {
     const article = jsonLd(html).find((ld) => ld?.['@type'] === 'Article')
     add(`[${name}] Article 的 image 是這篇的分享圖`, !!ogImage && JSON.stringify(article?.image) === JSON.stringify([ogImage]), JSON.stringify(article?.image ?? null))
   }
+  // 繁中批次頁、七個類型頁與教學總覽（cards.mjs 的 page 對到這一頁的路徑）同樣用自己那張，退回站台預設圖就紅
+  const pagePath = `/${name.replace(/index\.html$/, '')}`
+  const ownCard = CARDS.find((c) => c.page === pagePath)
+  if (ownCard) {
+    add(`[${name}] og:image 是這一頁自己的分享圖（cards.mjs 的 page 是 ${pagePath}）`, card?.out === ownCard.out, ogPath ?? '')
+    add(`[${name}] twitter:image 跟 og:image 是同一張`, !!ogImage && metaContent(html, 'twitter:image') === ogImage, metaContent(html, 'twitter:image') ?? '')
+    add(`[${name}] twitter:image:alt 跟 og:image:alt 一樣`, !!metaContent(html, 'og:image:alt') && metaContent(html, 'twitter:image:alt') === metaContent(html, 'og:image:alt'))
+  }
   if (card) {
     cardsInUse.add(card.out)
     const alt = squashText(metaContent(html, 'og:image:alt'))
@@ -220,6 +228,13 @@ for (const f of pages) {
       add(`[${name}] 專屬分享圖的替代文字以大標開頭、有橫幅那句，大標也在 title 裡`,
         alt.startsWith(headline) && alt.includes(squashText(card.banner)) && squashText(title).includes(headline),
         `${card.out}：${card.banner}`)
+    }
+    // 教學、批次頁、類型頁與教學總覽的卡片：替代文字還要寫著每個小標籤、圖角標籤的字（含括號）與標籤紙每格的字，跟圖上的字一致。
+    // 首頁、掃描器、條碼與英文頁那幾張是更早的寫法（只有大標與橫幅），不在此限。
+    if (card.guide || card.page) {
+      const words = [...card.chips, ...(card.tag ? [`「${card.tag.text}」`] : []), ...(card.labels ?? []), ...(card.sheet ? [...card.sheet.head, ...card.sheet.rows] : [])]
+      const missing = words.filter((w) => !alt.includes(squashText(w)))
+      add(`[${name}] 分享圖的替代文字寫著每個小標籤、圖角標籤與圖裡的字`, missing.length === 0, missing.join(' '))
     }
   }
   if (title) titles.set(name, title)

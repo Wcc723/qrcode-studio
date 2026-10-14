@@ -16,6 +16,11 @@ useSeoHead({
   path: '/guide',
   kind: 'page',
   pageType: 'CollectionPage',
+  // 圖上的字在 scripts/brand/cards.mjs（og-guide.png）：替代文字以大標開頭，寫著橫幅、每個小標籤與圖角標籤的字
+  ogImage: {
+    path: '/og-guide.png', width: 1200, height: 630,
+    alt: 'QR Code 教學總覽：從原理到印刷，一次看懂，包括原理與掃描、容錯與 LOGO、印刷與 Excel。右邊是標著「教學」、中間有書本圖示的 QR Code，掃了就打開這一頁',
+  },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: '教學', url: `${site.url}/guide/` },

@@ -184,8 +184,14 @@ function tagHtml(card) {
   return `<span class="tag tag-${tag.side ?? 'left'} c-${tag.color ?? 'sky'}">${esc(tag.text)}</span>`
 }
 
-/** 圖裡 QR Code 的內容：教學卡寫在 cards.mjs 的 qr（站內路徑），掃描器那張沿用 SCAN_QR_TEXT */
-const qrText = (card) => (card.qr ? `${SITE_URL}${card.qr}` : SCAN_QR_TEXT)
+/**
+ * 圖裡 QR Code 的內容：教學卡寫在 cards.mjs 的 qr（站內路徑），批次頁、類型頁與教學總覽的卡片沒寫 qr 就用 page（這張卡用在哪一頁），
+ * 掃了就打開那一頁；掃描器那張沿用 SCAN_QR_TEXT
+ */
+const qrText = (card) => {
+  const path = card.qr ?? card.page
+  return path ? `${SITE_URL}${path}` : SCAN_QR_TEXT
+}
 
 /**
  * 產圖後必須讀得出來的碼：碼制（zxing 的格式名）加內容，一個碼一筆。同樣的內容可以出現好幾次（Excel 那張每列的 QR Code
@@ -195,12 +201,21 @@ const qrText = (card) => (card.qr ? `${SITE_URL}${card.qr}` : SCAN_QR_TEXT)
 function expectedCodes(card) {
   if (card.art === 'barcode') return [{ format: 'EAN13', text: BARCODE_EAN13 }]
   if (card.art === 'sheet') return card.sheet.rows.flatMap((text) => [{ format: 'QRCode', text }, { format: 'Code128', text }])
+  if (card.art === 'labels') return card.labels.map((text) => ({ format: 'Code128', text }))
   if (card.art === 'ec') return ['L', 'M', 'Q', 'H'].map(() => ({ format: 'QRCode', text: qrText(card) }))
   if (card.art === 'scan' || card.art === 'qr' || card.qr) return [{ format: 'QRCode', text: qrText(card) }]
   return []
 }
 
 const publicSvg = (rel) => dataUri(readFileSync(join(ROOT, 'public', rel)), 'image/svg+xml')
+
+// QR Code 中間的圖示（cards.mjs 的 icon）：跟產生器分頁上同一套 Lucide 圖示（@iconify-json/lucide，devDependency），直接讀圖示集的 SVG 內容
+const LUCIDE = JSON.parse(readFileSync(require.resolve('@iconify-json/lucide/icons.json'), 'utf8'))
+function lucideSvg(name) {
+  const icon = LUCIDE.icons[name]
+  if (!icon) throw new Error(`cards.mjs：Lucide 沒有「${name}」這個圖示`)
+  return `<svg viewBox="0 0 ${icon.width ?? LUCIDE.width} ${icon.height ?? LUCIDE.height}" color="#16130f">${icon.body}</svg>`
+}
 
 async function artHtml(card) {
   const { art } = card
@@ -217,10 +232,13 @@ async function artHtml(card) {
     return `<div class="art-card">${tagHtml(card)}<div class="ean"><div class="bars">${bars}</div><div class="digits">${BARCODE_EAN13}</div></div></div>`
   }
   if (art === 'qr') {
-    // 加 LOGO 的那張照文章的建議用最高的容錯等級 H，LOGO 蓋住的面積遠小於 H 能還原的範圍
-    const qr = await barcodeSvg(qrText(card), 'QRCode', `ecLevel=${card.ec ?? (card.logo ? 'H' : 'M')}`)
+    // 加 LOGO 的那張照文章的建議用最高的容錯等級 H，LOGO 蓋住的面積遠小於 H 能還原的範圍；中間放圖示的類型頁與教學總覽也一樣
+    const covered = card.logo || card.icon
+    const qr = await barcodeSvg(qrText(card), 'QRCode', `ecLevel=${card.ec ?? (covered ? 'H' : 'M')}`)
     const logo = card.logo ? `<div class="qr-logo"><img src="${dataUri(await mark(LOGO, 160))}" alt=""></div>` : ''
-    return `<div class="art-card">${tagHtml(card)}<div class="qr-big">${qr}${logo}</div></div>`
+    // 圖示的底色跟圖角標籤同色（沒有標籤就用薄荷綠）
+    const icon = card.icon ? `<div class="qr-icon c-${card.tag?.color ?? 'mint'}">${lucideSvg(card.icon)}</div>` : ''
+    return `<div class="art-card">${tagHtml(card)}<div class="qr-big">${qr}${logo}${icon}</div></div>`
   }
   if (art === 'figure') {
     // 文章裡同一張示意圖（public/guides/ 的 SVG，gen-guide-figures.mjs 產生）
@@ -244,6 +262,12 @@ async function artHtml(card) {
       '<div class="hd"></div><div class="hd">A</div><div class="hd">B</div><div class="hd">C</div>' +
       `<div class="rn">1</div>${head.map((h) => `<div class="th">${esc(h)}</div>`).join('')}` +
       `${cells.join('')}</div></div>`
+  }
+  if (art === 'labels') {
+    // 批次頁那張：一張標籤紙，每格一個 Code 128 加一行字，字就是條碼的內容（cards.mjs 的 labels，跟批次頁的連號一樣依序編）
+    const cells = await Promise.all(card.labels.map(async (text) =>
+      `<div class="label"><div class="bc">${await barcodeSvg(text, 'Code128')}</div><div class="num">${esc(text)}</div></div>`))
+    return `<div class="art-card">${tagHtml(card)}<div class="labels">${cells.join('')}</div></div>`
   }
   throw new Error(`cards.mjs：不認得的 art「${art}」（${card.out}）`)
 }
@@ -324,6 +348,17 @@ async function cardHtml(card) {
   .sheet .id { font-family: ui-monospace, Menlo, monospace; font-size: 18px; font-weight: 700; }
   .sheet .qr-s svg { width: 64px; height: 64px; display: block; }
   .sheet .bc svg { width: 174px; height: 58px; display: block; }
+  .qr-icon { position: absolute; left: 50%; top: 50%; width: 84px; height: 84px; margin: -42px 0 0 -42px;
+    border: 4px solid #16130f; border-radius: 18px; display: flex; align-items: center; justify-content: center; }
+  .qr-icon svg { width: 50px; height: 50px; display: block; }
+  /* 批次頁的標籤紙：紙色底上兩欄標籤。0001 這種四位數的 Code 128 有 57 個模組，畫成 114 px 寬是每個模組 2 px，
+     標籤框內左右各留約 25 px 白（超過 12 個模組的靜區），淺灰的標籤框才不會被讀成一條線（Excel 那張學到的） */
+  .labels { display: grid; grid-template-columns: 168px 168px; gap: 12px 14px; padding: 16px; background: #FFF7EA;
+    border: 2px solid #16130f; border-radius: 8px; }
+  .label { height: 98px; background: #fff; border: 2px solid #C9C4BA; border-radius: 12px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 6px; }
+  .label .bc svg { width: 114px; height: 50px; display: block; }
+  .label .num { font-family: ui-monospace, Menlo, monospace; font-size: 18px; font-weight: 700; letter-spacing: 3px; }
 </style></head><body>
   <div class="dot" style="left:640px;top:36px;width:62px;height:62px;background:#FFD12E"></div>
   <div class="dot" style="left:-70px;top:520px;width:170px;height:170px;background:#FF5DA2"></div>

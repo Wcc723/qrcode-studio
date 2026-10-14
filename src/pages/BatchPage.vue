@@ -41,6 +41,11 @@ useSeoHead({
   path: '/batch',
   appName: '批次產生 QR Code 與條碼',
   appType: 'WebApplication',
+  // 圖上的字在 scripts/brand/cards.mjs（og-batch.png）：替代文字以大標開頭，寫著橫幅、每個小標籤、圖角標籤與每格標籤上的字
+  ogImage: {
+    path: '/og-batch.png', width: 1200, height: 630,
+    alt: '批次產生 QR Code 與條碼：Excel 貼上，下載 ZIP、印標籤紙，可設定連號、自動補檢查碼，清單不上傳。右邊是標著「標籤紙」的一張標籤紙，每格一個條碼，底下的字依序是 0001、0002、0003、0004、0005、0006',
+  },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: '批次產生 QR Code 與條碼', url: `${site.url}/batch/` },

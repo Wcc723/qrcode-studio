@@ -16,6 +16,9 @@ export interface QrTypeMeta {
   steps: string[]         // 使用步驟
   faqs: FaqItem[]         // 類型專屬的問題；通用問題（要錢嗎、會過期嗎）放 /faq/，不要每頁重複
   guides: string[]        // 「延伸閱讀」的教學 slug（src/content/guides.ts），有測試把關存在
+  // 分享圖 public/og-<type>.png 的替代文字（og:image:alt、twitter:image:alt）。圖上的字的正本在 scripts/brand/cards.mjs（page 對到這個類型的網址）：
+  // 以大標開頭，接著橫幅那句與每個小標籤，最後一句講右邊的圖，寫著圖角標籤的字；qr-types.test.ts 逐字對帳。只換分享圖不動任何日期。
+  ogAlt: string
 }
 
 export const qrTypes: QrTypeMeta[] = [
@@ -36,6 +39,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '網址很長會不會掃不到？', a: '網址越長，QR Code 圖案越密。建議使用短網址，或在工具中把耐髒程度調低、圖片大小調大，都能提升掃描成功率。' },
     ],
     guides: ['line-qr-code', 'qr-with-logo', 'qr-code-svg'],
+    ogAlt: '網址轉 QR Code：貼上網址，手機一掃就開，可下載 PNG／SVG、可加 LOGO、永久有效。右邊是標著「網址」、中間有連結圖示的 QR Code，掃了就打開這一頁',
   },
   {
     type: 'wifi', path: '/wifi', routeName: 'wifi', label: 'WiFi', icon: 'i-lucide-wifi',
@@ -54,6 +58,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '換了密碼怎麼辦？', a: 'QR Code 裡直接存著密碼，產生後無法修改；更換密碼後重新產生一張、替換張貼的圖即可。' },
     ],
     guides: ['qr-code-svg', 'scan-qr-code', 'error-correction'],
+    ogAlt: 'WiFi QR Code：掃碼免輸密碼，自動連線，支援 WPA/WPA2，iPhone、Android 都能掃，密碼不上傳。右邊是標著「WiFi」、中間有 WiFi 圖示的 QR Code，掃了就打開這一頁',
   },
   {
     type: 'vcard', path: '/vcard', routeName: 'vcard', label: '電子名片', icon: 'i-lucide-contact',
@@ -71,6 +76,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '我的聯絡資訊會外洩嗎？', a: '你的聯絡資訊只在你的瀏覽器裡轉成 QR Code 圖片，不會上傳至雲端儲存空間。' },
     ],
     guides: ['qr-with-logo', 'qr-code-svg', 'what-is-qr-code'],
+    ogAlt: '電子名片 QR Code：vCard 一掃存入通訊錄，一鍵加入聯絡人、可加 LOGO，資料不上傳。右邊是標著「電子名片」、中間有名片圖示的 QR Code，掃了就打開這一頁',
   },
   {
     type: 'text', path: '/text', routeName: 'text', label: '純文字', icon: 'i-lucide-type',
@@ -88,6 +94,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '文字 QR Code 和網址 QR Code 差在哪？', a: '文字 QR Code 掃描後只顯示文字，不會連到任何地方，適合序號、提示卡與闖關暗號。內容很長或之後可能修改時，建議把內容放在網頁上改用網址 QR Code，圖案會簡單很多，也能隨時更新內容。' },
     ],
     guides: ['what-is-qr-code', 'error-correction', 'scan-qr-code'],
+    ogAlt: '文字 QR Code：任意文字，掃描直接顯示，適合產品序號、闖關暗號，不會開網頁。右邊是標著「文字」、中間有文字圖示的 QR Code，掃了就打開這一頁',
   },
   {
     type: 'email', path: '/email', routeName: 'email', label: 'Email', icon: 'i-lucide-mail',
@@ -104,6 +111,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '可以加副本（CC）嗎？', a: '目前只提供收件者、主旨與內文三個欄位，沒有副本與密件副本。需要讓多人收到時，建議收件者填一個共用的群組信箱。' },
     ],
     guides: ['scan-qr-code', 'qr-with-logo', 'qr-code-svg'],
+    ogAlt: 'Email QR Code：掃碼直接寄信，帶好主旨內文，適合客服報修、活動報名，不會自動寄出。右邊是標著「Email」、中間有信封圖示的 QR Code，掃了就打開這一頁',
   },
   {
     type: 'phone', path: '/phone', routeName: 'phone', label: '電話', icon: 'i-lucide-phone',
@@ -120,6 +128,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '要給國外的人掃，號碼怎麼寫？', a: '用國際格式：+886 加上去掉開頭 0 的號碼。例如市話 02-1234-5678 寫成 +886212345678，手機 0912-345-678 寫成 +886912345678。只在台灣使用的話直接輸入 0912345678 即可，空格與連字號會自動去掉。' },
     ],
     guides: ['scan-qr-code', 'qr-code-svg', 'qr-with-logo'],
+    ogAlt: '電話 QR Code：掃碼一鍵撥號，號碼帶好，適合店家招牌、客服專線，不會自動撥出。右邊是標著「電話」、中間有電話圖示的 QR Code，掃了就打開這一頁',
   },
   {
     type: 'sms', path: '/sms', routeName: 'sms', label: '簡訊', icon: 'i-lucide-message-square',
@@ -136,6 +145,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: 'iPhone 和 Android 掃出來一樣嗎？要付簡訊費嗎？', a: '本工具用的是 iPhone 與 Android 都認得的簡訊格式，兩種手機的內建相機都能開啟簡訊並帶入內容，但各機型帶入的方式可能略有差異，印刷前請兩種手機各掃一次。QR Code 本身免費，按下送出時的簡訊費用依傳送者自己的電信方案計算。' },
     ],
     guides: ['scan-qr-code', 'what-is-qr-code', 'qr-code-svg'],
+    ogAlt: '簡訊 QR Code：掃碼帶入號碼與內容，適合活動報名、抽獎投票，不會自動送出。右邊是標著「簡訊」、中間有對話框圖示的 QR Code，掃了就打開這一頁',
   },
 ]
 
