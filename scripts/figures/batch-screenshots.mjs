@@ -14,6 +14,8 @@
  *
  * 清單是合成的財產清冊（財產編號 A-0001 到 A-0024，品名與保管單位都是假資料），不要換成真的清單。
  * GA 與廣告的請求一律擋掉（本機的 preview 本來就不載入 GA，擋了也不影響畫面）。
+ * 兩張都先在記憶體裡轉好，整個流程跑完、確認頁面沒有第一方錯誤（console error 與未捕捉的例外）才一起寫進 --out；
+ * 有錯就停，--out 裡原本的圖一張都不動（預設是 public/guides/，也就是上線的那兩張）。
  */
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
@@ -59,13 +61,18 @@ async function loadChromium() {
   }
 }
 
+/** 截圖轉成 WebP，只放在記憶體：寫檔要等整個流程確認沒有頁面錯誤（見最後） */
 async function toWebp(png, { file, width, quality }) {
   const buf = await sharp(png).resize({ width }).webp({ quality, effort: 6 }).toBuffer()
   const { height } = await sharp(buf).metadata()
-  mkdirSync(OUT, { recursive: true })
-  writeFileSync(join(OUT, file), buf)
   // 文章的 <img> 寫的 width／height 是這裡的一半，裁切高度變了要一起改
   console.log(`[figures] ${file}：${width}×${height}（文章寫 ${width / 2}×${Math.round(height / 2)}），${(buf.length / 1024).toFixed(1)} KB`)
+  return { file, buf }
+}
+
+/** 頁面有第一方錯誤就停在這裡，還沒寫任何檔 */
+function assertNoErrors(errors, step) {
+  if (errors.length) throw new Error(`頁面有錯誤（${step}），沒有寫入任何圖，${OUT} 維持原狀：${errors.join(' | ')}`)
 }
 
 const chromium = await loadChromium()
@@ -97,7 +104,8 @@ try {
     const rowBottom = firstName.closest('div,li,figure').getBoundingClientRect().bottom
     return { x: tool.x + scrollX, y: tool.y + scrollY, width: tool.width, height: rowBottom - tool.y + 6 }
   })
-  await toWebp(await page.screenshot({ fullPage: true, clip }), SHOTS.qr)
+  assertNoErrors(errors, '截第一張之前')
+  const shots = [await toWebp(await page.screenshot({ fullPage: true, clip }), SHOTS.qr)]
   console.log('[figures] 檢查結果：', (await page.textContent('[data-test="batch-summary"]'))?.replace(/\s+/g, ' ').trim())
 
   // 第二張：同一份清單改成 Code 128、範本清空，輸出方式選「印成 A4 標籤紙」（預設型號鶴屋 L3464），截第一頁標籤紙
@@ -107,10 +115,15 @@ try {
   await page.click('label:has([data-test="batch-output-label"])')
   await page.waitForSelector('[data-test="label-sheet"]')
   await page.waitForTimeout(800)
-  await toWebp(await page.locator('[data-test="label-sheet"]').first().screenshot(), SHOTS.labels)
+  assertNoErrors(errors, '截第二張之前')
+  shots.push(await toWebp(await page.locator('[data-test="label-sheet"]').first().screenshot(), SHOTS.labels))
   console.log('[figures] 標籤紙：', (await page.textContent('[data-test="label-sheet-info"]'))?.replace(/\s+/g, ' ').trim())
 
-  if (errors.length) throw new Error(`頁面有錯誤：${errors.join(' | ')}`)
+  // 截圖之後才冒出來的錯誤也算：全部跑完再檢查一次，通過了才寫檔
+  assertNoErrors(errors, '兩張都截完之後')
+  mkdirSync(OUT, { recursive: true })
+  for (const { file, buf } of shots) writeFileSync(join(OUT, file), buf)
+  console.log(`[figures] 沒有頁面錯誤，寫入 ${OUT}：${shots.map((s) => s.file).join('、')}`)
 } finally {
   await browser.close()
 }

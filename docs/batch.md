@@ -104,7 +104,8 @@ PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/figures/batch-screensho
 # 換網址或先產到別處比對：--base http://127.0.0.1:5173/qrcode-studio --out /tmp/figs
 ```
 
-GA 與廣告的請求一律擋掉，頁面有第一方錯誤就停。2026-10-15 用這支對 v1.9.1 的批次頁重跑過，兩張圖跟上線的檔案逐位元組相同。
+GA 與廣告的請求一律擋掉，頁面有第一方錯誤（console error 或未捕捉的例外）就停。兩張圖先在記憶體裡轉好，整個流程跑完、確認沒有錯誤才一起寫進
+`--out`（預設 `public/guides/`），所以中途出錯時上線的那兩張不會被蓋掉。2026-10-15 用這支對 v1.9.1 的批次頁重跑過，兩張圖跟上線的檔案逐位元組相同。
 
 ## 檔案
 
