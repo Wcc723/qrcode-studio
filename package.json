@@ -1,6 +1,6 @@
 {
   "name": "2026-qrcode-tool",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "description": "",
   "scripts": {
     "test": "vitest run",
