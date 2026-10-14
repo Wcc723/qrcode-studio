@@ -21,6 +21,8 @@ import { CODE39_SHIFT_CHARS } from '@/pure/validateBarcode'
 import { exportZip } from '@/utils/batch-export'
 import { saveBlob } from '@/utils/save-blob'
 import { trackBatchDownload } from '@/utils/batch-analytics'
+import type { Locale } from '@/i18n/locale'
+import { batchCopy, LINE_UNITS, type LineUnit } from '@/pure/batch/copy'
 
 export type InputMode = 'paste' | 'lines' | 'sequence'
 export type OutputFormat = 'png' | 'svg'
@@ -47,7 +49,8 @@ export function rectsPath(rects: BarcodeGeometry['bars']): string {
   return rects.map(r => `M${r.x} ${r.y}h${r.w}v${r.h}h-${r.w}z`).join('')
 }
 
-export function useBatch() {
+export function useBatch(locale: Locale = 'zh-TW') {
+  const t = batchCopy[locale].state
   const mode = ref<InputMode>('paste')
   const pasteText = ref('')
   const linesText = ref('')
@@ -91,17 +94,17 @@ export function useBatch() {
   /** 下拉選單裡的欄名：有欄名列就寫欄名，沒有就寫第一個值當例子（內容欄、檔名欄、標籤上的字共用） */
   const columns = computed<ColumnOption[]>(() => Array.from({ length: table.value.columnCount }, (_, i) => {
     const head = headerCells.value?.[i]?.trim()
-    if (head) return { index: i, label: `${columnLetter(i)} 欄：${clip(head, 18)}` }
+    if (head) return { index: i, label: t.columnHead(columnLetter(i), clip(head, 18)) }
     const first = table.value.rows.find((cells, r) => r !== headerIndex.value && (cells[i] ?? '').trim())?.[i]?.trim() ?? ''
-    return { index: i, label: `${columnLetter(i)} 欄${first ? `（例：${clip(first, 18)}）` : ''}` }
+    return { index: i, label: t.columnSample(columnLetter(i), first ? clip(first, 18) : '') }
   }))
 
-  /** 「第幾列」的說法跟著輸入方式：貼上是列、每行一筆是行、連號是第幾筆 */
-  const lineUnit = computed(() => (mode.value === 'paste' ? '列' : mode.value === 'lines' ? '行' : '筆'))
+  /** 「第幾列」的說法跟著輸入方式：貼上是列、每行一筆是行、連號是第幾筆（英文分單複數） */
+  const lineUnit = computed<LineUnit>(() => LINE_UNITS[locale][mode.value])
 
   /* ---------- 三種輸入 → 一列一列的值 ---------- */
 
-  const sequence = computed(() => buildSequence(seq, BATCH_MAX_ROWS))
+  const sequence = computed(() => buildSequence(seq, BATCH_MAX_ROWS, locale))
   const sequenceShown = computed(() => (sequence.value.ok ? sequencePreview(sequence.value.values) : null))
 
   const sourceRows = computed<SourceRow[]>(() => {
@@ -119,10 +122,10 @@ export function useBatch() {
 
   /* ---------- 範本與逐列檢查 ---------- */
 
-  const templateCheck = computed(() => checkTemplate(template.value))
+  const templateCheck = computed(() => checkTemplate(template.value, locale))
   const checked = computed(() => {
     if (tooMany.value || !templateCheck.value.ok) return []
-    return checkRows(sourceRows.value, { symbology: symbology.value, ec: ec.value, template: template.value })
+    return checkRows(sourceRows.value, { symbology: symbology.value, ec: ec.value, template: template.value, locale })
   })
   const ready = computed(() => checked.value.filter((r): r is ReadyRow => r.ok))
   const failed = computed(() => checked.value.filter((r): r is FailedRow => !r.ok))
@@ -146,15 +149,13 @@ export function useBatch() {
   const blocker = computed<string | null>(() => {
     if (mode.value === 'sequence' && !sequence.value.ok) return sequence.value.error
     if (tooMany.value) {
-      const n = mode.value === 'paste' && table.value.truncated ? `超過 ${formatCount(BATCH_MAX_ROWS)}` : formatCount(sourceRows.value.length)
-      return `一次最多 ${formatCount(BATCH_MAX_ROWS)} 筆，目前有 ${n} 筆，請分批產生。`
+      const n = mode.value === 'paste' && table.value.truncated ? t.tooManyTruncated(BATCH_MAX_ROWS) : formatCount(sourceRows.value.length)
+      return t.tooMany(BATCH_MAX_ROWS, n)
     }
-    if (!sourceRows.value.length) return mode.value === 'sequence' ? '請設定連號。' : '請先貼上清單。'
+    if (!sourceRows.value.length) return mode.value === 'sequence' ? t.emptySequence : t.emptyList
     if (!templateCheck.value.ok) return templateCheck.value.error
-    if (failed.value.length && onError.value === 'block') {
-      return `有 ${formatCount(failed.value.length)} ${lineUnit.value}要先修正，或改選「略過有問題的${lineUnit.value}」。`
-    }
-    if (!ready.value.length) return '沒有可以產生的列。'
+    if (failed.value.length && onError.value === 'block') return t.fixFirst(failed.value.length, lineUnit.value)
+    if (!ready.value.length) return t.nothingReady
     return null
   })
 
@@ -211,13 +212,14 @@ export function useBatch() {
         format: fmt, symbology: sym, ec: ec.value, qrSize: qrSize.value, barcodeScale: barcodeScale.value,
         signal: controller.signal,
         onProgress: (done, total) => { progress.value = { done, total } },
+        locale,
       })
       saveBlob(blob, `${sym === 'qr' ? 'qrcode' : sym}-batch-${items.length}.zip`, ZIP_REVOKE_AFTER_MS)
-      status.value = `已下載 ${formatCount(items.length)} 張${fmt === 'png' ? ' PNG' : ' SVG'}${skipped ? `，略過 ${formatCount(skipped)} ${unit}有問題的` : ''}。`
+      status.value = t.downloaded(items.length, fmt, skipped, unit)
       trackBatchDownload(items.length, sym, fmt)
     } catch (e) {
-      if (e instanceof DOMException && e.name === 'AbortError') status.value = '已取消，沒有下載任何檔案。'
-      else exportError.value = e instanceof Error && e.message ? e.message : '產生失敗，請減少筆數再試一次。'
+      if (e instanceof DOMException && e.name === 'AbortError') status.value = t.cancelled
+      else exportError.value = e instanceof Error && e.message ? e.message : t.failed
     } finally {
       busy.value = false
       controller = null

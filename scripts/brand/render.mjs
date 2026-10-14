@@ -41,6 +41,7 @@ const siteField = (key) => {
 }
 const SITE_NAME = siteField('name')
 const SITE_NAME_FULL = siteField('siteName')
+const SITE_NAME_EN_FULL = siteField('siteNameEn')
 
 const LOGO = readFileSync(join(ROOT, 'scripts/brand/logo-source.png'))
 const FAVICON = readFileSync(join(ROOT, 'scripts/brand/favicon-source.png'))
@@ -181,7 +182,8 @@ async function artHtml(art) {
 }
 
 async function cardHtml(card) {
-  return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+  const en = card.lang === 'en'
+  return `<!doctype html><html lang="${en ? 'en' : 'zh-Hant'}"><head><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@700;900&display=block">
 <style>
   @font-face { font-family: Fredoka; src: url(${FREDOKA}) format('woff2'); font-weight: 700; }
@@ -198,7 +200,7 @@ async function cardHtml(card) {
     padding: 0 26px 0 10px; background: #fff; border: 4px solid #16130f; border-radius: 999px;
     box-shadow: 5px 5px 0 #16130f; font-size: 27px; }
   .chip img { width: 50px; height: 50px; }
-  .title { position: absolute; left: 66px; top: 160px; font-size: 104px; line-height: 1.12; font-weight: 900;
+  .title { position: absolute; left: 66px; top: 160px; font-size: ${card.titleSize ?? 104}px; line-height: 1.12; font-weight: 900;
     letter-spacing: 2px; white-space: nowrap; }
   .title span { display: block; -webkit-text-stroke: 12px #16130f; paint-order: stroke fill; text-shadow: 7px 7px 0 #16130f; }
   .title .sun { color: #FFD12E; } .title .pink { color: #FF5DA2; }
@@ -235,7 +237,7 @@ async function cardHtml(card) {
   <div class="dot" style="left:602px;top:530px;width:34px;height:34px;background:#38BDF8"></div>
   <div class="spark" style="left:640px;top:452px"></div>
   ${await artHtml(card.art)}
-  <div class="chip"><img src="${dataUri(await mark(LOGO, 100))}" alt="">${esc(SITE_NAME_FULL)}</div>
+  <div class="chip"><img src="${dataUri(await mark(LOGO, 100))}" alt="">${esc(en ? SITE_NAME_EN_FULL : SITE_NAME_FULL)}</div>
   <div class="title">${card.lines.map((l) => `<span class="${l.color}">${esc(l.text)}</span>`).join('')}</div>
   <div class="banner">${esc(card.banner)}</div>
   <div class="chips">${card.chips.map((c) => `<span>${esc(c)}</span>`).join('')}</div>
@@ -264,7 +266,8 @@ if (cards.length) {
     await page.evaluate(() => document.fonts.ready)
     // 字型依 unicode-range 分片載入，只檢查這張圖上真的有的漢字（英數字先用 Fredoka，Noto 那幾片不會載）
     const text = [...card.lines.map((l) => l.text), card.banner, ...card.chips].join('').replace(/[^\p{Script=Han}]/gu, '')
-    const ok = await page.evaluate((t) => document.fonts.check('900 104px "Noto Sans TC"', t), text)
+    // 英文卡沒有漢字，不必等 Noto Sans TC；英數字一律用內嵌的 Fredoka
+    const ok = !text || await page.evaluate((t) => document.fonts.check('900 104px "Noto Sans TC"', t), text)
     if (!ok) throw new Error('Noto Sans TC 沒載到（要連網），不要用後備字型產圖')
     const png = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: 1200, height: 630 } })
     write(card.out, await sharp(png).resize(1200, 630, { kernel: 'lanczos3' }).png({ palette: true, colours: 256, effort: 10 }).toBuffer())

@@ -48,9 +48,35 @@ describe('scan 路由', () => {
 
   it('路徑集合與預期一致（新增路由要同步改這裡與 scripts/seo/audit.mjs 的 EXPECTED_PATHS）', () => {
     expect(routes.map(r => r.path).sort()).toEqual([
-      '/', '/:pathMatch(.*)*', '/about', '/barcode', '/batch', '/email', '/faq', '/guide', '/guide/:slug',
+      '/', '/:pathMatch(.*)*', '/about', '/barcode', '/batch', '/email', '/en', '/en/barcode', '/en/batch', '/faq', '/guide', '/guide/:slug',
       '/phone', '/privacy', '/scan', '/sms', '/text', '/url', '/vcard', '/wifi',
     ])
+  })
+})
+
+describe('英文版路由（/en/）', () => {
+  const EN = ['/en', '/en/barcode', '/en/batch']
+
+  it('三條英文路由都是靜態路徑、動態 import（英文說明文章不進 entry chunk）、meta.locale 是 en', () => {
+    for (const path of EN) {
+      const r = routes.find(x => x.path === path)
+      expect(r, path).toBeDefined()
+      expect(r!.path).not.toContain(':')
+      expect(typeof r!.component, path).toBe('function')
+      expect(r!.meta?.locale, path).toBe('en')
+    }
+  })
+
+  it('其他路由都沒有 meta.locale（繁中是預設）', () => {
+    expect(routes.filter(r => r.meta?.locale).map(r => r.path).sort()).toEqual(EN)
+  })
+
+  it('英文路由排在萬用的 404 前面，/en/scan 這種還沒有的英文頁交給 404', async () => {
+    const router = createRouter({ history: createMemoryHistory(), ...routerOptions })
+    await router.push('/en/batch/')
+    expect(router.currentRoute.value.name).toBe('en-batch')
+    await router.push('/en/scan/')
+    expect(router.currentRoute.value.name).toBe('notfound')
   })
 })
 

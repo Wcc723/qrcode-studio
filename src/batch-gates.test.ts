@@ -35,6 +35,7 @@ const production = (f: string) => /\.(ts|vue)$/.test(f) && !f.includes('.test.')
 /** 批次功能的所有 production 檔案（不含測試）；資料夾裡新增的檔案自動納入 */
 const BATCH_SOURCES = [
   'src/pages/BatchPage.vue',
+  'src/pages/en/EnBatchPage.vue',
   ...walk('src/components/batch').filter(production),
   ...walk('src/pure/batch').filter(production),
   'src/composables/useBatch.ts',
@@ -53,6 +54,7 @@ describe('有掃到東西', () => {
     for (const f of ['src/components/batch/BatchTool.vue', 'src/pure/batch/zip.ts', 'src/pure/batch/table.ts', 'src/pure/batch/qrMatrix.ts']) {
       expect(BATCH_SOURCES).toContain(f)
     }
+    expect(BATCH_SOURCES).toContain('src/pure/batch/copy.ts')
     expect(BATCH_SOURCES.length).toBeGreaterThanOrEqual(15)
   })
 })
@@ -131,6 +133,7 @@ describe('編碼器與批次邏輯不進 entry chunk', () => {
     const outsiders = allSrcFiles.filter(f => !BATCH_SOURCES.includes(f) && batchModule.test(readCode(f)))
     expect(outsiders).toEqual(['src/router.ts'])
     expect(readCode('src/router.ts')).toMatch(/component: \(\) => import\('@\/pages\/BatchPage\.vue'\)/)
+    expect(readCode('src/router.ts')).toMatch(/component: \(\) => import\('@\/pages\/en\/EnBatchPage\.vue'\)/)
     expect(readCode('src/router.ts')).not.toMatch(/^import .*BatchPage/m)
   })
 
@@ -170,11 +173,16 @@ describe('印成 A4 標籤紙', () => {
     const esc = (n: number) => String(n).replace('.', '\\.')
     const mmText = new RegExp(`(?<![\\d.])(?:${[...specs].map(esc).join('|')})\\s*(?:mm|公釐|毫米)(?![A-Za-z])`, 'g')
     const cmText = new RegExp(`(?<![\\d.])${esc(paper.CALIBRATION_MM / 10)}\\s*公分`, 'g')
-    const files = [...LABEL_COMPONENTS, 'src/composables/useBatchLabels.ts', 'src/pages/BatchPage.vue']
+    const files = [
+      ...LABEL_COMPONENTS, 'src/composables/useBatchLabels.ts', 'src/pages/BatchPage.vue',
+      'src/pages/en/EnBatchPage.vue', 'src/pure/batch/copy.ts',
+    ]
     for (const file of files) {
       const source = readCode(file)
       expect(source.match(mmText), `${file} 寫死了 paper.ts 的毫米數字`).toBeNull()
-      expect(source.match(cmText), `${file} 寫死了校正尺的長度`).toBeNull()
+      // copy.ts 的工具卡那一段有「600 像素大約可以印 5 公分」（圖片大小的換算，不是校正尺），校正尺只看標籤紙那一段
+      const rulerScope = file.endsWith('/copy.ts') ? source.slice(source.indexOf('export const labelCopy')) : source
+      expect(rulerScope.match(cmText), `${file} 寫死了校正尺的長度`).toBeNull()
     }
     expect(paper.PRINTER_EDGE_RANGE).toBe(`${paper.PRINTER_EDGE_FROM_MM} 到 ${paper.PRINTER_EDGE_MM} mm`)
   })
@@ -183,8 +191,13 @@ describe('印成 A4 標籤紙', () => {
     const sheets = readCode('src/components/batch/LabelSheets.vue')
     const css = sheets.slice(sheets.indexOf('<style>'))
     expect(css).not.toMatch(/@page/)
-    expect(sheets).toMatch(/textContent = PAGE_RULE/)
+    // 紙張換了跟著換（英文版有 Letter），兩條規則都寫死在 paper.ts
+    expect(sheets).toMatch(/textContent = pageRule\(L\.paper\.id\)/)
+    expect(sheets).toMatch(/watch\(\(\) => L\.paper\.id, \(id\) => \{ if \(pageStyle\) pageStyle\.textContent = pageRule\(id\) \}\)/)
     expect(read('src/pure/batch/paper.ts')).toContain("export const PAGE_RULE = '@page { size: A4; margin: 0; }'")
+    expect(read('src/pure/batch/paper.ts')).toContain("export const LETTER_PAGE_RULE = '@page { size: letter; margin: 0; }'")
+    expect(paper.pageRule('a4')).toBe(paper.PAGE_RULE)
+    expect(paper.pageRule('letter')).toBe(paper.LETTER_PAGE_RULE)
     const screen = css.slice(css.indexOf('@media screen'), css.indexOf('@media print'))
     expect(screen).toMatch(/zoom: var\(--label-zoom/)
     expect(css.replace(screen, '')).not.toMatch(/zoom: var/)

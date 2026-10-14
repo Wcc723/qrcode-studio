@@ -10,22 +10,25 @@ import { computed, onMounted, reactive, ref, shallowRef, watch, type Ref } from 
 import type { ErrorCorrectionLevel } from '@/types'
 import type { ParsedTable } from '@/pure/batch/table'
 import type { BatchSymbology, ReadyRow } from '@/pure/batch/rows'
-import { formatCount } from '@/pure/batch/sequence'
 import { encodeBarcode, type BarcodePattern } from '@/pure/encodeBarcode'
-import { BARCODE_MIN_X_MM, BARCODE_WARN_X_MM, MIN_LABEL_FONT_PT, PRINTER_EDGE_RANGE } from '@/pure/batch/paper'
-import { BRAND_NAMES, DEFAULT_SHEET_ID, LABEL_SHEETS, sheetById, sheetCells, type LabelGrid } from '@/pure/batch/labelSheets'
+import { BARCODE_MIN_X_MM, BARCODE_WARN_X_MM, MM_PER_IN, PAPERS, mmToIn, type PaperId } from '@/pure/batch/paper'
 import {
-  LABEL_MAX_CELLS, LABEL_MAX_COPIES, clampOffset, contentBox, customInputFrom, edgeCellCount, normalizePlacement,
-  parseCustomGrid, placeLabels, slotCount, testPageCells, type CustomGridInput, type Rect,
+  BRAND_NAMES, DEFAULT_SHEET_ID, LABEL_SHEETS, US_DEFAULT_SHEET_ID, US_LABEL_SHEETS, sheetById, sheetCells, usSheetById,
+  type LabelGrid,
+} from '@/pure/batch/labelSheets'
+import {
+  LABEL_MAX_CELLS, LABEL_MAX_COPIES, clampOffset, clampOffsetIn, contentBox, customInputFrom, edgeCellCount, normalizePlacement,
+  parseCustomGrid, placeLabels, slotCount, testPageCells, type CustomGridInput, type CustomUnit, type Rect,
 } from '@/pure/batch/labelLayout'
+import type { Locale } from '@/i18n/locale'
+import { labelCopy, type LineUnit } from '@/pure/batch/copy'
 import {
   barcodeLabelModules, barcodeLabelSvg, isBlocking, layoutCell, qrLabelModules, qrLabelSvg,
   type CellCode, type CellIssue, type CellLayout, type CodeSvgParts, type PlacedLine, type TextStyle,
 } from '@/pure/batch/labelContent'
 import { makeQrMatrix } from '@/pure/batch/qrMatrix'
 import {
-  DEFAULT_PRINT_FONT, PRINT_FONTS, cachedMeasure, detectFont, estimateMeasure, printFont,
-  type MeasureText, type PrintFontId,
+  cachedMeasure, detectFont, estimateMeasure, printFont, printFontsFor, type MeasureText, type PrintFontId,
 } from '@/pure/batch/printFonts'
 import { forgetPrinterOffset, loadPrinterOffset, savePrinterOffset } from '@/utils/batch-label-offset'
 import { trackBatchDownload } from '@/utils/batch-analytics'
@@ -42,7 +45,12 @@ export interface LabelSourceRefs {
   ec: Readonly<Ref<ErrorCorrectionLevel>>
   /** 清單本身不能產生的原因（useBatch 的 blocker） */
   blocker: Readonly<Ref<string | null>>
-  lineUnit: Readonly<Ref<string>>
+  lineUnit: Readonly<Ref<LineUnit>>
+}
+
+export interface LabelOptions {
+  /** 預設繁中：台灣的 A4 型號、繁中字型、mm。英文版是 Letter 的型號（加一個 A4）、英文字型、英寸 */
+  locale?: Locale
 }
 
 /** 每一行字印什麼：不印、內容本身、貼上的某一欄 */
@@ -127,22 +135,27 @@ function canvasMeasure(): MeasureText | null {
   }
 }
 
-/** 「第 3、5、8 列」；超過 8 個只列前 8 個再寫總數 */
-function whichLines(lines: readonly number[], unit: string): string {
-  const sorted = [...lines].sort((a, b) => a - b)
-  const shown = sorted.slice(0, 8).join('、')
-  return `第 ${shown}${sorted.length > 8 ? ` 等 ${formatCount(sorted.length)}` : ''} ${unit}`
-}
+export function useBatchLabels(src: LabelSourceRefs, opts: LabelOptions = {}) {
+  const locale = opts.locale ?? 'zh-TW'
+  const t = labelCopy[locale]
+  const isEn = locale === 'en'
+  /** 英文版的長度（自訂尺寸、位移）用英寸填，內部照樣是 mm */
+  const unit: CustomUnit = isEn ? 'in' : 'mm'
+  const sheets = isEn ? US_LABEL_SHEETS : LABEL_SHEETS
+  const byId = isEn ? usSheetById : sheetById
+  const defaultSheetId = isEn ? US_DEFAULT_SHEET_ID : DEFAULT_SHEET_ID
+  const fontSet = printFontsFor(locale)
 
-export function useBatchLabels(src: LabelSourceRefs) {
   /* ---------- 設定 ---------- */
 
-  const sheetId = ref<string>(DEFAULT_SHEET_ID)
-  const custom = reactive<CustomGridInput>(customInputFrom(sheetById[DEFAULT_SHEET_ID]!))
+  const sheetId = ref<string>(defaultSheetId)
+  const custom = reactive<CustomGridInput>(customInputFrom(byId[defaultSheetId]!, unit))
+  /** 自訂尺寸的紙張：繁中版只有 A4，英文版可選 Letter 或 A4 */
+  const customPaper = ref<PaperId>(isEn ? 'letter' : 'a4')
   const startCell = ref<number | ''>(1)
   const copies = ref<number | ''>(1)
   const lineSources = ref<LineSource[]>(['value', 'none', 'none'])
-  const fontId = ref<PrintFontId>(DEFAULT_PRINT_FONT)
+  const fontId = ref<PrintFontId>(fontSet.defaultId)
   const avoidEdge = ref(true)
   const offsetX = ref<number | ''>(0)
   const offsetY = ref<number | ''>(0)
@@ -150,24 +163,35 @@ export function useBatchLabels(src: LabelSourceRefs) {
   const target = ref<PrintTarget>('labels')
   const showAllSheets = ref(false)
 
-  // 選「自訂」時，從剛剛的型號數字開始改
+  // 選「自訂」時，從剛剛的型號數字開始改（紙張也跟著那個型號）
   watch(sheetId, (next, prev) => {
-    if (next === CUSTOM_SHEET && prev !== CUSTOM_SHEET && sheetById[prev]) Object.assign(custom, customInputFrom(sheetById[prev]!))
+    if (next === CUSTOM_SHEET && prev !== CUSTOM_SHEET && byId[prev]) {
+      Object.assign(custom, customInputFrom(byId[prev]!, unit))
+      if (isEn) customPaper.value = byId[prev]!.paper ?? 'a4'
+    }
   })
 
+  /** 這一張的紙張：型號寫在資料裡，自訂尺寸看使用者選的 */
+  const paper = computed(() => PAPERS[sheetId.value === CUSTOM_SHEET ? customPaper.value : (byId[sheetId.value]?.paper ?? 'a4')])
   const gridResult = computed(() => (sheetId.value === CUSTOM_SHEET
-    ? parseCustomGrid(custom)
-    : { ok: true as const, grid: (sheetById[sheetId.value] ?? sheetById[DEFAULT_SHEET_ID]!) as LabelGrid }))
+    ? parseCustomGrid(custom, { paper: paper.value, locale, unit })
+    : { ok: true as const, grid: (byId[sheetId.value] ?? byId[defaultSheetId]!) as LabelGrid }))
   const grid = computed<LabelGrid | null>(() => (gridResult.value.ok ? gridResult.value.grid : null))
   const perSheet = computed(() => (grid.value ? sheetCells(grid.value) : 0))
   // 換成格數比較少的型號時，起始格拉回這一張的範圍，畫面上的數字才跟實際一致
   watch(perSheet, (n) => { if (n && Number(startCell.value) > n) startCell.value = n })
   const sheetName = computed(() => {
-    const s = sheetById[sheetId.value]
-    return s ? `${BRAND_NAMES[s.brand]} ${s.model}` : '自訂尺寸'
+    const s = byId[sheetId.value]
+    return s ? t.sheetTitle(BRAND_NAMES[s.brand], s.model) : t.customTitle
   })
 
-  const offset = computed(() => ({ xMm: clampOffset(offsetX.value), yMm: clampOffset(offsetY.value) }))
+  /** 位移：繁中版填 mm，英文版填英寸，這裡一律換成 mm */
+  const toOffsetMm = (v: number | '') => (isEn ? Math.round(clampOffsetIn(v) * MM_PER_IN * 1000) / 1000 : clampOffset(v))
+  const offset = computed(() => ({ xMm: toOffsetMm(offsetX.value), yMm: toOffsetMm(offsetY.value) }))
+  /** 欄位上整理過的數字（失焦時寫回欄位）：取到最小單位、限制在範圍內 */
+  const offsetShown = computed(() => (isEn
+    ? { x: clampOffsetIn(offsetX.value), y: clampOffsetIn(offsetY.value) }
+    : { x: offset.value.xMm, y: offset.value.yMm }))
   const placement = computed(() => (grid.value
     ? normalizePlacement(grid.value, Number(startCell.value), Number(copies.value))
     : { startCell: 1, copies: 1 }))
@@ -194,9 +218,9 @@ export function useBatchLabels(src: LabelSourceRefs) {
 
   /** 每一行可以選的來源 */
   const lineOptions = computed<{ value: LineSource; label: string }[]>(() => {
-    const valueLabel = src.mode.value === 'paste' ? '內容欄的值' : src.mode.value === 'lines' ? '這一行的內容' : '連號'
+    const valueLabel = t.lineValue[src.mode.value]
     return [
-      { value: 'none', label: '（不印）' },
+      { value: 'none', label: t.lineNone },
       { value: 'value', label: valueLabel },
       ...(src.mode.value === 'paste' ? src.columns.value.map(c => ({ value: `col:${c.index}` as const, label: c.label })) : []),
     ]
@@ -257,12 +281,7 @@ export function useBatchLabels(src: LabelSourceRefs) {
   const blankCell = (key: string, rect: Rect, index: number): RenderCell => ({
     key, index, rect, box: { x: 0, y: 0, w: rect.w, h: rect.h }, blank: true, blocked: null, line: null, code: null, lines: [],
   })
-  const BLOCKED_LABEL: Partial<Record<CellIssue['kind'], string>> = {
-    'no-room': '放不下碼，不會印',
-    'barcode-narrow': '條碼太窄，不會印',
-    'barcode-short': '條碼太矮，不會印',
-    'qr-tiny': 'QR Code 太小，不會印',
-  }
+  const BLOCKED_LABEL: Partial<Record<CellIssue['kind'], string>> = t.blocked
 
   type ProblemKind = CellIssue['kind'] | 'truncated'
   const rendered = computed(() => {
@@ -288,7 +307,7 @@ export function useBatchLabels(src: LabelSourceRefs) {
         cells: page.cells.map((c) => {
           const key = `p${p}-${c.index}`
           if (!c.item) return blankCell(key, c.rect, c.index)
-          const { box } = contentBox(c.rect, avoidEdge.value)
+          const { box } = contentBox(c.rect, avoidEdge.value, paper.value)
           const cacheKey = `${c.item.key}\u0000${box.w}\u0000${box.h}`
           let entry = cache.get(cacheKey)
           if (!entry) {
@@ -310,7 +329,7 @@ export function useBatchLabels(src: LabelSourceRefs) {
             }
             if (layout.truncated) note('truncated', c.item.line)
           }
-          const blocked = isBlocking(entry.layout.issue) ? BLOCKED_LABEL[entry.layout.issue!.kind] ?? '不會印' : null
+          const blocked = isBlocking(entry.layout.issue) ? BLOCKED_LABEL[entry.layout.issue!.kind] ?? t.blockedOther : null
           return {
             key, index: c.index, rect: c.rect, blank: false, blocked, line: c.item.line,
             box: { x: box.x - c.rect.x, y: box.y - c.rect.y, w: box.w, h: box.h },
@@ -323,52 +342,39 @@ export function useBatchLabels(src: LabelSourceRefs) {
   })
 
   const testCells = computed(() => (grid.value ? testPageCells(grid.value, offset.value) : []))
-  const edgeCount = computed(() => (grid.value ? edgeCellCount(grid.value, offset.value) : 0))
+  const edgeCount = computed(() => (grid.value ? edgeCellCount(grid.value, offset.value, paper.value) : 0))
 
   /* ---------- 提醒與擋下的原因 ---------- */
 
   const notices = computed<LabelNotice[]>(() => {
     const out: LabelNotice[] = []
-    const unit = src.lineUnit.value
+    const unitWord = src.lineUnit.value
     const sym = src.symbology.value
     const symLabel = SYMBOLOGY_LABEL[sym]
     const p = rendered.value.problems
     const lines = (kind: ProblemKind) => [...(p.get(kind)?.lines ?? [])]
     const min = (kind: ProblemKind) => Math.min(...(p.get(kind)?.values ?? [0]))
-    const fmt = (n: number) => n.toFixed(2).replace(/0$/, '')
+    const which = (kind: ProblemKind) => t.whichLines(lines(kind), unitWord)
+    const n = t.notice
 
-    if (p.has('no-room')) {
-      out.push({ id: 'no-room', level: 'block', text: `${whichLines(lines('no-room'), unit)}：格子扣掉四周的留白之後放不下碼。請選大一點的標籤紙，或減少每格的文字。` })
-    }
+    if (p.has('no-room')) out.push({ id: 'no-room', level: 'block', text: n.noRoom(which('no-room')) })
     if (p.has('barcode-narrow')) {
       const minMm = sym === 'qr' ? 0 : BARCODE_MIN_X_MM[sym]
-      const why = sym === 'ean13' || sym === 'ean8' ? '（標準尺寸的 80%）' : ''
-      out.push({ id: 'barcode-narrow', level: 'block', text: `${whichLines(lines('barcode-narrow'), unit)}：條碼在這個格子裡太窄，最細的線只有 ${fmt(min('barcode-narrow'))} mm，${symLabel} 至少要 ${minMm} mm${why}才掃得到。請選寬一點的標籤紙、縮短內容，或改用 QR Code。` })
+      out.push({ id: 'barcode-narrow', level: 'block', text: n.narrow(which('barcode-narrow'), min('barcode-narrow'), symLabel, minMm, sym === 'ean13' || sym === 'ean8') })
     }
-    if (p.has('barcode-short')) {
-      out.push({ id: 'barcode-short', level: 'block', text: `${whichLines(lines('barcode-short'), unit)}：條碼太矮，掃描時要對得很準。請減少每格的文字行數，或選高一點的標籤紙。` })
-    }
-    if (p.has('qr-tiny')) {
-      out.push({ id: 'qr-tiny', level: 'block', text: `${whichLines(lines('qr-tiny'), unit)}：QR Code 的小方塊只有 ${fmt(min('qr-tiny'))} mm，印出來手機很難掃。請縮短內容、把耐髒程度調低、減少每格的文字，或選大一點的標籤紙。` })
-    }
+    if (p.has('barcode-short')) out.push({ id: 'barcode-short', level: 'block', text: n.short(which('barcode-short')) })
+    if (p.has('qr-tiny')) out.push({ id: 'qr-tiny', level: 'block', text: n.qrTiny(which('qr-tiny'), min('qr-tiny')) })
     if (p.has('barcode-thin')) {
       // 只有 BARCODE_WARN_X_MM 有值的碼制（Code 128、Code 39、ITF-14）才會有 barcode-thin
       const warnMm = sym === 'qr' ? undefined : BARCODE_WARN_X_MM[sym]
-      const advice = sym === 'itf14'
-        ? `外箱給物流掃描時建議 ${warnMm} mm 以上（選 2 欄的大標籤）`
-        : `建議 ${warnMm} mm 以上，比較舊的掃描槍可能要多掃幾次`
-      out.push({ id: 'barcode-thin', level: 'warn', text: `${whichLines(lines('barcode-thin'), unit)}：條碼最細的線只有 ${fmt(min('barcode-thin'))} mm，${advice}。整批印之前請先實際掃一張。` })
+      out.push({ id: 'barcode-thin', level: 'warn', text: n.thin(which('barcode-thin'), min('barcode-thin'), warnMm, sym === 'itf14') })
     }
-    if (p.has('qr-small')) {
-      out.push({ id: 'qr-small', level: 'warn', text: `${whichLines(lines('qr-small'), unit)}：QR Code 的小方塊只有 ${fmt(min('qr-small'))} mm，手機要靠近一點才掃得到。整批印之前請先實際掃一張。` })
-    }
-    if (p.has('truncated')) {
-      out.push({ id: 'truncated', level: 'warn', text: `${whichLines(lines('truncated'), unit)}的字太長，縮到最小字級（${MIN_LABEL_FONT_PT} pt）還放不下，已截斷，標籤上會以「…」結尾。可以改短、少印一行，或選寬一點的標籤紙。` })
-    }
+    if (p.has('qr-small')) out.push({ id: 'qr-small', level: 'warn', text: n.qrSmall(which('qr-small'), min('qr-small')) })
+    if (p.has('truncated')) out.push({ id: 'truncated', level: 'warn', text: n.truncated(which('truncated')) })
     if (edgeCount.value) {
       out.push(avoidEdge.value
-        ? { id: 'edge', level: 'info', text: `這個型號有 ${edgeCount.value} 格貼近紙邊，多數印表機印不到紙邊 ${PRINTER_EDGE_RANGE}：這幾格的碼與字已經自動往內縮，避開印不到的範圍。` }
-        : { id: 'edge', level: 'warn', text: `這個型號有 ${edgeCount.value} 格貼近紙邊，多數印表機印不到紙邊 ${PRINTER_EDGE_RANGE}，碼與字可能被切掉。印表機能無邊界列印時才關掉內縮。` })
+        ? { id: 'edge', level: 'info', text: n.edgeAvoided(edgeCount.value) }
+        : { id: 'edge', level: 'warn', text: n.edgeWarn(edgeCount.value) })
     }
     return out
   })
@@ -379,10 +385,8 @@ export function useBatchLabels(src: LabelSourceRefs) {
   const printBlocker = computed<string | null>(() => {
     if (!gridResult.value.ok) return gridResult.value.error
     if (src.blocker.value) return src.blocker.value
-    if (tooManyCells.value) {
-      return `一次最多印 ${formatCount(LABEL_MAX_CELLS)} 格，目前要 ${formatCount(totalSlots.value)} 格（含留白的格子與每筆的份數），請分批列印。`
-    }
-    if (blockingNotice.value) return '有些標籤印出來會掃不到，請先照上面的說明調整。'
+    if (tooManyCells.value) return t.tooManyCells(LABEL_MAX_CELLS, totalSlots.value)
+    if (blockingNotice.value) return t.someBlocked
     return null
   })
   /** 對位測試頁只要格子合理就能印，不需要清單 */
@@ -405,12 +409,13 @@ export function useBatchLabels(src: LabelSourceRefs) {
     const m = canvasMeasure()
     if (m) {
       measure.value = cachedMeasure(m)
-      installedFonts.value = Object.fromEntries(PRINT_FONTS.map(f => [f.id, detectFont(f, m)])) as Record<PrintFontId, boolean>
+      installedFonts.value = Object.fromEntries(fontSet.fonts.map(f => [f.id, detectFont(f, m)])) as Record<PrintFontId, boolean>
     }
+    // 存的一律是 mm；英文版的欄位換成英寸
     const saved = loadPrinterOffset()
     if (saved) {
-      offsetX.value = saved.x
-      offsetY.value = saved.y
+      offsetX.value = isEn ? mmToIn(saved.x) : saved.x
+      offsetY.value = isEn ? mmToIn(saved.y) : saved.y
       rememberOffset.value = true
     }
   })
@@ -422,11 +427,11 @@ export function useBatchLabels(src: LabelSourceRefs) {
   })
 
   return {
-    sheets: LABEL_SHEETS,
-    sheetId, custom, gridResult, grid, perSheet, sheetName,
+    locale, unit, fonts: fontSet.fonts,
+    sheets, sheetId, custom, customPaper, paper, gridResult, grid, perSheet, sheetName,
     startCell, copies, placement, maxCopies: LABEL_MAX_COPIES,
     lineSources, lineOptions, fontId, font, missingFont, installedFonts,
-    avoidEdge, edgeCount, offsetX, offsetY, offset, rememberOffset,
+    avoidEdge, edgeCount, offsetX, offsetY, offset, offsetShown, rememberOffset,
     target, showAllSheets, items, rendered, testCells, sheetTotal, sheetsToPrint, totalSlots,
     notices, printBlocker, testBlocker, activeBlocker, print,
   }

@@ -35,6 +35,12 @@ export const routes: RouteRecordRaw[] = [
   { path: '/about', name: 'about', component: () => import('@/pages/AboutPage.vue') },
   { path: '/privacy', name: 'privacy', component: () => import('@/pages/PrivacyPage.vue') },
   { path: '/faq', name: 'faq', component: () => import('@/pages/FaqPage.vue') },
+  // 英文版（/en/ 前綴）：先做首頁、批次與條碼三頁，跟繁中的同一頁成對（src/i18n/pairs.ts）。
+  // meta.locale 是語系的唯一來源（App.vue 依它 provide 給整棵元件樹）。英文的說明文章不進 entry chunk，一律動態 import；
+  // 批次頁同上，編碼器與批次邏輯只在那個 chunk。
+  { path: '/en', name: 'en-home', component: () => import('@/pages/en/EnHomePage.vue'), meta: { locale: 'en' } },
+  { path: '/en/barcode', name: 'en-barcode', component: () => import('@/pages/en/EnBarcodePage.vue'), meta: { locale: 'en' } },
+  { path: '/en/batch', name: 'en-batch', component: () => import('@/pages/en/EnBatchPage.vue'), meta: { locale: 'en' } },
   { path: '/:pathMatch(.*)*', name: 'notfound', component: NotFoundPage },
 ]
 

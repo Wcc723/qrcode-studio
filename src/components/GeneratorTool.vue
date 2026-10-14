@@ -15,8 +15,14 @@ import { inputComponents } from './inputs'
 import { exceedsQrCapacity } from '@/pure/qrCapacity'
 import { usePreviewDock } from '@/composables/usePreviewDock'
 import { qrGeometry, type CopyStatus } from '@/composables/useQrCode'
+import { useUiCopy } from '@/locales/ui'
 
-const props = withDefaults(defineProps<{ defaultType?: QrType }>(), { defaultType: 'url' })
+const props = withDefaults(defineProps<{
+  defaultType?: QrType
+  /** 只給這一種類型時不顯示類型切換（英文首頁只有網址） */
+  only?: QrType
+}>(), { defaultType: 'url' })
+const t = useUiCopy().generator
 const current = ref<QrType>(props.defaultType)
 const payload = ref('')
 const style = ref<QrStyleOptions>({ ...defaultStyle })
@@ -31,8 +37,8 @@ const initial = ref<PayloadInputMap[QrType] | undefined>()
 const handoffSeq = ref(0)
 onMounted(() => {
   const handoff = takeScanHandoff()
-  // 一維碼不歸這裡管；直接丟掉，不要硬塞進 QR 表單。
-  if (handoff?.kind !== 'qr') return
+  // 一維碼不歸這裡管；直接丟掉，不要硬塞進 QR 表單。只有一種類型的頁面（英文首頁）也不收別的類型。
+  if (handoff?.kind !== 'qr' || (props.only && handoff.type !== props.only)) return
   current.value = handoff.type
   initial.value = handoff.data
   handoffSeq.value++
@@ -87,29 +93,27 @@ function showFullPreview() {
   <div class="card p-5 md:p-6">
     <PrivacyNote mode="generate" class="mb-5" />
     <!-- 區塊標示是段落不是標題：頁面的 h1／h2／h3 大綱不因為分區而改變 -->
-    <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>輸入內容</p>
-    <QrTypeTabs :model-value="current" @update:model-value="onType" />
+    <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>{{ t.input }}</p>
+    <QrTypeTabs v-if="!only" :model-value="current" @update:model-value="onType" />
     <div class="grid md:grid-cols-[1fr_auto] gap-6 mt-5">
       <div class="space-y-5 min-w-0">
         <component :is="activeInput" :key="`${current}:${handoffSeq}`" :initial="initial"
           @update:payload="payload = $event" />
         <hr class="border-t-2 border-dashed border-ink/15" />
         <div>
-          <p class="zone-label"><span class="icon-badge-sm bg-pop-pink"><span class="i-lucide-palette" aria-hidden="true" /></span>外觀</p>
+          <p class="zone-label"><span class="icon-badge-sm bg-pop-pink"><span class="i-lucide-palette" aria-hidden="true" /></span>{{ t.look }}</p>
           <StylePanel v-model="style" />
         </div>
       </div>
       <div ref="previewZone" tabindex="-1" class="md:w-72 min-w-0 scroll-mt-4" data-test="preview-zone">
         <!-- 三種格式各在什麼時候用，收在「預覽與下載」旁的「?」；下載鈕的文字不變 -->
         <div class="mb-3">
-          <HelpTip name="下載格式" :id="`${uid}-dl-help`">
-            <template #head><p class="zone-label !mb-0"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-qr-code" aria-hidden="true" /></span>預覽與下載</p></template>
+          <HelpTip :name="t.downloadHelpName" :id="`${uid}-dl-help`">
+            <template #head><p class="zone-label !mb-0"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-qr-code" aria-hidden="true" /></span>{{ t.preview }}</p></template>
             <ul>
-              <li><strong>PNG</strong>：一般用途都用它，可以透明背景。</li>
-              <li><strong>SVG</strong>：放多大都清楚，印刷或交給設計師排版用。</li>
-              <li><strong>JPG</strong>：只有對方只收 JPG 時才用，不能透明背景。</li>
+              <li v-for="f in t.downloadHelp" :key="f.strong"><strong>{{ f.strong }}</strong>{{ f.text }}</li>
             </ul>
-            <p>「複製」會把 PNG 圖片複製起來，可以直接貼進聊天或文件。</p>
+            <p>{{ t.copyHelp }}</p>
           </HelpTip>
         </div>
         <!-- 預覽框連同下載鈕一起黏著（main.css 的 .preview-sticky，只在桌機兩欄）：只黏預覽框的話，往下捲它會滑過去蓋住下載鈕 -->

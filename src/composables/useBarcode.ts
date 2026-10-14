@@ -2,12 +2,16 @@ import { ref, computed, watch, onBeforeUnmount, type Ref } from 'vue'
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
 import { validateBarcode, CODE39_SHIFT_CHARS } from '@/pure/validateBarcode'
 import { encodeBarcode, barcodeToSvg, barcodeGeometry, barcodeDownloadSvg } from '@/pure/encodeBarcode'
-import { symbologyById } from '@/config/symbologies'
+import { symbologyMapFor } from '@/config/symbologies'
+import type { Locale } from '@/i18n/locale'
+import { barcodeCopy } from '@/locales/barcode'
 import { saveBlob } from '@/utils/save-blob'
 import { barcodeRasterPlan, paintPlan } from '@/pure/raster'
 
-export function useBarcode(raw: Ref<string>, sym: Ref<BarcodeSymbology>) {
-  const validation = computed(() => validateBarcode(sym.value, raw.value))
+export function useBarcode(raw: Ref<string>, sym: Ref<BarcodeSymbology>, locale: Locale = 'zh-TW') {
+  const t = barcodeCopy[locale]
+  const metaById = symbologyMapFor(locale)
+  const validation = computed(() => validateBarcode(sym.value, raw.value, locale))
 
   // 空輸入不算錯誤：預覽顯示引導文字，不該一開頁就紅字。
   const error = computed(() => {
@@ -33,12 +37,12 @@ export function useBarcode(raw: Ref<string>, sym: Ref<BarcodeSymbology>) {
     if (!v.ok) return null
     const parts: string[] = []
     if (v.appendedCheckDigit) {
-      parts.push(`已自動補上檢查碼 ${v.normalized!.slice(-1)}，完整號碼 ${v.normalized}。請對照你手上的號碼確認。`)
+      parts.push(t.appended(v.normalized!.slice(-1), v.normalized!))
     }
     if (sym.value === 'code39' && CODE39_SHIFT_CHARS.test(v.normalized!)) {
-      parts.push('內容含 $ / + % 這幾個符號，有些掃描器會把它們跟下一個字合在一起讀，讀出來可能跟你輸入的不一樣。要給機器讀取時，請先實際掃一次。')
+      parts.push(t.code39Shift)
     }
-    return parts.length ? parts.join('') : null
+    return parts.length ? parts.join(locale === 'en' ? ' ' : '') : null
   })
 
   const previewSvg = computed(() => {
@@ -100,7 +104,7 @@ export function useBarcode(raw: Ref<string>, sym: Ref<BarcodeSymbology>) {
   return {
     validation, error, notice, pattern, previewSvg, printInfo, pngSize,
     downloadSvg, downloadPng, liveMessage, flushMessage,
-    meta: computed(() => symbologyById[sym.value]),
+    meta: computed(() => metaById[sym.value]),
     canDownload: computed(() => !!pattern.value),
   }
 }

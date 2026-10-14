@@ -14,6 +14,8 @@
  * 什麼可以收進來、什麼必須留在畫面上，見 AGENTS.md「工具區與說明文章」與 src/helpNotes.test.ts。
  */
 import { ref, useId } from 'vue'
+import { useLocale } from '@/i18n/locale'
+import { helpTipName } from '@/locales/ui'
 
 const props = defineProps<{
   /** 按鈕的無障礙名稱是「{name}的說明」 */
@@ -23,6 +25,7 @@ const props = defineProps<{
 }>()
 
 const uid = useId()
+const label = helpTipName[useLocale().value](props.name)
 const panelId = props.id ?? `help-${uid}`
 const open = ref(false)
 const btn = ref<HTMLButtonElement | null>(null)
@@ -50,7 +53,7 @@ function onEsc(e: KeyboardEvent): void {
       class="help-tip-btn"
       :aria-expanded="open"
       :aria-controls="panelId"
-      :aria-label="`${name}的說明`"
+      :aria-label="label"
       @click="toggle"
       @keydown.esc="onEsc"
     >

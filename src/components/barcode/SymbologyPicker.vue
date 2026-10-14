@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
-import { symbologies } from '@/config/symbologies'
+import { symbologiesFor } from '@/config/symbologies'
+import { useLocale } from '@/i18n/locale'
+import { barcodeCopy } from '@/locales/barcode'
 import HelpTip from '../HelpTip.vue'
 
 const props = defineProps<{ modelValue: BarcodeSymbology }>()
 const emit = defineEmits<{ 'update:modelValue': [BarcodeSymbology] }>()
+const locale = useLocale().value
+const symbologies = symbologiesFor(locale)
+const t = barcodeCopy[locale]
 
 // radio 用 v-model，不用 :checked：整頁載入時 client 沿用預渲染的 DOM（hydrate），hydrate 不會改 checked，
 // Firefox 重新整理又會把上一次選的 radio 還原回來，畫面上會勾著 EAN-13、亮著 Code 128，點 EAN-13 也不會觸發 change。
@@ -29,15 +34,15 @@ const selected = computed({
     「?」不放進 legend：按鈕會讓群組名稱多念一段「條碼類型的說明」。看得到的欄名在 field-head 裡
     （對報讀器隱藏），群組名稱仍由 sr-only 的 legend 提供，用途說明用 aria-describedby 接上。
   -->
-  <HelpTip name="條碼類型" id="bc-sym-help">
-    <template #head><span class="text-sm text-muted" aria-hidden="true">條碼類型</span></template>
+  <HelpTip :name="t.typeName" id="bc-sym-help">
+    <template #head><span class="text-sm text-muted" aria-hidden="true">{{ t.type }}</span></template>
     <ul>
       <li v-for="s in symbologies" :key="s.id"><strong>{{ s.label }}</strong>：{{ s.about }}</li>
     </ul>
-    <p>不確定用哪個就選 Code 128；商品零售結帳用 EAN-13。</p>
+    <p>{{ t.typeHelpEnd }}</p>
   </HelpTip>
   <fieldset class="border-0 p-0 m-0 mt-1.5 min-w-0" data-test="bc-symbology" aria-describedby="bc-sym-help">
-    <legend class="sr-only">條碼類型</legend>
+    <legend class="sr-only">{{ t.type }}</legend>
     <div class="flex flex-wrap gap-2">
       <label
         v-for="s in symbologies" :key="s.id"

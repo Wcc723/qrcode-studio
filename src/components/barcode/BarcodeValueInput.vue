@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { SymbologyMeta } from '@/config/symbologies'
+import { useLocale } from '@/i18n/locale'
+import { barcodeCopy } from '@/locales/barcode'
 
 defineProps<{
   modelValue: string
@@ -9,13 +11,14 @@ defineProps<{
   liveMessage: string
 }>()
 const emit = defineEmits<{ 'update:modelValue': [string]; flush: [] }>()
+const t = barcodeCopy[useLocale().value]
 </script>
 
 <template>
   <div class="min-w-0">
     <!-- 隱含 label 包住 input，與 WifiInput／UrlInput 同一種寫法。不用 placeholder 當標籤。 -->
     <label class="block">
-      <span class="text-sm text-muted">條碼內容</span>
+      <span class="text-sm text-muted">{{ t.value }}</span>
       <input
         :value="modelValue" data-test="bc-value"
         class="input-base mt-1 font-mono tabular-nums"

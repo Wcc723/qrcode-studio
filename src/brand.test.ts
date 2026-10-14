@@ -45,9 +45,15 @@ describe('產品名只有一個開關', () => {
     expect(offenders).toEqual([])
   })
 
-  it('頁尾與關於頁用同一句商標聲明', () => {
+  it('頁尾與關於頁用同一句商標聲明；英文版的頁尾用英文那一句', () => {
     expect(read('src/layouts/DefaultLayout.vue')).toContain('{{ site.trademark }}')
+    expect(read('src/layouts/DefaultLayout.vue')).toContain('{{ site.trademarkEn }}')
     expect(read('src/pages/AboutPage.vue')).toContain('{{ site.trademark }}')
+  })
+
+  it('英文名也只有 site.ts 一個開關（英文頁與頁首頁尾一律用 site.nameEn）', () => {
+    const offenders = sources.filter((f) => f !== 'src/config/site.ts' && read(f).includes(site.nameEn))
+    expect(offenders).toEqual([])
   })
 })
 

@@ -1,37 +1,40 @@
 <script setup lang="ts">
 /**
- * A4 標籤紙的預覽與列印區：螢幕上是一疊 A4 預覽，列印時頁面上只剩這一區（規則在下面的 @media print）。
+ * 標籤紙的預覽與列印區：螢幕上是一疊紙張預覽，列印時頁面上只剩這一區（規則在下面的 @media print）。
  *
- * - 每張紙 210 mm 寬（高度扣掉 PAGE_FIT_GUARD_MM，免得多印一張白紙），格子照型號的絕對位置用 mm 定位，
+ * - 每張紙照紙張的寬（A4 210 mm、Letter 215.9 mm；高度扣掉 PAGE_FIT_GUARD_MM，免得多印一張白紙），格子照型號的絕對位置用 mm 定位，
  *   碼是向量 SVG（viewBox 以模組為單位、寬高寫 mm），字是系統字型。毫米數字一律來自 src/pure/batch/paper.ts。
- * - 掛載時在 <head> 加一段 `@page { size: A4; margin: 0; }`，卸載就拿掉：其他頁、其他輸出方式照一般網頁列印。
+ * - 掛載時在 <head> 加一段 `@page { size: A4; margin: 0; }`（Letter 是 `size: letter`），卸載就拿掉：
+ *   其他頁、其他輸出方式照一般網頁列印。換紙張時跟著換。
  * - 螢幕放不下實際寬度時用 CSS zoom 縮小整區，而且只寫在 @media screen 裡；列印時照 mm 原尺寸，不縮放、不截圖。
  * - 螢幕上只畫前幾張（其他張 display: none），列印時全部印出來；格子的虛線框、略過的格子與頁碼只在螢幕上。
  * - 貼上的內容一律是文字節點，不用 v-html。
  */
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { PREVIEW_SHEETS, type BatchLabels } from '@/composables/useBatchLabels'
 import type { Rect } from '@/pure/batch/labelLayout'
 import type { PlacedLine } from '@/pure/batch/labelContent'
 import {
-  A4, PAGE_NUMBER_INSET_MM, PAGE_RULE, PX_PER_MM, TEST_INFO_FONT_PT, TEST_INFO_HEIGHT_MM, TEST_INFO_PADDING_MM,
-  TEST_INFO_WIDTH_MM, TEST_LINE_MM, TEST_NUMBER_PT, mm, pt, ptToMm, sheetBox,
+  PAGE_NUMBER_INSET_MM, PX_PER_MM, TEST_INFO_FONT_PT, TEST_INFO_HEIGHT_MM, TEST_INFO_PADDING_MM,
+  TEST_INFO_WIDTH_MM, TEST_LINE_MM, TEST_NUMBER_PT, mm, pageRule, pt, ptToMm, sheetBox,
 } from '@/pure/batch/paper'
-import { formatCount } from '@/pure/batch/sequence'
+import { labelCopy, type LineUnit } from '@/pure/batch/copy'
 import CalibrationRuler from './CalibrationRuler.vue'
 
-const props = defineProps<{ labels: BatchLabels; lineUnit: string }>()
+const props = defineProps<{ labels: BatchLabels; lineUnit: LineUnit }>()
 const L = reactive(props.labels)
+const t = labelCopy[L.locale]
 
-/* ---------- @page：只在這一區顯示時 ---------- */
+/* ---------- @page：只在這一區顯示時，紙張換了跟著換 ---------- */
 
 let pageStyle: HTMLStyleElement | null = null
 onMounted(() => {
   pageStyle = document.createElement('style')
   pageStyle.setAttribute('data-label-page', '')
-  pageStyle.textContent = PAGE_RULE
+  pageStyle.textContent = pageRule(L.paper.id)
   document.head.appendChild(pageStyle)
 })
+watch(() => L.paper.id, (id) => { if (pageStyle) pageStyle.textContent = pageRule(id) })
 onBeforeUnmount(() => { pageStyle?.remove() })
 
 /* ---------- 螢幕預覽的縮放 ---------- */
@@ -41,25 +44,32 @@ const zoom = ref(1)
 /** 預覽左右各留的空間（px），紙的陰影才不會貼著外框 */
 const GUTTER_PX = 12
 let observer: ResizeObserver | null = null
+let frame = 0
 function fit(): void {
   const el = root.value
   if (!el) return
   const available = el.clientWidth - GUTTER_PX * 2
-  const sheetPx = A4.widthMm * PX_PER_MM
+  const sheetPx = L.paper.widthMm * PX_PER_MM
   zoom.value = available > 0 ? Math.min(1, Math.floor((available / sheetPx) * 1000) / 1000) : 1
 }
+watch(() => L.paper.widthMm, () => fit())
 onMounted(() => {
   fit()
   if (typeof ResizeObserver !== 'undefined' && root.value) {
-    observer = new ResizeObserver(fit)
+    // 縮放改在下一個畫面才套：在 ResizeObserver 的回呼裡直接改 zoom，WebKit 在列印與螢幕版面切換時會報
+    // 「ResizeObserver loop completed with undelivered notifications」（窄螢幕、切換列印預覽時最常見）
+    observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(fit)
+    })
     observer.observe(root.value)
   }
 })
-onBeforeUnmount(() => observer?.disconnect())
+onBeforeUnmount(() => { observer?.disconnect(); cancelAnimationFrame(frame) })
 
 /* ---------- 位置 ---------- */
 
-const box = sheetBox()
+const box = computed(() => sheetBox(L.paper))
 const rectStyle = (r: Rect, origin?: Rect) => ({
   left: mm((origin?.x ?? 0) + r.x), top: mm((origin?.y ?? 0) + r.y), width: mm(r.w), height: mm(r.h),
 })
@@ -74,22 +84,21 @@ const pageNumberStyle = { right: mm(PAGE_NUMBER_INSET_MM), bottom: mm(PAGE_NUMBE
 
 const pages = computed(() => L.rendered.pages)
 const hiddenSheets = computed(() => (L.showAllSheets ? 0 : Math.max(0, pages.value.length - PREVIEW_SHEETS)))
-const codeName = (kind: 'qr' | 'barcode', line: number | null) => `第 ${line ?? ''} ${props.lineUnit}的${kind === 'qr' ? ' QR Code' : '條碼'}`
+const codeName = (kind: 'qr' | 'barcode', line: number | null) => t.codeName(kind, line, props.lineUnit)
 
 /* ---------- 對位測試頁 ---------- */
 
-const gridViewBox = `0 0 ${A4.widthMm} ${A4.heightMm}`
+const gridViewBox = computed(() => `0 0 ${L.paper.widthMm} ${L.paper.heightMm}`)
 const numberSize = ptToMm(TEST_NUMBER_PT)
-const infoStyle = {
-  left: mm((A4.widthMm - TEST_INFO_WIDTH_MM) / 2),
-  top: mm((A4.heightMm - TEST_INFO_HEIGHT_MM) / 2),
+const infoStyle = computed(() => ({
+  left: mm((L.paper.widthMm - TEST_INFO_WIDTH_MM) / 2),
+  top: mm((L.paper.heightMm - TEST_INFO_HEIGHT_MM) / 2),
   width: mm(TEST_INFO_WIDTH_MM),
   height: mm(TEST_INFO_HEIGHT_MM),
   padding: mm(TEST_INFO_PADDING_MM),
   border: `${mm(TEST_LINE_MM)} solid #000`,
   fontSize: pt(TEST_INFO_FONT_PT),
-}
-const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(1)}`
+}))
 </script>
 
 <template>
@@ -98,7 +107,7 @@ const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).
       <template v-if="L.target === 'labels'">
         <div
           v-for="(page, p) in pages" :key="page.key" class="label-sheet" :class="{ 'label-sheet-extra': p >= PREVIEW_SHEETS && !L.showAllSheets }"
-          :style="box" role="group" :aria-label="`第 ${p + 1} 張 A4`" data-test="label-sheet">
+          :style="box" role="group" :aria-label="t.sheetAria(p + 1, L.paper.id)" data-test="label-sheet">
           <div
             v-for="cell in page.cells" :key="cell.key" class="label-cell" :class="{ 'label-cell-blank': cell.blank }"
             :style="rectStyle(cell.rect)" :data-cell="cell.index + 1" data-test="label-cell">
@@ -119,8 +128,8 @@ const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).
         </div>
       </template>
 
-      <div v-else class="label-sheet" :style="box" role="group" aria-label="對位測試頁" data-test="label-test-sheet">
-        <svg class="label-test-grid" :width="mm(A4.widthMm)" :height="mm(A4.heightMm)" :viewBox="gridViewBox" aria-hidden="true">
+      <div v-else class="label-sheet" :style="box" role="group" :aria-label="t.testAria" data-test="label-test-sheet">
+        <svg class="label-test-grid" :width="mm(L.paper.widthMm)" :height="mm(L.paper.heightMm)" :viewBox="gridViewBox" aria-hidden="true">
           <g fill="none" stroke="#000" :stroke-width="TEST_LINE_MM">
             <rect v-for="(r, i) in L.testCells" :key="i" :x="r.x" :y="r.y" :width="r.w" :height="r.h" data-test="label-test-cell" />
           </g>
@@ -129,16 +138,16 @@ const signed = (n: number) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).
           </g>
         </svg>
         <div class="label-test-info" :style="infoStyle" data-test="label-test-info">
-          <CalibrationRuler />
-          <p>對位測試頁｜{{ L.sheetName }}（{{ L.perSheet }} 格）｜位移：左右 {{ signed(L.offset.xMm) }} mm、上下 {{ signed(L.offset.yMm) }} mm</p>
-          <p>用白紙印這一頁，疊在標籤紙上對著光看，格線要落在標籤的切線上。差多少就在「位移微調」填多少，再印一次確認。</p>
+          <CalibrationRuler :unit="L.unit === 'in' ? 'in' : 'cm'" :aria="t.ruler.aria" :caption="t.ruler.caption" />
+          <p>{{ t.testInfo(L.sheetName, L.perSheet, L.offset.xMm, L.offset.yMm) }}</p>
+          <p>{{ t.testHow }}</p>
         </div>
       </div>
     </div>
 
     <p v-if="L.target === 'labels' && hiddenSheets" class="label-more" data-test="label-more">
-      螢幕上先預覽前 {{ PREVIEW_SHEETS }} 張，列印時會印出全部 {{ formatCount(pages.length) }} 張。
-      <button type="button" class="label-more-btn" data-test="label-show-all" @click="L.showAllSheets = true">顯示全部</button>
+      {{ t.more(PREVIEW_SHEETS, pages.length) }}
+      <button type="button" class="label-more-btn" data-test="label-show-all" @click="L.showAllSheets = true">{{ t.showAll }}</button>
     </p>
   </div>
 </template>

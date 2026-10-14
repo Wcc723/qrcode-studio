@@ -3,6 +3,7 @@ import { createI18n } from 'vue-i18n'
 import App from './App.vue'
 import { routerOptions } from './router'
 import zhTW from './locales/zh-TW'
+import en from './locales/en'
 import { SSG_ROUTE_ATTR, shouldHydrate } from './utils/hydration'
 import '@fontsource/fredoka/latin-500.css'
 import '@fontsource/fredoka/latin-600.css'
@@ -20,7 +21,8 @@ export const createApp = ViteSSG(
   // router.ts 內的 path 一律不加前綴。
   { ...routerOptions, base: import.meta.env.BASE_URL },
   ({ app, head, isClient, routePath }) => {
-    const i18n = createI18n({ legacy: false, locale: 'zh-TW', fallbackLocale: 'zh-TW', messages: { 'zh-TW': zhTW } })
+    // 目前語系由 App.vue 依路由的 meta.locale 設定（見 src/i18n/locale.ts）
+    const i18n = createI18n({ legacy: false, locale: 'zh-TW', fallbackLocale: 'zh-TW', messages: { 'zh-TW': zhTW, en } })
     app.use(i18n)
 
     // 記下這份 HTML 預渲染的是哪一條路由：client 比對網址，同一頁才 hydrate（見下方第 4 個參數與

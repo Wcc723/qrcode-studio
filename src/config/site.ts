@@ -10,12 +10,14 @@ export const site = {
   // 產品名。頁首、頁尾、FAQ／教學總覽／隱私權／404 的 title 後綴、JSON-LD 的 WebSite 與首頁工具名稱、
   // manifest 都從這裡取，不要在別處寫死。2026-09-26 由 QR Code Studio 改名，網址 /qrcode-studio/ 不變。
   name: 'QR Code 製造機',
-  // 英文名。站上沒有英文版，只放進 JSON-LD WebSite.alternateName 與 manifest，讓英文搜尋與舊名對得起來。
+  // 英文名：英文版（/en/）的頁首、頁尾、title 後綴與 JSON-LD WebSite.name 用它，繁中頁放在 WebSite.alternateName。
   nameEn: 'QR Code Maker',
   // 舊名只留在這裡（JSON-LD alternateName）與關於頁的更新紀錄，其他地方不再出現。更早的 QRTool 已完全停用。
   formerNames: ['QR Code Studio'],
   // og:site_name：產品名＋站群名，分享卡片上看得出這是口袋工具的一部分。
   siteName: 'QR Code 製造機｜口袋工具',
+  // 英文版的 og:site_name（口袋工具的英文名是 Pocketool，跟 hub 英文版一致）
+  siteNameEn: 'QR Code Maker | Pocketool',
   // 正式網址（含子路徑、無結尾斜線）；用於 canonical / og:url / sitemap / 結構化資料。
   // 舊子網域 qrcode-studio.pocketool.app 由 Cloudflare Bulk Redirect 301 過來。
   url: 'https://www.pocketool.app/qrcode-studio',
@@ -30,6 +32,8 @@ export const site = {
   description: '免費線上 QR Code 產生器，3 步驟製作 QRCode：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。',
   // 產品名含「QR Code」，頁尾與關於頁都要附這一句註冊商標聲明（DENSO WAVE 官方要求的寫法）。
   trademark: 'QR Code 是 DENSO WAVE INCORPORATED 在日本及其他國家的註冊商標。',
+  // 英文版頁尾的同一句聲明
+  trademarkEn: 'QR Code is a registered trademark of DENSO WAVE INCORPORATED in Japan and other countries.',
 }
 
 // 營運者：口袋工具（站群 hub）。Organization JSON-LD、文章的 publisher、頁首頁尾的
@@ -52,6 +56,15 @@ export const publisher = {
   // 頁尾的「回報問題」：口袋工具的問題回報頁（照口袋工具的頁尾連結契約）。網址只帶 site，
   // 點下去才由頁尾補上目前頁面的路徑（不帶 ? 與 #）。
   reportUrl: 'https://www.pocketool.app/feedback/?site=qrcode-studio',
+  /* ---------- 英文版頁首頁尾連到 hub 的英文頁 ---------- */
+  nameEn: 'Pocketool',
+  urlEn: 'https://www.pocketool.app/en/',
+  contactUrlEn: 'https://www.pocketool.app/en/contact',
+  privacyUrlEn: 'https://www.pocketool.app/en/privacy',
+  toolsUrlEn: 'https://www.pocketool.app/en/tools/',
+  // hub 的英文介紹頁；英文版頁尾的「About QR Code Maker」連到這裡（本站的關於頁只有繁中）
+  aboutToolUrlEn: 'https://www.pocketool.app/en/tools/qrcode-studio',
+  reportUrlEn: 'https://www.pocketool.app/feedback/en/?site=qrcode-studio',
 }
 
 // 教學文章的作者。

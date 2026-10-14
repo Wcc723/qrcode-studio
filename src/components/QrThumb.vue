@@ -8,9 +8,10 @@
 import { toRef } from 'vue'
 import { useQrCode } from '@/composables/useQrCode'
 import type { QrStyleOptions } from '@/types'
+import { useUiCopy } from '@/locales/ui'
 
 const props = defineProps<{ data: string; qrStyle: QrStyleOptions; active: boolean }>()
-const { container, error } = useQrCode(toRef(props, 'data'), toRef(props, 'qrStyle'), 'svg', () => props.active)
+const { container, error } = useQrCode(toRef(props, 'data'), toRef(props, 'qrStyle'), 'svg', () => props.active, useUiCopy().preview)
 </script>
 
 <template>

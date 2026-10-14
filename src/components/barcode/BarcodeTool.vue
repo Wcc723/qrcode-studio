@@ -2,8 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import type { BarcodeSymbology } from '@/pure/validateBarcode'
 import { takeScanHandoff } from '@/utils/scan-handoff'
-import { pngPresets } from '@/config/symbologies'
+import { pngPresetsFor } from '@/config/symbologies'
 import { useBarcode } from '@/composables/useBarcode'
+import { useLocale } from '@/i18n/locale'
+import { barcodeCopy } from '@/locales/barcode'
 import SymbologyPicker from './SymbologyPicker.vue'
 import BarcodeValueInput from './BarcodeValueInput.vue'
 import BarcodePreview from './BarcodePreview.vue'
@@ -13,11 +15,14 @@ import PrivacyNote from '../PrivacyNote.vue'
 const sym = ref<BarcodeSymbology>('code128')
 const raw = ref('')
 const scale = ref(4)
+const locale = useLocale().value
+const t = barcodeCopy[locale]
+const pngPresets = pngPresetsFor(locale)
 
 const {
   error, notice, pattern, previewSvg, printInfo, pngSize,
   downloadSvg, downloadPng, liveMessage, flushMessage, meta, canDownload,
-} = useBarcode(raw, sym)
+} = useBarcode(raw, sym, locale)
 
 // /scan/ 交棒過來的一維碼。只在瀏覽器端取、取一次就清掉；
 // QR 的交棒不歸這裡管，直接丟掉而不是硬塞進條碼輸入框。
@@ -34,7 +39,7 @@ const png = computed(() => pngSize(scale.value))
 <template>
   <div class="card p-5 md:p-6">
     <PrivacyNote mode="barcode" class="mb-5" />
-    <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>輸入內容</p>
+    <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>{{ t.input }}</p>
     <SymbologyPicker v-model="sym" />
 
     <div class="mt-5 min-w-0">
@@ -45,31 +50,31 @@ const png = computed(() => pngSize(scale.value))
 
     <hr class="border-t-2 border-dashed border-ink/15 my-5" />
 
-    <p class="zone-label"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-barcode" aria-hidden="true" /></span>預覽與下載</p>
+    <p class="zone-label"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-barcode" aria-hidden="true" /></span>{{ t.preview }}</p>
 
     <BarcodePreview
       :svg="previewSvg" :pattern="pattern" :error="error"
       :label="meta.label" :print-info="printInfo" />
 
     <div class="mt-4">
-      <HelpTip name="PNG 清晰度" id="bc-scale-help">
-        <template #head><label for="bc-scale" class="text-sm text-muted">PNG 清晰度</label></template>
-        <p>DPI 是每英吋印幾個點，數字越大越細。網頁用、一般列印、高品質印刷分別讓最細的線佔 2、4、8 像素，下面的 DPI 是照「建議列印寬度」印出來時的清晰度。</p>
-        <p>PNG 檔不會記錄該印多大，拉進 Word 這類軟體隨手縮放，線就會被壓得太細而掃不到；需要精確尺寸時請下載 SVG，它的寬高以毫米標示。</p>
+      <HelpTip :name="t.pngName" id="bc-scale-help">
+        <template #head><label for="bc-scale" class="text-sm text-muted">{{ t.png }}</label></template>
+        <p>{{ t.pngHelp[0] }}</p>
+        <p>{{ t.pngHelp[1] }}</p>
       </HelpTip>
       <select id="bc-scale" v-model.number="scale" data-test="bc-scale" aria-describedby="bc-scale-help" class="input-base mt-1">
         <option v-for="p in pngPresets" :key="p.id" :value="p.scale">{{ p.label }}</option>
       </select>
     </div>
     <p v-if="png" data-test="bc-png-info" class="text-xs text-muted font-600 mt-1">
-      PNG {{ png.w }} × {{ png.h }} 像素，照建議寬度印約 {{ png.dpi }} DPI
+      {{ t.pngInfo(png.w, png.h, png.dpi) }}
     </p>
 
     <div class="grid grid-cols-2 gap-2 mt-4">
       <button data-test="dl-png" class="btn-primary !bg-pop-sun" :disabled="!canDownload"
-        @click="downloadPng(scale)"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>PNG</button>
+        @click="downloadPng(scale)"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">{{ t.download }}</span>PNG</button>
       <button data-test="dl-svg" class="btn-primary !bg-pop-mint" :disabled="!canDownload"
-        @click="downloadSvg()"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>SVG</button>
+        @click="downloadSvg()"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">{{ t.download }}</span>SVG</button>
     </div>
   </div>
 </template>

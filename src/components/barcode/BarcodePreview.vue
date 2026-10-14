@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { BarcodePattern } from '@/pure/encodeBarcode'
+import { useLocale } from '@/i18n/locale'
+import { barcodeCopy } from '@/locales/barcode'
 
 defineProps<{
   svg: string
@@ -8,6 +10,7 @@ defineProps<{
   label: string
   printInfo: { widthMm: number; heightMm: number; xMm: number } | null
 }>()
+const t = barcodeCopy[useLocale().value]
 </script>
 
 <template>
@@ -19,7 +22,7 @@ defineProps<{
     -->
     <div
       class="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border-2 border-ink bg-white p-3 flex items-center justify-center min-h-[132px]">
-      <p v-if="!pattern && !error" class="text-muted text-sm font-600"><span class="i-lucide-pencil mr-1" aria-hidden="true" />輸入內容後即時預覽</p>
+      <p v-if="!pattern && !error" class="text-muted text-sm font-600"><span class="i-lucide-pencil mr-1" aria-hidden="true" />{{ t.hint }}</p>
 
       <div v-else-if="error" class="flex flex-col items-center justify-center gap-2 p-4 text-center">
         <span class="icon-badge-lg bg-pop-pink"><span class="i-lucide-circle-alert" aria-hidden="true" /></span>
@@ -33,14 +36,14 @@ defineProps<{
       -->
       <div
         v-else class="w-full max-w-full min-w-0" data-test="bc-svg"
-        role="img" :aria-label="`${label} 條碼，內容 ${pattern!.text}`"
+        role="img" :aria-label="t.previewLabel(label, pattern!.text)"
         v-html="svg" />
     </div>
 
     <p v-if="printInfo" data-test="bc-print-info"
       class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-muted font-600">
-      <span class="whitespace-nowrap">建議列印寬度 {{ printInfo.widthMm }} mm</span>
-      <span class="whitespace-nowrap">最細的線 {{ printInfo.xMm }} mm</span>
+      <span class="whitespace-nowrap">{{ t.printWidth(printInfo.widthMm) }}</span>
+      <span class="whitespace-nowrap">{{ t.narrowest(printInfo.xMm) }}</span>
     </p>
   </div>
 </template>

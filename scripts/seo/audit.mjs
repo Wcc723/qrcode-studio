@@ -72,6 +72,13 @@ const SITE_NAME = `${PRODUCT_NAME}｜口袋工具`
 const FORMER_NAME = 'QR Code Studio'
 const ALTERNATE_NAMES = ['QR Code Maker', FORMER_NAME]
 const TRADEMARK = 'QR Code 是 DENSO WAVE INCORPORATED 在日本及其他國家的註冊商標。'
+// 英文版（/en/）：產品名、og:site_name、WebSite 的 alternateName 與頁尾的商標聲明換成英文。同樣不從 site.ts 推導。
+const PRODUCT_NAME_EN = 'QR Code Maker'
+const SITE_NAME_EN = `${PRODUCT_NAME_EN} | Pocketool`
+const ALTERNATE_NAMES_EN = [PRODUCT_NAME, FORMER_NAME]
+const TRADEMARK_EN = 'QR Code is a registered trademark of DENSO WAVE INCORPORATED in Japan and other countries.'
+/** 這一頁是哪個語言：en/ 底下是英文，其他都是繁中 */
+const isEnPage = (name) => name.startsWith('en/')
 const metaContent = (html, prop) =>
   pick(html, new RegExp(`<meta[^>]+(?:property|name)=["']${prop.replace(/[:.]/g, '\\$&')}["'][^>]+content=["']([^"']*)["']`, 'i'))
 const ogImages = new Map()
@@ -157,17 +164,19 @@ for (const f of pages) {
   // 直接套到外層元素（整段本文變底線＋等寬字），畫面壞了但 build 不會報錯。
   const rawGroups = [...html.matchAll(/class="([^"]*)"/g)].map((m) => m[1]).filter((c) => /:\(/.test(c))
   add(`[${name}] class 裡沒有未展開的 variant group`, rawGroups.length === 0, rawGroups.slice(0, 1).join(''))
-  add(`[${name}] og:site_name 是「${SITE_NAME}」`, metaContent(html, 'og:site_name') === SITE_NAME)
+  const en = isEnPage(name)
+  add(`[${name}] og:site_name 是「${en ? SITE_NAME_EN : SITE_NAME}」`, metaContent(html, 'og:site_name') === (en ? SITE_NAME_EN : SITE_NAME))
   // 改名：title、分享卡與畫面上都不再出現舊名。關於頁的更新紀錄刻意寫一次「原名」，其他頁一次都不行；
   // JSON-LD 的 alternateName 在 <script> 裡，不算畫面文字。
   add(`[${name}] title 與 og 標籤沒有舊名 ${FORMER_NAME}`,
     ![title, metaContent(html, 'og:title'), metaContent(html, 'og:image:alt')].some((v) => v?.includes(FORMER_NAME)))
   const formerInText = squashText(pick(html, /<body[^>]*>([\s\S]*)<\/body>/i)).split(FORMER_NAME.replace(/\s+/g, '')).length - 1
   add(`[${name}] 畫面文字的舊名次數（只有關於頁的更新紀錄一次）`, formerInText === (name === 'about/index.html' ? 1 : 0), `${formerInText} 次`)
-  add(`[${name}] 頁尾有 DENSO WAVE 註冊商標聲明`, squashText(html).includes(TRADEMARK.replace(/\s+/g, '')))
+  add(`[${name}] 頁尾有 DENSO WAVE 註冊商標聲明（${en ? '英文' : '繁中'}）`, squashText(html).includes((en ? TRADEMARK_EN : TRADEMARK).replace(/\s+/g, '')))
   const website = jsonLd(html).map((ld) => ld?.isPartOf).find((p) => p?.['@type'] === 'WebSite')
-  add(`[${name}] JSON-LD WebSite 名稱是「${PRODUCT_NAME}」、alternateName 有英文名與舊名`,
-    website?.name === PRODUCT_NAME && JSON.stringify(website?.alternateName) === JSON.stringify(ALTERNATE_NAMES),
+  add(`[${name}] JSON-LD WebSite 名稱是「${en ? PRODUCT_NAME_EN : PRODUCT_NAME}」、alternateName 有另一個語言的名字與舊名`,
+    website?.name === (en ? PRODUCT_NAME_EN : PRODUCT_NAME)
+      && JSON.stringify(website?.alternateName) === JSON.stringify(en ? ALTERNATE_NAMES_EN : ALTERNATE_NAMES),
     JSON.stringify(website ?? null))
   const ogImage = metaContent(html, 'og:image')
   if (siteBase) {
@@ -440,6 +449,8 @@ const EXPECTED_PATHS = [
   '/sms/', '/text/', '/url/', '/vcard/', '/wifi/',
   '/guide/', '/guide/error-correction/', '/guide/line-qr-code/', '/guide/qr-code-svg/',
   '/guide/qr-with-logo/', '/guide/scan-qr-code/', '/guide/what-is-qr-code/',
+  // 英文版（2026-10）：先做首頁、批次與條碼三頁，跟繁中的同一頁成對（見下方 EXPECTED_PAIRS）
+  '/en/', '/en/barcode/', '/en/batch/',
 ].sort()
 
 const sitemapPaths = [...sitemapXml.matchAll(/<loc>([^<]+)<\/loc>/g)]
@@ -717,6 +728,150 @@ if (wasmFiles.length === 1) {
         .filter(([, n]) => n !== 1)
       add(`[${name}] 每個下拉選單都恰好標了一個 selected 的選項`, bad.length === 0, bad.map(([id, n]) => `${id} 有 ${n} 個`).join(' '))
     }
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────
+// 中英文版：hreflang、語言、語言切換、英文頁的標題與內文。
+// 成對的頁面刻意在這裡再寫一次、不從 src/i18n/pairs.ts 推導：兩邊各自獨立，改了一邊另一邊會紅。
+// - 成對的頁：zh-Hant-TW、en、x-default 三條，兩邊互指，x-default 指繁中那一頁
+// - 其他繁中頁：只有指向自己的 zh-Hant-TW 一條（英文版之前就是這樣，沒有英文版的頁不多放）
+// - 英文頁一定成對：沒有對應繁中頁的英文頁不該存在
+// ───────────────────────────────────────────────────────────────────
+const EXPECTED_PAIRS = [
+  { zh: '/', en: '/en/' },
+  { zh: '/batch/', en: '/en/batch/' },
+  { zh: '/barcode/', en: '/en/barcode/' },
+]
+if (siteBase) {
+  const pathOf = (name) => (name === 'index.html' ? '/' : `/${name.replace(/index\.html$/, '')}`)
+  const pairOf = (path) => EXPECTED_PAIRS.find((p) => p.zh === path || p.en === path)
+  const alternates = (html) => [...html.matchAll(/<link\b[^>]*>/g)].map((m) => m[0])
+    .filter((l) => /rel=["']alternate["']/.test(l) && /hreflang=/.test(l))
+    .map((l) => `${pick(l, /hreflang=["']([^"']+)["']/)} ${pick(l, /href=["']([^"']+)["']/)}`).sort()
+  const decode = (s) => s?.replace(/&amp;/g, '&')
+  for (const pair of EXPECTED_PAIRS) {
+    for (const side of ['zh', 'en']) {
+      add(`[hreflang] 成對的 ${pair[side]} 已預渲染`, existsSync(join(distDir, pair[side], 'index.html')))
+    }
+  }
+  for (const f of pages) {
+    const name = rel(f)
+    const html = readFileSync(f, 'utf8')
+    const path = pathOf(name)
+    const en = isEnPage(name)
+    const pair = pairOf(path)
+    const canonicalHref = pick(html, /<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["']/i)
+    const got = alternates(html)
+    if (pair) {
+      const want = [`zh-Hant-TW ${siteBase}${pair.zh}`, `en ${siteBase}${pair.en}`, `x-default ${siteBase}${pair.zh}`].sort()
+      add(`[${name}] hreflang 成對：zh-Hant-TW、en、x-default（指繁中）三條，兩邊互指`, JSON.stringify(got) === JSON.stringify(want), got.join(' / '))
+      add(`[${name}] canonical 是自己，不是另一個語言那一頁`, canonicalHref === `${siteBase}${path}`, canonicalHref ?? '')
+    } else {
+      add(`[${name}] 沒有英文版的頁只有指向自己的 zh-Hant-TW 一條 hreflang`,
+        !en && JSON.stringify(got) === JSON.stringify([`zh-Hant-TW ${canonicalHref}`]), en ? '英文頁沒有成對的繁中頁' : got.join(' / '))
+    }
+    const lang = pick(html, /<html\b[^>]*\slang=["']([^"']+)["']/i)
+    add(`[${name}] <html lang> 是 ${en ? 'en' : 'zh-Hant-TW'}，只有一個 lang`, lang === (en ? 'en' : 'zh-Hant-TW')
+      && ((html.match(/<html\b[^>]*>/i)?.[0] ?? '').match(/\slang=/g) ?? []).length === 1, lang ?? '')
+    add(`[${name}] og:locale 是 ${en ? 'en_US' : 'zh_TW'}`, metaContent(html, 'og:locale') === (en ? 'en_US' : 'zh_TW'))
+    const langs = [...new Set(jsonLd(html).map((ld) => ld?.inLanguage).filter(Boolean))]
+    add(`[${name}] JSON-LD 的 inLanguage 跟頁面語言一致`, langs.length === 1 && langs[0] === (en ? 'en' : 'zh-Hant-TW'), langs.join(' / '))
+  }
+  // 語言切換：每一頁（含 404）頁首都有，連到另一個語言的同一頁；沒有對應頁的連到該語言的首頁
+  for (const f of htmlFiles) {
+    const name = rel(f)
+    const html = readFileSync(f, 'utf8')
+    const en = isEnPage(name)
+    const pair = name === '404.html' ? null : pairOf(pathOf(name))
+    const target = pair ? (en ? pair.zh : pair.en) : (en ? '/' : '/en/')
+    for (const test of ['lang-switch', 'lang-switch-mobile']) {
+      const tag = pick(html, new RegExp(`(<a\\b[^>]*data-test="${test}"[^>]*>)`)) ?? ''
+      add(`[${name}] 頁首的語言切換（${test}）連到 ${target}，標 hreflang`,
+        decode(pick(tag, /\shref="([^"]+)"/)) === `${basePath}${target.slice(1)}` && pick(tag, /\shreflang="([^"]+)"/) === (en ? 'zh-Hant-TW' : 'en'),
+        tag)
+    }
+  }
+
+  // 英文頁：title、H1 與分享圖的標題刻意再寫一次；<main> 裡不該有沒翻到的中文（頁首的語言切換在 <main> 外面）
+  const hasHan = (text) => /\p{Script=Han}/u.test(text)
+  for (const [page, expectedTitle, expectedH1] of [
+    ['en/index.html', 'Free QR Code Generator: Add a Logo, Download SVG or PNG', 'Free QR Code Generator'],
+    ['en/batch/index.html', 'Bulk QR Code Generator and Barcode Maker from Excel or CSV', 'Bulk QR Code and Barcode Generator'],
+    ['en/barcode/index.html', 'Barcode Generator: Free Code 128, EAN-13 and ITF-14 Barcodes', 'Barcode Generator (Code 128, EAN-13)'],
+  ]) {
+    const file = join(distDir, page)
+    const html = existsSync(file) ? readFileSync(file, 'utf8') : ''
+    const title = pick(html, /<title[^>]*>([\s\S]*?)<\/title>/i)
+    add(`[${page}] title 是「${expectedTitle}」`, title === expectedTitle, title ?? '(沒有這頁)')
+    add(`[${page}] og:title、twitter:title 等於 title`,
+      metaContent(html, 'og:title') === expectedTitle && metaContent(html, 'twitter:title') === expectedTitle)
+    const h1 = squashText(pick(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i))
+    add(`[${page}] H1 是「${expectedH1}」`, h1 === expectedH1.replace(/\s+/g, ''), h1)
+    add(`[${page}] 只有一個 h1`, (html.match(/<h1[\s>]/g) ?? []).length === 1)
+    const desc = metaContent(html, 'description') ?? ''
+    add(`[${page}] description 在 160 字元以內`, desc.length > 0 && desc.length <= 160, `${desc.length} 字元`)
+    const main = (pick(html, /<main\b[^>]*>([\s\S]*?)<\/main>/i) ?? '').replace(/<script[\s\S]*?<\/script>/gi, '')
+    const mainText = main.replace(/<[^>]+>/g, ' ')
+    const attrText = [...main.matchAll(/\s(?:placeholder|aria-label|title|alt)="([^"]*)"/g)].map((m) => m[1]).join(' ')
+    add(`[${page}] <main> 的文字與 placeholder、aria-label 沒有中文（都翻成英文了）`, !hasHan(mainText) && !hasHan(attrText),
+      [...`${mainText} ${attrText}`.matchAll(/[^\s]*\p{Script=Han}[^\s]*/gu)].slice(0, 5).map((m) => m[0]).join(' '))
+    const app = jsonLd(html).find((ld) => ld?.['@type'] === 'SoftwareApplication' || ld?.['@type'] === 'WebApplication')
+    add(`[${page}] 工具的 JSON-LD 價格是 0 美元`, app?.offers?.price === '0' && app?.offers?.priceCurrency === 'USD', JSON.stringify(app?.offers ?? null))
+  }
+  {
+    const squash = (s) => s.replace(/\s+/g, '')
+    const textOf = (html) => squash((html ?? '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ''))
+    // 英文頁一樣分工具區與說明文章；說明文章的第一段在文章裡、不在工具區
+    const LEADS = {
+      'en/': 'Make a QR code for your website, menu, form or social profile in seconds',
+      'en/batch/': 'Turn a whole list into QR codes or barcodes in one go.',
+      'en/barcode/': 'Make a barcode for free in Code 128, EAN-13, EAN-8, Code 39 or ITF-14.',
+    }
+    for (const [dir, sentence] of Object.entries(LEADS)) {
+      const html = readFileSync(join(distDir, dir, 'index.html'), 'utf8')
+      const zoneAt = html.indexOf('data-test="tool-zone"')
+      const docAt = html.indexOf('data-test="doc"')
+      add(`[${dir}] 有工具區，說明文章在它後面`, zoneAt !== -1 && docAt > zoneAt)
+      add(`[${dir}] 說明文章的第一段在文章裡、不在工具區`,
+        textOf(html.slice(docAt)).includes(squash(sentence)) && !textOf(html.slice(zoneAt, docAt)).includes(squash(sentence)))
+    }
+  }
+  {
+    // 英文的批次頁：跟繁中頁一樣的結構檢查，加上目標字與標籤紙
+    const html = readFileSync(join(distDir, 'en', 'batch', 'index.html'), 'utf8')
+    const doc = (html.match(/<article\b[^>]*data-test="doc"[^>]*>([\s\S]*?)<\/article>/) || [])[1] || ''
+    const linksTo = (fragment, href, text) => [...fragment.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)]
+      .some(([, attrs, inner]) => (attrs.match(/\bhref="([^"]*)"/) || [])[1] === href && inner.replace(/<[^>]+>/g, '').trim() === text)
+    add('[en/batch] 有 WebApplication 與 BreadcrumbList JSON-LD，沒有 FAQPage',
+      /"@type":"WebApplication"/.test(html) && /"@type":"BreadcrumbList"/.test(html) && !/"@type":"FAQPage"/.test(html))
+    add('[en/batch] 說明文章用錨文字連回 barcode generator 與 free QR code generator',
+      linksTo(doc, `${basePath}en/barcode/`, 'barcode generator') && linksTo(doc, `${basePath}en/`, 'free QR code generator'))
+    const text = squashText(doc).toLowerCase()
+    for (const word of ['bulk barcode generator', 'barcode labels', 'qr code labels', 'excel', 'csv', 'inventory', 'storage bins', 'asset tags', 'moving boxes']) {
+      add(`[en/batch] 說明文章有「${word}」`, text.includes(word.replace(/\s+/g, '')))
+    }
+    add('[en/batch] 有 Avery 的商標說明（只描述同規格，沒有合作關係）', /Avery is a trademark of Avery Products Corporation/.test(html))
+    add('[en/batch] 預覽格與標籤紙的列印區是 client-only，不在預渲染 HTML', !/data-test="batch-preview"|label-print-area|data-test="label-print"/.test(html))
+    for (const [page, file] of [['en/index.html', join(distDir, 'en', 'index.html')], ['en/barcode/index.html', join(distDir, 'en', 'barcode', 'index.html')]]) {
+      add(`[${page}] 連到英文的批次頁`, readFileSync(file, 'utf8').includes(`href="${basePath}en/batch/"`))
+    }
+  }
+}
+
+// 英文版的批次文案、Letter 的 @page 與 Avery 同規格的型號資料只在批次頁的 chunk（不進 entry chunk）
+{
+  const jsFiles = assetFiles.filter((f) => f.endsWith('.js'))
+  const homeHtml = readFileSync(join(distDir, 'index.html'), 'utf8')
+  const entryName = (homeHtml.match(/<script[^>]+type="module"[^>]+src="[^"]*\/assets\/([^"]+\.js)"/) || [])[1]
+  const entrySource = entryName ? readFileSync(join(assetsDir, entryName), 'utf8') : ''
+  for (const [label, marker] of [
+    ['英文的批次文案', 'Paste from Excel or CSV'],
+    ['Letter 的列印規格', '@page { size: letter; margin: 0; }'],
+    ['Avery 同規格的型號資料', 'avery-5160'],
+  ]) {
+    const holders = jsFiles.filter((f) => readFileSync(join(assetsDir, f), 'utf8').includes(marker))
+    add(`entry chunk 不含${label}，只在動態載入的 chunk`, !!entryName && holders.length > 0 && !entrySource.includes(marker), holders.join(' '))
   }
 }
 

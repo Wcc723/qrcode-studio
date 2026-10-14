@@ -5,6 +5,7 @@ import { exceedsQrCapacity } from '@/pure/qrCapacity'
 import { toQrByteString } from '@/pure/qrByteString'
 import { qrModuleCount, quietZoneGeometry, type QrGeometry } from '@/pure/qrGeometry'
 import { saveBlob } from '@/utils/save-blob'
+import { previewCopy } from '@/locales/ui'
 
 /** 把帶透明的 PNG 疊到白底上，輸出 JPEG（品質 0.92，與 canvas 預設相同）。瀏覽器不支援時回 null。 */
 export async function flattenToJpeg(png: Blob, background = '#ffffff'): Promise<Blob | null> {
@@ -68,16 +69,17 @@ export function mapToQrOptions(data: string, s: QrStyleOptions): QrOptions {
 
 /** 複製圖片的結果：GeneratorTool 記著，預覽框下的按鈕列與手機預覽列都顯示 */
 export type CopyStatus = 'idle' | 'copied' | 'failed'
+// 繁中的訊息（字串的正本在 src/locales/ui.ts，英文版也在那裡）
 export const COPY_MESSAGES = {
-  copied: '已複製 QR Code 圖片，可以直接貼進聊天或文件。',
-  failed: '複製沒有成功，請改用下載 PNG。',
+  copied: previewCopy.copiedMessage,
+  failed: previewCopy.copyFailed,
 } as const
 
 /** 內容超過容量時預覽框與縮圖顯示的錯誤 */
-export const CAPACITY_ERROR = '內容過長，超出 QR Code 容量。請縮短內容，或把耐髒程度調低。'
+export const CAPACITY_ERROR = previewCopy.capacity
 
 /** 圖片大小放不下內容加四周留白時的錯誤（下載會擋下來） */
-export const SIZE_ERROR = '圖片太小，放不下這些內容和四周的留白。請把圖片大小調大，或縮短內容。'
+export const SIZE_ERROR = previewCopy.size
 
 type QrLib = typeof import('qr-code-styling')
 type QrInstance = InstanceType<QrLib['default']>
@@ -101,11 +103,15 @@ function loadLib(): Promise<QrLib> {
  *   元件那邊也盡量讓容器一直留著（錯誤用 v-show 或另一個元素蓋上去）。
  * - 複製見 copyImage：剪貼簿要在點擊的同一個同步流程裡寫入。
  */
+/** 預覽框與縮圖顯示的兩種錯誤；英文版傳 src/locales/ui.ts 的英文那一份 */
+export interface QrErrorMessages { capacity: string; size: string }
+
 export function useQrCode(
   data: Ref<string>,
   style: Ref<QrStyleOptions>,
   draw: 'canvas' | 'svg' = 'canvas',
   active: MaybeRefOrGetter<boolean> = true,
+  messages: QrErrorMessages = { capacity: CAPACITY_ERROR, size: SIZE_ERROR },
 ) {
   const container = ref<HTMLElement | null>(null)
   const error = ref<string | null>(null)
@@ -126,11 +132,11 @@ export function useQrCode(
     if (!toValue(active)) { stale = true; return }
     stale = false
     if (exceedsQrCapacity(data.value, style.value.errorCorrectionLevel)) {
-      error.value = CAPACITY_ERROR
+      error.value = messages.capacity
       return
     }
     if (!qrGeometry(data.value, style.value)) {
-      error.value = SIZE_ERROR
+      error.value = messages.size
       return
     }
     error.value = null
@@ -144,7 +150,7 @@ export function useQrCode(
       }
     } catch {
       // 容量檢查之外，套件只會因為塞不下而丟例外（code length overflow）
-      error.value = CAPACITY_ERROR
+      error.value = messages.capacity
     }
   }
 

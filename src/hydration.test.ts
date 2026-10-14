@@ -25,6 +25,7 @@ import { flushPromises } from '@vue/test-utils'
 import App from './App.vue'
 import { routes, routerOptions } from './router'
 import zhTW from './locales/zh-TW'
+import en from './locales/en'
 import { guides } from './content/guides'
 import { defaultStyle } from './types'
 
@@ -37,7 +38,7 @@ const BASE = '/qrcode-studio/'
 /** 跟 src/main.ts 一樣的 app：vue-i18n、unhead、router（base 由 history 帶）。 */
 async function createTestApp(path: string, server: boolean): Promise<VueApp> {
   const app = createSSRApp(App)
-  app.use(createI18n({ legacy: false, locale: 'zh-TW', fallbackLocale: 'zh-TW', messages: { 'zh-TW': zhTW } }))
+  app.use(createI18n({ legacy: false, locale: 'zh-TW', fallbackLocale: 'zh-TW', messages: { 'zh-TW': zhTW, en } }))
   app.use(server ? createServerHead() : createClientHead())
   const router = createRouter({ ...routerOptions, history: createMemoryHistory(BASE) })
   app.use(router)

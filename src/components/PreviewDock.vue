@@ -13,7 +13,8 @@
  */
 import { ref, watch, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import type { QrStyleOptions } from '@/types'
-import { COPY_MESSAGES, type CopyStatus } from '@/composables/useQrCode'
+import type { CopyStatus } from '@/composables/useQrCode'
+import { useUiCopy } from '@/locales/ui'
 import QrThumb from './QrThumb.vue'
 
 const props = defineProps<{
@@ -29,6 +30,7 @@ const props = defineProps<{
   copyStatus?: CopyStatus
 }>()
 const emit = defineEmits<{ expand: [] }>()
+const t = useUiCopy().preview
 
 const root = ref<HTMLElement | null>(null)
 
@@ -72,7 +74,7 @@ onBeforeUnmount(() => {
 <template>
   <Transition name="dock">
     <div v-show="visible" ref="root" class="preview-dock" data-test="preview-dock">
-      <p v-if="copyStatus === 'failed'" data-test="dock-copy-failed" class="max-w-screen-lg mx-auto px-4 pb-1.5 text-xs font-700 text-rose-600">{{ COPY_MESSAGES.failed }}</p>
+      <p v-if="copyStatus === 'failed'" data-test="dock-copy-failed" class="max-w-screen-lg mx-auto px-4 pb-1.5 text-xs font-700 text-rose-600">{{ t.copyFailed }}</p>
       <div class="max-w-screen-lg mx-auto px-4 flex items-center gap-2">
         <button type="button" class="mr-auto min-w-0 min-h-11 flex items-center gap-2.5 p-0 bg-transparent text-left rounded-xl" data-test="dock-expand" @click="emit('expand')">
           <span class="dock-thumb" aria-hidden="true">
@@ -82,12 +84,12 @@ onBeforeUnmount(() => {
           </span>
           <!-- 360px 以下只留縮圖，字仍然是按鈕的名稱 -->
           <span class="leading-tight max-[359px]:sr-only">
-            <span class="block font-display font-700 text-sm text-ink">看大圖</span><span class="sr-only">，</span>
-            <span class="block text-xs font-700 text-muted">其他下載格式</span>
+            <span class="block font-display font-700 text-sm text-ink">{{ t.dockExpand }}</span><span class="sr-only">，</span>
+            <span class="block text-xs font-700 text-muted">{{ t.dockFormats }}</span>
           </span>
         </button>
-        <button type="button" data-test="dock-png" class="btn-primary !bg-pop-sun min-h-11 !px-3" :disabled="disabled" @click="download('png')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">下載 </span>PNG</button>
-        <button type="button" data-test="dock-copy" class="btn-primary !bg-pop-pink min-h-11 !px-3" :disabled="disabled" @click="copy?.()"><span :class="copyStatus === 'copied' ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />{{ copyStatus === 'copied' ? '已複製' : '複製' }}</button>
+        <button type="button" data-test="dock-png" class="btn-primary !bg-pop-sun min-h-11 !px-3" :disabled="disabled" @click="download('png')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">{{ t.download }}</span>PNG</button>
+        <button type="button" data-test="dock-copy" class="btn-primary !bg-pop-pink min-h-11 !px-3" :disabled="disabled" @click="copy?.()"><span :class="copyStatus === 'copied' ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />{{ copyStatus === 'copied' ? t.copied : t.copy }}</button>
       </div>
     </div>
   </Transition>
