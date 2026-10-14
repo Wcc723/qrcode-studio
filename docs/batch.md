@@ -80,6 +80,32 @@
 - 螢幕預覽的縮放（`LabelSheets.vue` 的 `fit`）在 ResizeObserver 的回呼裡改到下一個畫面才套：直接改 zoom 的話，
   WebKit 在窄螢幕切換列印與螢幕版面時會報「ResizeObserver loop completed with undelivered notifications」（v1.9.0 修，繁中頁也一樣）。
 
+## 教學裡的範例圖（重產方式）
+
+教學〈Excel 怎麼做 QR Code 與條碼〉的兩張圖 `public/guides/excel-batch-qr.webp`、`excel-batch-labels.webp` 是本站批次頁的實際畫面，
+由 `scripts/figures/batch-screenshots.mjs` 產生（產物進版控，這支不進 build）。批次頁改版、畫面跟圖對不上時照這裡重做。
+
+- **清單**：合成的財產清冊，欄名「財產編號、品名、保管單位」，財產編號 A-0001 到 A-0024，品名與保管單位是假資料（寫在腳本的 `ITEMS`）。
+  用「從 Excel 貼上」貼進去，內容欄與檔名欄都是財產編號。
+- **第一張（`excel-batch-qr.webp`）**：碼的種類選 QR Code，內容範本 `https://example.com/asset/{編號}`。截工具卡（`data-test="batch-tool"`）
+  從頂端到預覽的第一列底下 6 px，轉成寬 1440 的 WebP（品質 72）。
+- **第二張（`excel-batch-labels.webp`）**：同一份清單改成 Code 128、範本清空，輸出方式選「印成 A4 標籤紙」，用預設型號（鶴屋 L3464，24 格），
+  截第一頁標籤紙（`data-test="label-sheet"` 的第一個），轉成寬 960 的 WebP（品質 80）。
+- **視窗**：1100 × 1000、2 倍解析度。文章的 `<img>` 用一半的寬高顯示（720 × 713、480 × 678），腳本會印出換算後的數字，
+  裁切高度變了要一起改 `src/content/guide-bodies.ts` 的 `width`／`height`；畫面上的數字變了（例如「24 筆可以產生」），替代文字與圖說也一起改。
+
+本 repo 不裝 Playwright。腳本找它的方式跟 `scripts/brand/render.mjs` 一樣：先 `import('playwright')`，找不到就讀環境變數
+`PLAYWRIGHT_MODULE`（任何一份 `playwright` 或 `@playwright/test` 套件目錄的絕對路徑，例如 npx 快取裡那份）。
+
+```bash
+npm run build
+npx vite preview --port 4173 --strictPort   # 另一個終端機
+PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/figures/batch-screenshots.mjs
+# 換網址或先產到別處比對：--base http://127.0.0.1:5173/qrcode-studio --out /tmp/figs
+```
+
+GA 與廣告的請求一律擋掉，頁面有第一方錯誤就停。2026-10-15 用這支對 v1.9.1 的批次頁重跑過，兩張圖跟上線的檔案逐位元組相同。
+
 ## 檔案
 
 | 檔案 | 內容 |
@@ -95,3 +121,4 @@
 | `src/utils/batch-label-offset.ts` | 「記住這台印表機的位移」：唯一可以碰儲存空間的批次檔案，只存兩個數字 |
 | `test/helpers/zip.ts` | 測試用的 ZIP 讀取器（照 APPNOTE 逐筆對照 local header 與中央目錄） |
 | `docs/label-print-acceptance.md` | 標籤紙的實機列印驗收清單（Windows 的 Edge 與 Chrome） |
+| `scripts/figures/batch-screenshots.mjs` | 教學裡兩張批次頁範例圖的截圖腳本（見上一節，不進 build） |
