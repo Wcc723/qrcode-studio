@@ -13,6 +13,11 @@
 - 新增或移除路由時，要同步更新 `scripts/seo/audit.mjs` 的 `EXPECTED_PATHS`，否則 build 會擋下來
 - 新增或移除中英成對的頁面時，`src/i18n/pairs.ts`、`src/router.ts` 的英文路由與 `scripts/seo/audit.mjs` 的 `EXPECTED_PAIRS` 一起改（見「中英文版」）
 
+**細節在本 repo 的 `docs/`**，這份只留規則與指路：部署沿革、子路徑規則的原因與本機驗證 `deploy.md`、圖片解碼 `scan.md`、
+靜區 `quiet-zone.md`、批次產生與標籤紙 `batch.md`、中英文版 `i18n.md`、工具區、說明與用字 `ui.md`、教學文章與 v-html `guides.md`、
+產品名、站徽與分享圖 `brand/README.md`、SEO 檢核與標題改動紀錄 `seo-checklist.md`。從這份搬過去的規則全文放在各檔的
+「AGENTS.md 的硬規則」（`ui.md`、`guides.md` 整份都是），和這份一樣不可違反，改到相關的東西前先讀。
+
 ## 這個 repo 是什麼
 
 **QR Code 製造機**（英文 QR Code Maker，2026-09-26 前叫 QR Code Studio），正式網址 `https://www.pocketool.app/qrcode-studio/`。在瀏覽器內產生
@@ -58,48 +63,30 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 ## 子路徑部署：四個不可改動點
 
 站台掛在 hub 網域的子路徑底下，以下幾件事互相牽動，改錯不會有錯誤訊息，只會靜默壞掉。
+這一節與下面兩節每一條的原因見 `docs/deploy.md`「AGENTS.md 的硬規則：子路徑」，改之前先讀。
 
 - **`wrangler.jsonc` 的 `name` 維持 `qrcode-studio`**，必須與後台 Worker 名一致。
-  Workers Builds 會用後台名稱覆寫這欄，所以 CI 看不出差異；但本機 `npm run deploy`
-  會照這裡的名字建 Worker，名字不符就會另開一個空 Worker 並把 route 搶走。
+  本機 `npm run deploy` 會照這裡的名字建 Worker，名字不符就會另開一個空 Worker 並把 route 搶走。
 - **`assets.directory` 維持 `./dist`**，不要改成 `./dist/qrcode-studio`。
-  URL `/qrcode-studio/wifi/` 要對到檔案 `dist/qrcode-studio/wifi/index.html`，
-  靠的就是 directory 停在 `./dist` 這一層，與 `vite.config.ts` 的
-  `base: '/qrcode-studio/'` ＋ `build.outDir: 'dist/qrcode-studio'` 一起把
-  磁碟路徑與線上網址對齊。
-- **`html_handling` 用 `force-trailing-slash`**。站內 canonical、sitemap `<loc>`、
-  vue-router 內鏈三者都是帶尾斜線的形式（`/wifi/`、`/guide/xxx/`），強制尾斜線
-  讓對外網址與它們一致。
-- **第一條 route 必須是尾萬用 `www.pocketool.app/qrcode-studio*`**。Cloudflare 的
-  route pattern 比對整條請求 URL（含 query string），而 pattern 內不能寫 query 參數，
-  所以要匹配帶 query 的網址只能以 `*` 結尾。精確寫法會讓
-  `/qrcode-studio?utm_source=x` 落到 hub 回 404。副作用是 `/qrcode-studio-foo`
-  這類前綴路徑也會被本 Worker 接走（見下方 404.html）。
-
-**舊子網域 `qrcode-studio.pocketool.app` 的 Custom Domain 刻意不寫進 `routes` 陣列。**
-wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustomDomains`，沒有就
-完全不碰後台既有的綁定，那筆 proxied DNS 記錄才會留著讓轉址有流量可攔。
+- **`html_handling` 用 `force-trailing-slash`**。
+- **第一條 route 必須是尾萬用 `www.pocketool.app/qrcode-studio*`**。精確寫法會讓
+  `/qrcode-studio?utm_source=x` 落到 hub 回 404。
+- **舊子網域 `qrcode-studio.pocketool.app` 的 Custom Domain 刻意不寫進 `routes` 陣列。**
 
 ## 資產根目錄（`./dist`）要放的東西
 
 `build.outDir` 在 `dist/qrcode-studio`，但有些東西 Cloudflare **只認資產根目錄那一份**：
 
-- **`dist/404.html`**：route 第一條是尾萬用，`/qrcode-studio-foo` 這種前綴路徑也會進來，
-  而 `not_found_handling: "404-page"` 是往上找「最近的」404.html。根目錄沒有的話會回
-  **空 body**。由 `scripts/gen-sitemap.mjs` 從 `dist/qrcode-studio/404.html` 複製一份過去。
-
-`_headers` 本站沒有用到（沒有自訂快取或安全標頭）。若日後要加，同樣只有
-`dist/_headers` 會被當設定檔解析，且規則路徑要自己帶 `/qrcode-studio` 前綴
-（它比對的是請求網址，不是磁碟結構）。
+- **`dist/404.html`**：根目錄沒有的話，`/qrcode-studio-foo` 這種前綴路徑會回**空 body**。
+  由 `scripts/gen-sitemap.mjs` 從 `dist/qrcode-studio/404.html` 複製一份過去。
+- `_headers` 本站沒有用到。若日後要加，同樣只有 `dist/_headers` 會被當設定檔解析，且規則路徑要自己帶 `/qrcode-studio` 前綴。
 
 ## 子路徑前綴的事實來源只有三處
 
 其餘一律推導，不要在別的地方硬編：
 
 1. `vite.config.ts` 的 `base` 與 `build.outDir`
-2. `src/main.ts` 的 router base（`base: import.meta.env.BASE_URL`）：
-   vite-ssg 的 `createWebHistory(routerOptions.base)` **不會**自動吃 Vite 的 base，
-   漏了會讓 matcher 命不到任何路由（白畫面）且預渲染 HTML 的 `<a href>` 全部少前綴。
+2. `src/main.ts` 的 router base（`base: import.meta.env.BASE_URL`），漏了會白畫面。
    `src/router.ts` 內的 `path` 一律不加前綴。
 3. `scripts/gen-sitemap.mjs` 的 `BASE` 與 `dist`
 
@@ -110,36 +97,21 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 ## 圖片解碼（`/scan/`）的四條規則
 
 解碼用 `zxing-wasm`，以 WebAssembly 在使用者的瀏覽器內執行。以下四件事改錯都不會
-有錯誤訊息，只會安靜地壞掉或把使用者的圖片內容送到不該去的地方。
+有錯誤訊息，只會安靜地壞掉或把使用者的圖片內容送到不該去的地方。做法、原因與測試見 `docs/scan.md`。
 
-- **WASM 自架，且與 JS 同版。** 套件預設的 `locateFile` 會去 `fastly.jsdelivr` 抓檔，
-  那會讓「圖片不離開瀏覽器」多一個第三方依賴。做法是 `import ... from
-  'zxing-wasm/reader/zxing_reader.wasm?url'` 讓 Vite 收成本站資產，再用
-  `prepareZXingModule({ overrides: { locateFile } })` 覆寫。`package.json` 精確鎖版
-  （不用 `^`），測試以套件 export 的 `ZXING_WASM_SHA256` 對帳 `node_modules` 那一份，
-  稽核再比對 `dist` 那一份，混版就會紅。
-- **只用 `zxing-wasm/reader`，而且只能動態 import。** `zxing-wasm` 與 `/full`、`/writer`
-  會多帶編碼器進來。靜態 import 會把解碼器拖進 entry chunk，變成全站每一頁都付這個
-  成本；`/scan` 這條 route 本身也必須是 `() => import(...)`。稽核會驗 entry chunk 裡
+- **WASM 自架，且與 JS 同版。** 不用套件預設的 `locateFile`（會去 `fastly.jsdelivr` 抓檔）；`package.json` 精確鎖版（不用 `^`），
+  測試與稽核對帳 WASM 雜湊，混版就會紅。
+- **只用 `zxing-wasm/reader`，而且只能動態 import。** `/scan` 這條 route 本身也必須是 `() => import(...)`。稽核會驗 entry chunk 裡
   沒有 `zxing`。
-- **一律先解成 `ImageData` 再交給解碼器。** zxing-wasm 內建的影像解碼器讀得懂 PNG 與
-  JPEG，但**讀不懂 WebP**（會回一筆空結果，看起來就像「這張圖沒有條碼」）。所以走
-  `createImageBitmap` → canvas → `ImageData`，三種容器共用一條路；順便在配置 canvas
-  之前就能擋掉解壓縮炸彈。
+- **一律先解成 `ImageData` 再交給解碼器。** zxing-wasm **讀不懂 WebP**，所以走 `createImageBitmap` → canvas → `ImageData`。
 - **圖片與解碼內容只能留在記憶體。** 不得寫入網址（query／hash）、Cookie、
   localStorage、sessionStorage、IndexedDB、Cache Storage，也不得進 GA 事件。
   「用這個內容再做一張」用 `src/utils/scan-handoff.ts` 的模組層級變數交棒，取用一次就清掉。
   解碼結果一律以文字節點渲染，**不得用 `v-html` 或 `innerHTML`**：那是別人做的 QR，
   內容完全不可信。`src/scan-gates.test.ts` 會掃原始碼擋下這些出口。
 
-黃金解碼測試（`src/utils/zxing-reader.test.ts`）用的圖固定在 `test/fixtures/scan/`，
-由 `scripts/fixtures/gen-scan-fixtures.mjs` 以同版 zxing-wasm writer 離線產生，
-**不得從網路抓來路不明的測試圖**。測試期間會把 `fetch` 換成會拋錯的版本，
-確保解碼真的沒有連網。
-
-新增 `zxing-wasm` 版本時要一起更新 repo 根目錄的 `NOTICE.md`：那份記的是上游四份授權
-（zxing-cpp 與 ZXingWasm.cpp 的 Apache-2.0、zint 的 BSD-3-Clause、zxing-wasm 自有碼的 MIT）
-與實際安裝的版本、WASM 雜湊、zxing-cpp commit，站上的對應說明在 `/about/`。
+黃金解碼測試的圖**不得從網路抓來路不明的測試圖**（`test/fixtures/scan/`，離線產生）。
+新增 `zxing-wasm` 版本時要一起更新 repo 根目錄的 `NOTICE.md`（記哪些見 `docs/scan.md`「授權」）。
 
 ## 下載檔的四周留白（靜區）
 
@@ -155,158 +127,75 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 ## 中英文版（`/en/`）
 
 英文版的網址前綴是 `/en/`，2026-10 先做首頁（網址 QR Code）、`/en/batch/`、`/en/barcode/` 三頁，跟繁中的同一頁成對。
-既有的繁中網址、canonical、title、description 一律不動。細節（文案字典、Letter 標籤紙、測試）見 `docs/i18n.md`。
+既有的繁中網址、canonical、title、description 一律不動。細節（文案字典、Letter 標籤紙、測試）見 `docs/i18n.md`；
+下面各條的全文（做法、原因、`seo:audit` 驗哪些）在它的「AGENTS.md 的硬規則」。
 
-- **語系只看路由的 `meta.locale`**（英文路由才有 `'en'`）。`App.vue` 依它 provide 給整棵元件樹、同步 vue-i18n 的 locale、
-  設 `<html lang>`；元件用 `useLocale()`（`src/i18n/locale.ts`）取，不讀網址。沒有 provide 時（單獨掛元件的測試）是繁中。
-- **文案是型別化的字典，不放 vue-i18n 的 messages**：共用元件在 `src/locales/ui.ts`（繁中，進 entry）與 `ui.en.ts`（英文，
-  只有英文頁 import，用 `provideUiCopy()` 交給底下的元件，英文字串不進 entry chunk）；條碼在 `src/locales/barcode.ts`；
-  批次與標籤紙在 `src/pure/batch/copy.ts`；純函式自己的錯誤訊息（條碼檢查、連號、範本、逐列檢查、自訂尺寸、匯出）寫在各自的檔案，
-  多一個 `locale` 參數、預設繁中。**繁中字串搬進字典時一個字都不改**。英文是給美國使用者寫的，不是逐字翻譯。
+- **語系只看路由的 `meta.locale`**（英文路由才有 `'en'`）；元件用 `useLocale()`（`src/i18n/locale.ts`）取，不讀網址。
+- **文案是型別化的字典，不放 vue-i18n 的 messages**：英文字串不進 entry chunk。**繁中字串搬進字典時一個字都不改**。
+  英文是給美國使用者寫的，不是逐字翻譯。
 - **hreflang 只放在成對的頁**（`src/i18n/pairs.ts` 的 `PAGE_PAIRS`）：`zh-Hant-TW`、`en`、`x-default` 三條，兩邊互指；
-  其他繁中頁維持只指向自己的一條 `zh-Hant-TW`。**`x-default` 指繁中那一頁**：沒有前綴的網址就是預設版，跟 hub
-  （同一個網域的 `/` 與 `/en/`）一樣；`zh-Hant-TW` 只對得到台灣的繁中，香港、海外等其他中文使用者落到 x-default 也是中文，
-  英文用的是不分地區的 `en`，各地的英文使用者都對得到。
-- **語言跟著頁走**：`<html lang>` 是 `zh-Hant-TW`／`en`，`og:locale` 是 `zh_TW`／`en_US`，JSON-LD 的 `inLanguage` 同樣，
-  `WebSite` 的 `name` 換成 `site.nameEn`（繁中名與舊名放 `alternateName`，網址都是同一個 `${site.url}/`），英文工具頁的價格寫 `USD`。
-  `og:site_name` 用 `site.siteNameEn`，頁尾的商標聲明用 `site.trademarkEn`，回報問題連到問題回報的英文頁。
+  其他繁中頁維持只指向自己的一條 `zh-Hant-TW`。**`x-default` 指繁中那一頁**（理由見 `docs/i18n.md`）。
+- **語言跟著頁走**：`<html lang>`、`og:locale`、JSON-LD 的 `inLanguage`、`og:site_name`、商標聲明與回報問題的連結都跟著那一頁的語言。
 - **語言切換在頁首**：成對的頁連到另一個語言的同一頁，沒有對應頁就連到該語言的首頁（`switchTarget`）。
-  手機在導覽那一排的最後；768 到 1023px 只留圖示（一排才放得下繁中的五個連結）。
-- **GA 不分 property、不加參數**：兩種語言都是 `content_group: 'qrcode-studio'`，語言從網址前綴 `/qrcode-studio/en/` 分
-  （每筆事件都帶網址）。批次的 `batch_download` 仍然只有三個字面值。
-- **英文頁沒有的東西連到繁中**：英文頁尾「In Chinese only」連掃描器、WiFi、電子名片與教學；英文首頁只開網址一種（`GeneratorTool` 的 `only`）。
-- `seo:audit` 驗：每頁的 hreflang 集合、`<html lang>`、`og:locale`、`inLanguage`、語言切換的連結；英文三頁的 title、H1、
-  description 長度、`<main>` 裡沒有中文與全形標點、批次頁的目標字與錨文字；英文的批次文案、Letter 的 `@page` 與 Avery 同規格的型號不進 entry chunk。
+- **GA 不分 property、不加參數**：兩種語言都是 `content_group: 'qrcode-studio'`。批次的 `batch_download` 仍然只有三個字面值。
+- **英文頁沒有的東西連到繁中**（英文頁尾「In Chinese only」）；英文首頁只開網址一種。
 
 ## v-html 的富文字連結要自己補前綴
 
-`src/content/guide-bodies.ts` 的教學本文與 `src/config/qr-types.ts` 的 `body` 是原生
-`<a href="/...">`、`<img src="/...">`，用 `v-html` 塞進 DOM，**既不經 Vite base 也不經 vue-router**，
-在子路徑下會連到 hub 的 404。這類 sink（`GuidePage.vue`、`SeoContent.vue`、`FaqPage.vue`）都套用
-`src/utils/with-base.ts` 的 `withBase()`，它同時補 `href` 與 `src`。新增同型的 `v-html` 出口時記得一起套。
+教學本文（`src/content/guide-bodies.ts`）與 `src/config/qr-types.ts` 的 `body` 用 `v-html` 塞進 DOM，**既不經 Vite base 也不經 vue-router**。
+這類 sink 都套用 `src/utils/with-base.ts` 的 `withBase()`，新增同型的 `v-html` 出口時記得一起套。
+模板內的站內連結一律用 `RouterLink`，不要用原生 `<a href="/...">`。`seo:audit` 逐頁驗 dist 內所有 `href="/..."` 與 `src="/..."` 都以 `/qrcode-studio/` 開頭。
 
-教學的中繼資料（標題、日期、分組）在 `src/content/guides.ts`，會進 entry chunk；本文在
-`guide-bodies.ts`，只有動態載入的文章頁會用到，不要把本文搬回 `guides.ts`。文章裡的示意圖
-由 `scripts/figures/gen-guide-figures.mjs` 產生到 `public/guides/`（產物進版控），圖裡的版本與
-模組數要和文章寫的一致。〈Excel 怎麼做 QR Code 與條碼〉的兩張批次頁截圖由 `scripts/figures/batch-screenshots.mjs` 產生
-（合成清冊、視窗與裁切見 `docs/batch.md`，本 repo 不裝 Playwright，不進 build）。
-`published` 是 git 歷史上的首次上線日，不要改；`updated` 只在實質改寫時更新，
-sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
-
-模板內的站內連結一律用 `RouterLink`，不要用原生 `<a href="/...">`。
-
-`npm run seo:audit` 有一條逐頁斷言會擋下漏補的情況：dist 內所有 `href="/..."` 與 `src="/..."`
-必須以 `/qrcode-studio/` 開頭。期望前綴由 sitemap 的第一條 `<loc>` 推導，
-讓 `gen-sitemap.mjs` 與 `site.ts` 兩個獨立來源互相對帳。
+教學的本文不要搬回 `guides.ts`（中繼資料會進 entry chunk）；`published` 不要改，`updated` 只在實質改寫時更新。
+哪些 sink、示意圖怎麼產生、日期從哪裡來，全文見 `docs/guides.md`。
 
 ## 工具區與說明文章
 
-工具頁（首頁、7 個類型頁、`/scan/`、`/barcode/`、`/batch/`）分成上下兩塊，一眼要分得出哪裡是應用程式、哪裡是說明：
+工具頁分成上下兩塊（工具區與說明文章），一眼要分得出哪裡是應用程式、哪裡是說明。下面各條的全文（class 名、樣式、例子與測試）見 `docs/ui.md`「工具區與說明文章」。
 
-- **工具區**（`src/components/ToolZone.vue`）：h1、一行副標、工具卡，整條鋪淡薄荷底 `#E6F7EE`，
-  下緣一條整寬黑線。它直接放在 `<main>` 底下，本來就是整個視窗寬；**不要包進有寬度上限的容器，
-  也不要改用 `100vw`**（會把捲軸寬度算進去，造成水平溢出）。
-- **說明文章**（`SeoContent.vue` 與各頁的 `<article data-test="doc">`）：維持頁面底色、閱讀寬度 720px，
-  文件樣式（`main.css` 的 `.doc-steps`、`.doc-faq`、`.doc-links`、`.doc-chips`）。**粗框加硬陰影的
-  `card`／`sticker` 只給工具卡用**，文章裡不要再用，否則整頁又會看起來都像工具。
-- **副標只留一行**（30 字以內，類型頁在 `qr-types.ts` 的 `lead`）。原本標題下那段完整說明放在說明文章
-  第一段（`data-test="doc-lead"`）。SEO 內文可以移出工具區，但**一個字都不能刪**；
-  `seo:audit` 會對帳這些句子仍在預渲染 HTML 的說明文章裡、不在工具區。
-- 「輸入內容」「外觀」「預覽與下載」「使用說明」這類區塊標示用 `.zone-label` 段落，**不是標題**：
-  各頁的 h1／h2／h3 大綱不因為分區而改變。
-- `main.css` 開頭有最小框線 reset（所有元素 `border-width: 0; border-style: solid`），UnoCSS 的
-  `border-2` 這類 class 才畫得出框線；`html`、`body` 的 `overflow-x` 用 `clip`，**不要改回 `hidden`**：
-  那會讓 body 變成捲動容器，預覽框的 `sticky` 就黏不住。`src/styles/main-css.test.ts` 鎖著這兩條。
-
-### 工具裡的說明：「?」與一律看得到的提示
-
-- **收進欄名旁的「?」**（`src/components/HelpTip.vue`）：只收「長、而且不看也能把欄位填完」的說明，
-  例如容錯等級的百分比、LOGO 的大小限制、尺寸換算、條碼類型的用途、掃描的檔案上限。
-  收起時用 `hidden`，文字仍在預渲染 HTML 裡；欄位要用 `aria-describedby` 指到說明框的 id。
-  「?」不放進 `legend` 或 `<label>` 裡：欄名用 `<label for>`（或 `aria-hidden` 的欄名配 sr-only 的 legend），按鈕接在右邊。
-- **一律看得到**：錯誤（容量超過、條碼格式與檢查碼）、條件式提醒（勾透明時 JPG 改白底）、
-  填寫規則（`symbologies.ts` 的 `rule`：位數、可用字元、檢查碼）、列印尺寸與 PNG 像素數、
-  掃描到非 http(s) 的警告、多個條碼與讀不到的指引。收起來只會讓工具更難用。
-- **掃描結果的警告只給認不出類型的內容**：WiFi、電子名片、Email、電話、簡訊這些認得出類型的（`parsed.kind`），
-  不寫「網址開頭」、不出警告，改成一句中性說明（例如「這是 WiFi 設定，不是網址，本站不會自動連線」，
-  寫在 `ScanResultView.vue` 的 `kindNotes`）；認不出類型、開頭又不是 http／https 的（`javascript:`、`data:`、`file:`、
-  半殘的 `WIFI:`、一維碼）照舊警告，不要放寬。`ScanResultView.test.ts` 兩邊都鎖。
-- **隱私只說一次**：工具卡頂部一行（`PrivacyNote.vue`），完整說明與隱私權政策連結收在它的「?」；
-  預覽框與標題上不要再加「不傳雲端」貼紙（頁尾那行保留）。
-- `src/helpNotes.test.ts` 兩個方向都鎖：每個「?」預設收起、欄位指得到它、裡面沒有可填欄位；
-  上面「一律看得到」的每一項都不在收起來的容器裡。
-
-### 圖示：不用 emoji
-
-- 畫面上不用 emoji，圖示一律用 Lucide（`@iconify-json/lucide`，devDependency），寫成 UnoCSS 的
-  `i-lucide-<名稱>` class，建置時轉成 CSS，顏色跟著 `currentColor`。`presetIcons` **不得設 `cdn`、
-  不得開 `autoInstall`**：瀏覽器執行時不向任何第三方取圖。
-- 圖示一律 `aria-hidden="true"`；只有圖示的按鈕要補文字（例如 sr-only 的「下載」）。
-  需要顏色時放進糖果色圓底徽章（`uno.config.ts` 的 `icon-badge`、`icon-badge-sm`、`icon-badge-lg`，底色加 `bg-pop-*`）。
-- 標題（h1／h2／h3）裡不放圖示或 emoji。`⌘` 是按鍵上的字，要包在 `<kbd>` 裡。
-- UnoCSS 預設不掃一般的 `.ts`，所以 `uno.config.ts` 另外把 `src/config/*.ts` 加進掃描範圍（類型圖示寫在
-  `qr-types.ts` 的 `icon`）。圖示 class 放在其他 `.ts` 檔時，要一起加進去。
-- `src/no-emoji.test.ts` 掃元件、設定與教學本文（`©`、`™`、`®` 例外，測試檔不掃）；`seo:audit` 驗
-  各頁內容沒有 emoji、用到的 `i-lucide-*` 在 CSS 裡都有規則（圖示集沒裝時 class 會靜默失效）、
-  產物沒有連到線上圖示服務。新增圖示時 `NOTICE.md` 不必改，Lucide 的授權已經寫在那裡。
+- **工具區**（`src/components/ToolZone.vue`）直接放在 `<main>` 底下：**不要包進有寬度上限的容器，也不要改用 `100vw`**。
+- **粗框加硬陰影的 `card`／`sticker` 只給工具卡用**，文章裡不要再用。
+- **副標只留一行**（30 字以內）。SEO 內文可以移出工具區，但**一個字都不能刪**；`seo:audit` 會對帳。
+- 區塊標示用 `.zone-label` 段落，**不是標題**：各頁的 h1／h2／h3 大綱不因為分區而改變。
+- `main.css` 開頭的框線 reset 不要拿掉；`html`、`body` 的 `overflow-x` 用 `clip`，**不要改回 `hidden`**（`src/styles/main-css.test.ts` 鎖著）。
+- **收進欄名旁的「?」**（`src/components/HelpTip.vue`）：只收「長、而且不看也能把欄位填完」的說明；
+  錯誤、條件式提醒、填寫規則、列印尺寸、掃描的警告與指引**一律看得到**。`src/helpNotes.test.ts` 兩個方向都鎖。
+- **掃描結果的警告只給認不出類型的內容**：認得出類型的改成一句中性說明，認不出的照舊警告，不要放寬（`ScanResultView.test.ts` 兩邊都鎖）。
+- **隱私只說一次**：工具卡頂部一行（`PrivacyNote.vue`），預覽框與標題上不要再加「不傳雲端」貼紙（頁尾那行保留）。
+- **圖示：不用 emoji**：圖示一律用 Lucide 的 `i-lucide-<名稱>`，`presetIcons` **不得設 `cdn`、不得開 `autoInstall`**；
+  圖示一律 `aria-hidden="true"`；標題（h1／h2／h3）裡不放圖示或 emoji（`src/no-emoji.test.ts` 與 `seo:audit` 擋）。
 
 ## 用字：白話優先
 
-站長的要求是減少使用者的學習負擔，2026-09-30 全站照這幾條改過一次（#7）：
+站長的要求是減少使用者的學習負擔（#7）。下面各條的例子、詞表與例外見 `docs/ui.md`「用字：白話優先」。
 
 - **白話在前，原詞放括號**：先寫使用者聽得懂的說法；要讓人對得上外面看到的名稱時，原詞放括號或收進「?」。
-  例如「耐髒程度（容錯等級）」「四周留白（靜區）」「小方塊（模組）」「淺色方塊配深色背景（反白）」。
-- **使用者在別處真的會看到的名稱照寫，每頁第一次出現就白話解釋**：PNG、SVG、JPG、WebP、EAN-13、Code 128、DPI、
-  WPA/WPA2、vCard、檢查碼。
-- **只有工程師懂的詞，工具區不用**：通訊協定、網站主機、符號學、演算法、算圖、碼字、位元組、UTF-8、ASCII、
-  WebAssembly、編碼器。說明文章裡也改白話，真的需要時才放括號。台灣用語：「半角」一律寫「半形」。
-- **欄名改了，提到它的地方一起改**：教學與常見問題裡的「圖片大小」滑桿、「耐髒程度（容錯等級）」選單、「方塊顏色」。
-- **不跟著文案改的**：網址；下拉選單與勾選框的 `value`（L／M／Q／H、WPA／WEP／nopass、PNG 清晰度的 scale），
-  產出的內容不能變；類型頁、首頁、`/scan/`、`/barcode/` 的 meta description 與 `seo:audit` 對帳的首段。
-  title 與 H1 要改時另外處理：改之前把改前的 title 與 28 天基線記進 `docs/seo-checklist.md` 的「標題改動紀錄」，
-  分享圖與替代文字一起改（見「產品名與站徽」）。
-- **關於頁的授權段落與隱私權頁準確性優先**：原詞保留，只在前面補白話。`seo:audit` 要求隱私權頁有 WebAssembly、
-  localStorage，關於頁有 zxing-wasm、Apache License、BSD-3-Clause。
+- **使用者在別處真的會看到的名稱照寫，每頁第一次出現就白話解釋**。
+- **只有工程師懂的詞，工具區不用**。台灣用語：「半角」一律寫「半形」。
+- **欄名改了，提到它的地方一起改**。
+- **不跟著文案改的**：網址、下拉選單與勾選框的 `value`、meta description 與 `seo:audit` 對帳的首段。
+  title 與 H1 要改時另外處理：改之前把改前的 title 與 28 天基線記進 `docs/seo-checklist.md` 的「標題改動紀錄」。
+- **關於頁的授權段落與隱私權頁準確性優先**：原詞保留，只在前面補白話。
 - 教學只調整用字時 `updated` 不動（sitemap 的 `<lastmod>` 不跟著變），示意圖、圖說與替代文字不重產。
-- `src/plain-words.test.ts` 掃元件、設定、composable、純函式、版面與頁面（關於、隱私權除外；註解不算），
-  出現通訊協定、網站主機、符號學、演算法、算圖、半角、前景色、可列印的 ASCII、第一版就紅。要再擋新的詞，加在那裡。
+- `src/plain-words.test.ts` 擋工程師用語，要再擋新的詞，加在那裡。
 
 ## 產品名與站徽
 
 2026-09-26 由 QR Code Studio 改名為 QR Code 製造機。**只換顯示的名字**：網址 slug、Worker 名、GA 的 `content_group`
-都還是 `qrcode-studio`，不要跟著改。
+都還是 `qrcode-studio`，不要跟著改。下面各條的全文（欄位、稽核項目、分享圖的寫法）見 `docs/brand/README.md`「AGENTS.md 的硬規則」。
 
-- **唯一開關是 `src/config/site.ts`**：`name`（產品名）、`nameEn`（英文名）、`formerNames`（舊名）、`siteName`／`siteNameEn`（og:site_name）、
-  `trademark`／`trademarkEn`（商標聲明）。頁面與元件一律用 `site.name`、`site.nameEn`，不要寫死；`src/brand.test.ts` 掃原始碼，
-  寫死新名、英文名或舊名都會紅。
-- **舊名只出現在兩處**：JSON-LD `WebSite.alternateName`（跟英文名一起）與關於頁更新紀錄的「原名」。`seo:audit` 逐頁驗
-  title、og 標籤與畫面文字沒有舊名（關於頁剛好一次）。
-- **title**：首頁與 7 個類型頁本來就沒有品牌後綴，改名不動；FAQ、教學總覽、隱私權、404 的後綴與關於頁跟著 `site.name`。
-  `seo:audit` 的 `PRODUCT_NAME` 刻意再寫一次、不從 `site.ts` 推導，改名時兩邊一起改。
-- **商標聲明**：名稱含 QR Code，頁尾與關於頁的「商標」一節都要有 DENSO WAVE 的註冊商標聲明（`site.trademark`），`seo:audit` 逐頁驗。
-- **站徽**：正本在 `scripts/brand/`（`logo-source.png` 與分頁圖示用的簡化版 `favicon-source.png`），`node scripts/brand/render.mjs`
-  從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與分享圖（首頁、掃描器、條碼、批次、每個類型頁、教學總覽與每篇教學各一張，
-  英文三頁各一張，產物進版控，不進 build）。
-  manifest 圖示的 any 與 maskable 各兩張，不合寫成 `any maskable`，`seo:audit` 逐像素驗 maskable 的安全圓。
-  選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
-- **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/`、`/batch/`、教學總覽與英文三頁各自寫，
-  類型頁在 `qr-types.ts` 的 `ogAlt`，教學在 `src/content/guide-og.ts`，其他頁用 `site.ts` 的 `ogImage.alt`）。有專屬分享圖的頁 title 改說法時，分享圖跟著改字、
-  重跑 `render.mjs`，替代文字照圖上的字寫（大標、橫幅、每個小標籤、圖角標籤與圖裡的字，英文頁只用 ASCII）。圖上的字不寫數量。
-  教學每篇用自己那張（`og-guide-<slug>.png`），新增教學時一起加卡片與替代文字；
-  批次頁、類型頁與教學總覽的卡片用 `page` 對到那一頁，圖裡的 QR Code 是那一頁自己的網址。只換分享圖不動 `updated`。
-  首頁、關於、隱私權、常見問題用站台預設圖（404 頁不輸出 og 標籤） `og-default-2.png`（`cards.mjs` 的 `fallback`；舊的 `og-default.png` 留在 `public/`，換檔名的原因見品牌文件）。
-  `seo:audit` 拿 `cards.mjs` 對帳，但驗不到 PNG 本身；對帳項目與已分享連結怎麼換圖見 `docs/brand/README.md`。
-- 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
-  `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。
-- **JSON-LD 的 `Organization` 是出品方口袋工具，不是本產品。** pocketool.app 底下每個站都用同一個 `@id`
-  （`https://www.pocketool.app/#organization`，`site.ts` 的 `publisher.id`）指這個出版者，完整定義在 hub 首頁。
-  本站 `App.vue` 每頁放一份完整節點（`@id`、name、alternateName、url、logo），各頁主要 JSON-LD 的 `publisher`
-  只放參照（`@type`、`@id`、`name`、`url`），同一頁不會出現第二個 Organization 實體。
-  logo 用 hub 提供的品牌圖網址（`publisher.logo`），站群每個站同一個網址；不要換成本產品的站徽，也不要改回本站自己的檔案。
-  本產品的名稱只放在 `WebSite` 的 `name`／`alternateName`，不要再寫成另一個 Organization。
-- `seo:audit` 逐頁驗：每段 JSON-LD 解析得了、每個 Organization 節點（含 publisher）都是共用 `@id`、name 與 url 是口袋工具、
-  完整節點恰好一份且 logo 正確、publisher 指向共用節點。稽核的 `ORG_ID`／`ORG_LOGO` 與 `useSeoHead.test.ts` 的 `ORG_ID`
-  刻意再寫一次、不從 `site.ts` 推導，要改 `@id` 或 logo 時三處一起改（`@id` 一改就變成另一個實體，原則上不改）。
+- **唯一開關是 `src/config/site.ts`**：頁面與元件一律用 `site.name`、`site.nameEn`，不要寫死（`src/brand.test.ts` 擋）。
+- **舊名只出現在兩處**：JSON-LD `WebSite.alternateName`（跟英文名一起）與關於頁更新紀錄的「原名」。
+- `seo:audit` 的 `PRODUCT_NAME` 刻意再寫一次、不從 `site.ts` 推導，改名時兩邊一起改。
+- **商標聲明**：頁尾與關於頁的「商標」一節都要有 DENSO WAVE 的註冊商標聲明（`site.trademark`）。
+- **站徽與分享圖**：正本在 `scripts/brand/`，`node scripts/brand/render.mjs` 產生到 `public/`（產物進版控，不進 build）；
+  manifest 圖示的 any 與 maskable 各兩張，不合寫成 `any maskable`。
+- **分享圖上的字**在 `scripts/brand/cards.mjs`：有專屬分享圖的頁 title 改說法時，分享圖跟著改字、重跑 `render.mjs`，
+  替代文字照圖上的字寫。圖上的字不寫數量。新增教學時一起加卡片與替代文字。只換分享圖不動 `updated`。
+- 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址；`manifest.webmanifest` 裡的路徑一律寫相對路徑。
+- **JSON-LD 的 `Organization` 是出品方口袋工具，不是本產品。** 每個 Organization 節點都用站群共用的 `@id`（`site.ts` 的 `publisher.id`），
+  `App.vue` 每頁一份完整節點、`publisher` 只放參照，logo 用 hub 的品牌圖網址，不要換成本產品的站徽。
+  稽核與測試的 `ORG_ID`／`ORG_LOGO` 刻意再寫一次，要改 `@id` 或 logo 時三處一起改（原則上不改）。
 
 ## 整頁載入沿用預渲染的 DOM（hydrate）
 

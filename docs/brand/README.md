@@ -2,6 +2,46 @@
 
 2026 年 9 月 26 日產品由 QR Code Studio 改名為 **QR Code 製造機**（英文 QR Code Maker），網址 `/qrcode-studio/` 不變，同時換上新的站徽。
 
+## AGENTS.md 的硬規則
+
+2026-10-15 從 `AGENTS.md` 逐字搬來（#24：`AGENTS.md` 精簡到 20 KB 以下，免得超過 Codex 串接指令的上限）。
+`AGENTS.md`「產品名與站徽」只留摘要與指路，下面每一條的全文（欄位、稽核項目、分享圖與替代文字的寫法）和它一樣不可違反。文中提到的「品牌文件」與 `docs/brand/README.md` 就是這份。
+
+2026-09-26 由 QR Code Studio 改名為 QR Code 製造機。**只換顯示的名字**：網址 slug、Worker 名、GA 的 `content_group`
+都還是 `qrcode-studio`，不要跟著改。
+
+- **唯一開關是 `src/config/site.ts`**：`name`（產品名）、`nameEn`（英文名）、`formerNames`（舊名）、`siteName`／`siteNameEn`（og:site_name）、
+  `trademark`／`trademarkEn`（商標聲明）。頁面與元件一律用 `site.name`、`site.nameEn`，不要寫死；`src/brand.test.ts` 掃原始碼，
+  寫死新名、英文名或舊名都會紅。
+- **舊名只出現在兩處**：JSON-LD `WebSite.alternateName`（跟英文名一起）與關於頁更新紀錄的「原名」。`seo:audit` 逐頁驗
+  title、og 標籤與畫面文字沒有舊名（關於頁剛好一次）。
+- **title**：首頁與 7 個類型頁本來就沒有品牌後綴，改名不動；FAQ、教學總覽、隱私權、404 的後綴與關於頁跟著 `site.name`。
+  `seo:audit` 的 `PRODUCT_NAME` 刻意再寫一次、不從 `site.ts` 推導，改名時兩邊一起改。
+- **商標聲明**：名稱含 QR Code，頁尾與關於頁的「商標」一節都要有 DENSO WAVE 的註冊商標聲明（`site.trademark`），`seo:audit` 逐頁驗。
+- **站徽**：正本在 `scripts/brand/`（`logo-source.png` 與分頁圖示用的簡化版 `favicon-source.png`），`node scripts/brand/render.mjs`
+  從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與分享圖（首頁、掃描器、條碼、批次、每個類型頁、教學總覽與每篇教學各一張，
+  英文三頁各一張，產物進版控，不進 build）。
+  manifest 圖示的 any 與 maskable 各兩張，不合寫成 `any maskable`，`seo:audit` 逐像素驗 maskable 的安全圓。
+  選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
+- **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/`、`/batch/`、教學總覽與英文三頁各自寫，
+  類型頁在 `qr-types.ts` 的 `ogAlt`，教學在 `src/content/guide-og.ts`，其他頁用 `site.ts` 的 `ogImage.alt`）。有專屬分享圖的頁 title 改說法時，分享圖跟著改字、
+  重跑 `render.mjs`，替代文字照圖上的字寫（大標、橫幅、每個小標籤、圖角標籤與圖裡的字，英文頁只用 ASCII）。圖上的字不寫數量。
+  教學每篇用自己那張（`og-guide-<slug>.png`），新增教學時一起加卡片與替代文字；
+  批次頁、類型頁與教學總覽的卡片用 `page` 對到那一頁，圖裡的 QR Code 是那一頁自己的網址。只換分享圖不動 `updated`。
+  首頁、關於、隱私權、常見問題用站台預設圖（404 頁不輸出 og 標籤） `og-default-2.png`（`cards.mjs` 的 `fallback`；舊的 `og-default.png` 留在 `public/`，換檔名的原因見品牌文件）。
+  `seo:audit` 拿 `cards.mjs` 對帳，但驗不到 PNG 本身；對帳項目與已分享連結怎麼換圖見 `docs/brand/README.md`。
+- 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
+  `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。
+- **JSON-LD 的 `Organization` 是出品方口袋工具，不是本產品。** pocketool.app 底下每個站都用同一個 `@id`
+  （`https://www.pocketool.app/#organization`，`site.ts` 的 `publisher.id`）指這個出版者，完整定義在 hub 首頁。
+  本站 `App.vue` 每頁放一份完整節點（`@id`、name、alternateName、url、logo），各頁主要 JSON-LD 的 `publisher`
+  只放參照（`@type`、`@id`、`name`、`url`），同一頁不會出現第二個 Organization 實體。
+  logo 用 hub 提供的品牌圖網址（`publisher.logo`），站群每個站同一個網址；不要換成本產品的站徽，也不要改回本站自己的檔案。
+  本產品的名稱只放在 `WebSite` 的 `name`／`alternateName`，不要再寫成另一個 Organization。
+- `seo:audit` 逐頁驗：每段 JSON-LD 解析得了、每個 Organization 節點（含 publisher）都是共用 `@id`、name 與 url 是口袋工具、
+  完整節點恰好一份且 logo 正確、publisher 指向共用節點。稽核的 `ORG_ID`／`ORG_LOGO` 與 `useSeoHead.test.ts` 的 `ORG_ID`
+  刻意再寫一次、不從 `site.ts` 推導，要改 `@id` 或 logo 時三處一起改（`@id` 一改就變成另一個實體，原則上不改）。
+
 ## 設計方向
 
 口袋工具的每個工具都用同一個母題：**口袋裡裝著這個工具的招牌物件**。口袋工具本身的圖示是水獺爪子從口袋探出來，
