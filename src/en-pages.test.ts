@@ -234,6 +234,18 @@ describe('英文版的頁首與頁尾', () => {
     expect(w.findAll('nav a').map(a => a.attributes('href'))).toEqual(expect.arrayContaining(['/en/', '/en/batch/', '/en/barcode/']))
   })
 
+  it('頁尾「In Chinese only」的連結標 hreflang="zh-Hant-TW"，報讀器會多念一句 (in Chinese)', () => {
+    const w = mountEn(DefaultLayout, { switchTo: '/batch/' })
+    const section = w.findAll('footer section').find(s => s.find('h2').exists() && s.find('h2').text() === 'In Chinese only')
+    expect(section).toBeDefined()
+    const links = section!.findAll('a')
+    expect(links.map(a => a.attributes('href'))).toEqual(['/scan/', '/wifi/', '/vcard/', '/guide/'])
+    for (const a of links) {
+      expect(a.attributes('hreflang')).toBe('zh-Hant-TW')
+      expect(a.find('.sr-only').text()).toBe('(in Chinese)')
+    }
+  })
+
   it('繁中版的頁首多一個 English：沒有對應頁時連到英文首頁', () => {
     const w = mount(DefaultLayout, { global: { stubs: { RouterLink: RouterLinkStub } } })
     wrappers.push(w)

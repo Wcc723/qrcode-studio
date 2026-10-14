@@ -95,10 +95,10 @@ const navLabel = computed(() => (isEn.value ? 'Main menu' : '主選單'))
         <section>
           <h2 class="font-display font-700 text-ink text-base">In Chinese only</h2>
           <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><RouterLink to="/scan/" class="hover:text-link transition">QR code scanner</RouterLink></li>
-            <li><RouterLink to="/wifi/" class="hover:text-link transition">WiFi QR code</RouterLink></li>
-            <li><RouterLink to="/vcard/" class="hover:text-link transition">vCard QR code</RouterLink></li>
-            <li><RouterLink to="/guide/" class="hover:text-link transition">QR code guides</RouterLink></li>
+            <li><RouterLink to="/scan/" hreflang="zh-Hant-TW" class="hover:text-link transition">QR code scanner<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+            <li><RouterLink to="/wifi/" hreflang="zh-Hant-TW" class="hover:text-link transition">WiFi QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+            <li><RouterLink to="/vcard/" hreflang="zh-Hant-TW" class="hover:text-link transition">vCard QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+            <li><RouterLink to="/guide/" hreflang="zh-Hant-TW" class="hover:text-link transition">QR code guides<span class="sr-only"> (in Chinese)</span></RouterLink></li>
           </ul>
         </section>
         <section>
