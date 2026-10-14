@@ -291,9 +291,10 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
   選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
 - **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/`、`/batch/`、教學總覽與英文三頁各自寫，
   類型頁在 `qr-types.ts` 的 `ogAlt`，教學在 `src/content/guide-og.ts`，其他頁用 `site.ts` 的 `ogImage.alt`）。有專屬分享圖的頁 title 改說法時，分享圖跟著改字、
-  重跑 `render.mjs`，替代文字照圖上的字寫。教學每篇用自己那張（`og-guide-<slug>.png`），新增教學時一起加卡片與替代文字；
+  重跑 `render.mjs`，替代文字照圖上的字寫（大標、橫幅、每個小標籤、圖角標籤與圖裡的字，英文頁只用 ASCII）。圖上的字不寫數量。
+  教學每篇用自己那張（`og-guide-<slug>.png`），新增教學時一起加卡片與替代文字；
   批次頁、類型頁與教學總覽的卡片用 `page` 對到那一頁，圖裡的 QR Code 是那一頁自己的網址。只換分享圖不動 `updated`。
-  關於、隱私權、常見問題與 404 用預設的 `og-default.png`。
+  首頁、關於、隱私權、常見問題與 404 用站台預設圖 `og-default-2.png`（`cards.mjs` 的 `fallback`；舊的 `og-default.png` 留在 `public/`，換檔名的原因見品牌文件）。
   `seo:audit` 拿 `cards.mjs` 對帳，但驗不到 PNG 本身；對帳項目與已分享連結怎麼換圖見 `docs/brand/README.md`。
 - 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
   `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。
