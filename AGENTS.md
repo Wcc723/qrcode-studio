@@ -285,13 +285,15 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
   `seo:audit` 的 `PRODUCT_NAME` 刻意再寫一次、不從 `site.ts` 推導，改名時兩邊一起改。
 - **商標聲明**：名稱含 QR Code，頁尾與關於頁的「商標」一節都要有 DENSO WAVE 的註冊商標聲明（`site.trademark`），`seo:audit` 逐頁驗。
 - **站徽**：正本在 `scripts/brand/`（`logo-source.png` 與分頁圖示用的簡化版 `favicon-source.png`），`node scripts/brand/render.mjs`
-  從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與分享圖（繁中三張、英文三張、教學每篇一張，產物進版控，不進 build）。
+  從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與分享圖（首頁、掃描器、條碼、批次、每個類型頁、教學總覽與每篇教學各一張，
+  英文三頁各一張，產物進版控，不進 build）。
   manifest 圖示的 any 與 maskable 各兩張，不合寫成 `any maskable`，`seo:audit` 逐像素驗 maskable 的安全圓。
   選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
-- **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/` 與英文三頁各自寫，
-  教學在 `src/content/guide-og.ts`，其他頁用 `site.ts` 的 `ogImage.alt`）。有專屬分享圖的頁 title 改說法時，分享圖跟著改字、
+- **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/`、`/batch/`、教學總覽與英文三頁各自寫，
+  類型頁在 `qr-types.ts` 的 `ogAlt`，教學在 `src/content/guide-og.ts`，其他頁用 `site.ts` 的 `ogImage.alt`）。有專屬分享圖的頁 title 改說法時，分享圖跟著改字、
   重跑 `render.mjs`，替代文字照圖上的字寫。教學每篇用自己那張（`og-guide-<slug>.png`），新增教學時一起加卡片與替代文字；
-  只換分享圖不動 `updated`。
+  批次頁、類型頁與教學總覽的卡片用 `page` 對到那一頁，圖裡的 QR Code 是那一頁自己的網址。只換分享圖不動 `updated`。
+  關於、隱私權、常見問題與 404 用預設的 `og-default.png`。
   `seo:audit` 拿 `cards.mjs` 對帳，但驗不到 PNG 本身；對帳項目與已分享連結怎麼換圖見 `docs/brand/README.md`。
 - 頁首站徽在模板裡用 `import.meta.env.BASE_URL` 組網址：寫死 `/logo-64.png` 不經 Vite base，在子路徑下會連到 hub 的 404。
   `index.html` 的 `<link>` 由 Vite 自動補前綴；`manifest.webmanifest` 裡的路徑一律寫相對路徑（`./`、`icon-192.png`）。

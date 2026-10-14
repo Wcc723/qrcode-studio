@@ -37,9 +37,9 @@
 | `scripts/brand/logo-source.png` | 正本 A，512×512 透明 PNG |
 | `scripts/brand/favicon-source.png` | 分頁圖示用的 C，512×512 透明 PNG |
 | `scripts/brand/clean-logo.mjs` | 把生成的原圖整理成正本：清掉去背殘留的洋紅雜點與邊緣色偏、裁掉空白、置中縮成 512 |
-| `scripts/brand/render.mjs` | 從兩張正本產生全部圖示與分享圖（繁中三張、英文三張、教學每篇一張） |
+| `scripts/brand/render.mjs` | 從兩張正本產生全部圖示與分享圖（見下表） |
 | `scripts/brand/cards.mjs` | 分享圖上的文字與右邊放什麼圖（站名與網址從 `src/config/site.ts` 讀） |
-| `src/content/guide-og.ts` | 教學分享圖的替代文字（其他頁的寫在頁面的 `useSeoHead` 或 `site.ts`） |
+| `src/content/guide-og.ts` | 教學分享圖的替代文字（類型頁的在 `src/config/qr-types.ts` 的 `ogAlt`，其他頁的寫在頁面的 `useSeoHead` 或 `site.ts`） |
 | `docs/brand/logo-compare.png` | 上面那張三案對照表 |
 | `docs/brand/candidate-b.png` | 未採用的 B 案 |
 
@@ -55,6 +55,9 @@
 | `icon-maskable-192.png`、`icon-maskable-512.png` | `manifest.webmanifest` 的 maskable 圖示：紙色滿版底，站徽縮到整個落在半徑 40% 的安全圓內，Android 裁成圓形、方圓形或水滴形都切不到 | A |
 | `og-default.png`、`og-scan.png`、`og-barcode.png` | 1200×630 分享圖，文字由 HTML 排版（不用生圖模型產字），掃描器與條碼那兩張裡的碼是真的、掃得出來 | A |
 | `og-en.png`、`og-en-batch.png`、`og-en-barcode.png` | 英文版三頁的分享圖（`cards.mjs` 的 `lang: 'en'`）：站名用 `siteNameEn`，字全是英文，只用內嵌的 Fredoka，不必連網載 Noto Sans TC | A |
+| `og-batch.png` | 繁中批次頁（`/batch/`）：右邊是一張標籤紙，每格一個 Code 128 加一行字，見「批次頁、類型頁與教學總覽的分享圖」 | A |
+| `og-url.png`、`og-wifi.png`、`og-vcard.png`、`og-text.png`、`og-email.png`、`og-phone.png`、`og-sms.png` | 七個類型頁各一張（檔名是 `qr-types.ts` 的 `type`）：右邊是那一頁網址的 QR Code，中間放那個類型的圖示 | A |
+| `og-guide.png` | 教學總覽（`/guide/`）：右邊是教學總覽網址的 QR Code，中間放書本圖示 | A |
 | `og-guide-<slug>.png` | 教學每篇一張（`cards.mjs` 的 `guide` 對到 slug），見下一節 | A |
 
 ### 教學的分享圖
@@ -75,6 +78,23 @@
 - **日期**：只換分享圖不算實質改寫，`guides.ts` 的 `updated` 與 sitemap 的 `<lastmod>` 都不動。
 - 新增一篇教學時，`cards.mjs` 加一張 `guide` 對到新 slug 的卡片、`guide-og.ts` 加替代文字、重跑 `render.mjs`；漏了哪一樣，
   `guide-og.test.ts` 或 `seo:audit` 會紅。
+
+### 批次頁、類型頁與教學總覽的分享圖
+
+這幾頁原本跟關於、隱私權頁一樣用 `og-default.png`，分享出去看不出是哪一頁。現在各用自己那張（`cards.mjs` 的 `page` 寫著用在哪一頁，
+`seo:audit` 驗那一頁的 og:image 是它、`twitter:image` 跟它同一張）；關於、隱私權、常見問題與 404 仍用預設圖。
+
+- **大標**取該頁 title 的一段：類型頁是「網址轉／WiFi／電子名片…」加「QR Code」，批次頁是「批次產生 QR Code 與條碼」，教學總覽是「QR Code 教學總覽」。
+  橫幅與小標籤寫這頁的重點，不寫數量。
+- **右邊的圖**：類型頁與教學總覽是那一頁網址的 QR Code（容錯等級 H），中間放 Lucide 的圖示（`cards.mjs` 的 `icon`），跟產生器分頁上那個類型的圖示同一個
+  （`qr-types.test.ts` 驗），底色跟圖角標籤同色。圖裡的 QR Code 一律是該頁自己的網址，掃了就打開那一頁；WiFi、電子名片、電話這幾頁也不放範例帳號、
+  密碼或聯絡資料，免得有人掃了以為要連上某個網路或存下某個人。
+  批次頁是一張標籤紙（`labels`），每格一個 Code 128，底下那行字就是條碼的內容（0001 到 0006，跟批次頁的連號一樣補零）。四位數的 Code 128 有 57 個模組，
+  畫成 114 px 寬是每個模組 2 px，標籤左右各留約 25 px 白，淺灰的標籤框才不會被讀成一條線。
+- **替代文字**：類型頁在 `src/config/qr-types.ts` 的 `ogAlt`，批次頁與教學總覽寫在頁面的 `useSeoHead`。寫法跟教學一樣：以大標開頭，接著橫幅那句與每個小標籤，
+  最後一句講右邊的圖，寫著圖角標籤的字，批次頁再寫出每格標籤上的字。`qr-types.test.ts` 逐字對帳類型頁；`seo:audit` 對產物驗這幾頁與教學的替代文字
+  寫著每個小標籤、圖角標籤與圖裡的字。
+- **日期**：只換分享圖不算實質改寫，sitemap 的 `<lastmod>` 不動（這幾頁本來就沒有 lastmod）。
 
 JSON-LD 的 `Organization.logo` 是出品方口袋工具的品牌圖，網址在 hub（`src/config/site.ts` 的 `publisher.logo`，
 站群每個站同一個網址），不是本產品的站徽，改站徽時不動它。
@@ -104,7 +124,7 @@ apple-touch-icon 與 maskable 圖示不透明，manifest 的 192 與 512 各有�
 頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在；
 分享圖也拿 `cards.mjs` 對帳（站台根目錄的 og:image 要是其中一張，替代文字寫著圖上的大標；專屬分享圖（`og-default.png` 以外）的替代文字
 以大標開頭、有橫幅那句，大標也要在 title 裡；教學每篇用自己那張，`twitter:image` 與 Article 的 `image` 跟 og:image 同一張；
-每張卡片都要有頁面用到）。它驗不到 PNG 本身：`cards.mjs` 改了字卻沒重跑 `render.mjs`，稽核不會紅。
+批次頁、類型頁與教學總覽也用自己那張（`page`）；教學與這幾頁的替代文字還要寫著每個小標籤、圖角標籤與圖裡的字；每張卡片都要有頁面用到）。它驗不到 PNG 本身：`cards.mjs` 改了字卻沒重跑 `render.mjs`，稽核不會紅。
 只重畫某幾張時在指令後面接檔名（例如 `og-scan.png og-barcode.png`），其他張不會動。
 
 ### 已經分享出去的連結
