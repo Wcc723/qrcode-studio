@@ -131,9 +131,10 @@ function looksStructured(value: string): boolean {
 /**
  * 一看就是欄名的字。只用來判斷第一列是不是欄名。
  * 「財產編號」「商品名稱」「購置日期」這類可以帶前綴；「單位」「部門」「位置」只認整格：
- * 「總務單位」「資訊部門」也可能是資料列裡的值。
+ * 「總務單位」「資訊部門」也可能是資料列裡的值。英文版的使用者常貼的「Asset tag」「Serial number」
+ * 「Description」「Location」「Qty」也認得（一樣只認整格）。
  */
-const HEADER_WORDS = /^(?:.{0,6}(?:編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|條碼|名稱|品名|網址|連結|日期|檔名)|(?:ean|gtin|upc)(?:[- ]?\d+)?|品項|內容|備註|說明|保管人|保管單位|使用單位|單位|部門|位置|儲位|地點|數量|價格|規格|類別|url|link|sku|id|no\.?|name|title|code|barcode|item|asset|content|file ?name)$/i
+const HEADER_WORDS = /^(?:.{0,6}(?:編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|條碼|名稱|品名|網址|連結|日期|檔名)|(?:ean|gtin|upc)(?:[- ]?\d+)?|品項|內容|備註|說明|保管人|保管單位|使用單位|單位|部門|位置|儲位|地點|數量|價格|規格|類別|url|link|sku|id|no\.?|name|title|code|barcode|item|asset|content|file ?name|(?:asset|item|product|serial|part) ?(?:tag|id|name|number|no\.?)|description|location|quantity|qty|price|category|notes?)$/i
 
 export interface HeaderGuess {
   /** 欄名列的索引（第一個不是空白的列）；沒有欄名列是 -1 */
@@ -166,7 +167,8 @@ const CONTENT_HEADER = /網址|連結|內容|url|link|content|qr/i
 /** 欄名是條碼的那一欄也是要做成碼的內容；同時有網址欄時，網址欄優先 */
 const BARCODE_HEADER = /條碼|barcode|(?:^|[^a-z])(?:ean|gtin|upc)(?![a-z])/i
 // code 認「Item code」「ItemCode」，不吃「barcode」「QRcode」：那兩種是要做成碼的內容
-const NAME_HEADER = /編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|檔名|sku|^id$|^no\.?$|(?:^|[^r])code|file ?name/i
+// 英文的「Asset tag」「Serial number」「Part no.」也是編號
+const NAME_HEADER = /編號|代號|代碼|序號|號碼|編碼|料號|品號|貨號|檔名|sku|^id$|^no\.?$|(?:^|[^r])code|file ?name|\btag$|serial|part ?(?:number|no)/i
 
 export interface ColumnGuess {
   /** 內容欄（0 起算） */

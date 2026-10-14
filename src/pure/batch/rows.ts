@@ -9,6 +9,7 @@
  * 錯誤訊息直接給畫面用：一維條碼沿用 validateBarcode（位數、可用字元、檢查碼），QR Code 只會有「太長」。
  */
 import type { ErrorCorrectionLevel } from '@/types'
+import type { Locale } from '@/i18n/locale'
 import { validateBarcode, type BarcodeErrorCode, type BarcodeSymbology } from '../validateBarcode'
 import { toQrByteString } from '../qrByteString'
 import { qrVersion } from '../qrGeometry'
@@ -100,26 +101,37 @@ export interface CheckOptions {
   ec: ErrorCorrectionLevel
   /** 先通過 checkTemplate 的範本；留白表示不套 */
   template: string
+  /** 錯誤訊息與範本記號的語言，預設繁中 */
+  locale?: Locale
 }
 
 export const EMPTY_ROW_MESSAGE = '這一列的內容是空的。'
 export const CAPACITY_MESSAGE = '內容太長，超過 QR Code 能放的上限。請縮短內容，或把耐髒程度調低。'
+const MESSAGES: Record<Locale, { empty: string; capacity: string }> = {
+  'zh-TW': { empty: EMPTY_ROW_MESSAGE, capacity: CAPACITY_MESSAGE },
+  en: {
+    empty: 'This one is empty.',
+    capacity: 'Too long for a QR code. Shorten it or lower the error correction level.',
+  },
+}
 
 /** 逐列檢查。檢查只看內容本身，重複的值另外用 findDuplicates 提示、不算錯。 */
 export function checkRows(rows: readonly SourceRow[], opts: CheckOptions): CheckedRow[] {
+  const locale = opts.locale ?? 'zh-TW'
+  const m = MESSAGES[locale]
   return rows.map((row, index): CheckedRow => {
-    if (!row.value) return { ...row, index, content: '', ok: false, code: 'empty', error: EMPTY_ROW_MESSAGE }
-    const content = applyTemplate(opts.template, row.value)
+    if (!row.value) return { ...row, index, content: '', ok: false, code: 'empty', error: m.empty }
+    const content = applyTemplate(opts.template, row.value, locale)
     if (opts.symbology === 'qr') {
       if (qrVersion(toQrByteString(content), opts.ec) === null) {
-        return { ...row, index, content, ok: false, code: 'capacity', error: CAPACITY_MESSAGE }
+        return { ...row, index, content, ok: false, code: 'capacity', error: m.capacity }
       }
       return { ...row, index, content, ok: true, normalized: content, appendedCheckDigit: false }
     }
-    const v = validateBarcode(opts.symbology, content)
+    const v = validateBarcode(opts.symbology, content, locale)
     if (!v.ok) {
       const code = v.code ?? 'charset'
-      return { ...row, index, content, ok: false, code, error: code === 'empty' ? EMPTY_ROW_MESSAGE : v.error! }
+      return { ...row, index, content, ok: false, code, error: code === 'empty' ? m.empty : v.error! }
     }
     return { ...row, index, content, ok: true, normalized: v.normalized!, appendedCheckDigit: !!v.appendedCheckDigit }
   })

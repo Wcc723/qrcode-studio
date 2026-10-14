@@ -16,9 +16,12 @@
  *   最外圈的格子要內縮（見 paper.ts 的 PRINTER_EDGE_MM）。
  */
 
-export type LabelBrand = 'herwood' | 'longder'
+import type { PaperId } from './paper'
 
-export const BRAND_NAMES: Record<LabelBrand, string> = { herwood: '鶴屋', longder: '龍德' }
+export type LabelBrand = 'herwood' | 'longder' | 'avery' | 'a4'
+
+/** 繁中選單上的品牌名（英文版的分組名在 copy.ts） */
+export const BRAND_NAMES: Record<LabelBrand, string> = { herwood: '鶴屋', longder: '龍德', avery: 'Avery', a4: 'A4' }
 
 export interface LabelGrid {
   columns: number
@@ -41,6 +44,12 @@ export interface LabelSheet extends LabelGrid {
   fullBleed: boolean
   template: string
   landscapeTemplate?: true
+  /** 紙張；沒寫就是 A4（台灣的型號都是 A4） */
+  paper?: PaperId
+  /** 英文選單上的標籤尺寸（寬 × 高，照包裝上的寫法），英文版的型號才有 */
+  nominal?: string
+  /** 英文選單上的常見用途，英文版的型號才有 */
+  use?: string
 }
 
 const sheet = (s: LabelSheet): LabelSheet => s
@@ -83,6 +92,37 @@ export const LABEL_SHEETS: readonly LabelSheet[] = [
   sheet({ id: 'longder-LD-8101', brand: 'longder', model: 'LD-8101', template: '8101', fullBleed: false, columns: 7, rows: 16, labelWidthMm: 25.4, labelHeightMm: 16.9, topMm: 13.3, leftMm: 8.6, colGapMm: 2.5, rowGapMm: 0 }),
 ]
 
+/* ---------- 英文版：美國的 Letter 標籤紙（跟 Avery 型號同規格）與一個 A4 型號 ---------- */
+
+/** PDF 的點（1/72 in）換成 mm，四捨五入到 0.001 mm（先乘成整數再除，13.5 點才會是 4.763 而不是浮點誤差的 4.762） */
+const fromPt = (n: number) => Math.round((n * 25400) / 72) / 1000
+
+/**
+ * 英文版的型號。Letter 的四個照 Avery 官網範本頁（avery.com/templates/<型號>）提供下載的官方 PDF 範本量：
+ * 每一格標籤外框在頁面上的絕對座標（單位是點，1/72 in），再跟同一頁的 Word 範本的欄寬、欄距、列高對過
+ * （相差都在 0.05 點以內）。`template` 是 Avery 下載檔的編號。
+ *
+ * - 5160：Word 與 PDF 範本的標籤寬都是 2.63 in（包裝上寫 2⅝ in），欄距 0.12 in，欄與欄的間隔照樣是 2.75 in。
+ * - 5163：左邊界 11.2 點（右邊界 11.25 點），欄距 13.55 點；Word 範本的欄距是 0.1875 in（13.5 點）。
+ * - 22806：上下左右與欄距都是 0.625 in，列距 42 點（7/12 in）。
+ * - A4 21 格（63.5 × 38.1 mm，3 × 7）：跟英國常見的 21 格標籤同一個尺寸，位置用龍德 LD-817 的 Word 範本。
+ *   不同品牌同尺寸的 A4 標籤，邊界可能差一兩 mm，所以畫面上提醒先印對位測試頁。
+ *
+ * 本站跟 Avery 沒有合作關係，型號只用來說明「跟哪一款標籤紙同規格」。
+ */
+export const US_LABEL_SHEETS: readonly LabelSheet[] = [
+  sheet({ id: 'avery-5160', brand: 'avery', model: '5160', template: 'U-0087-01', paper: 'letter', nominal: '2⅝ × 1 in', use: 'address labels', fullBleed: false, columns: 3, rows: 10, labelWidthMm: fromPt(189.36), labelHeightMm: fromPt(72), topMm: fromPt(36), leftMm: fromPt(13.5), colGapMm: fromPt(8.64), rowGapMm: 0 }),
+  sheet({ id: 'avery-5163', brand: 'avery', model: '5163', template: 'U-0090-01', paper: 'letter', nominal: '4 × 2 in', use: 'shipping labels', fullBleed: false, columns: 2, rows: 5, labelWidthMm: fromPt(288), labelHeightMm: fromPt(144), topMm: fromPt(36), leftMm: fromPt(11.2), colGapMm: fromPt(13.55), rowGapMm: 0 }),
+  sheet({ id: 'avery-5167', brand: 'avery', model: '5167', template: 'U-0093-01', paper: 'letter', nominal: '1¾ × ½ in', use: 'return address labels', fullBleed: false, columns: 4, rows: 20, labelWidthMm: fromPt(126), labelHeightMm: fromPt(36), topMm: fromPt(36), leftMm: fromPt(21.6), colGapMm: fromPt(21.6), rowGapMm: 0 }),
+  sheet({ id: 'avery-22806', brand: 'avery', model: '22806', template: 'U-0431-01', paper: 'letter', nominal: '2 × 2 in', use: 'square labels', fullBleed: false, columns: 3, rows: 4, labelWidthMm: fromPt(144), labelHeightMm: fromPt(144), topMm: fromPt(45), leftMm: fromPt(45), colGapMm: fromPt(45), rowGapMm: fromPt(42) }),
+  sheet({ id: 'a4-3x7', brand: 'a4', model: 'A4 21', template: '817', paper: 'a4', nominal: '63.5 × 38.1 mm (2½ × 1½ in)', fullBleed: false, columns: 3, rows: 7, labelWidthMm: 63.5, labelHeightMm: 38.1, topMm: 15.9, leftMm: 7.2, colGapMm: 2.5, rowGapMm: 0 }),
+]
+
+/** 英文版預設選的型號：最常見的 30 格地址標籤，QR Code 加一兩行字剛好 */
+export const US_DEFAULT_SHEET_ID = 'avery-5160'
+
+export const usSheetById: Readonly<Record<string, LabelSheet>> = Object.fromEntries(US_LABEL_SHEETS.map(s => [s.id, s]))
+
 /** 預設選的型號：四邊都有留白、格子夠放碼加兩三行字的常見辦公標籤 */
 export const DEFAULT_SHEET_ID = 'herwood-L3464'
 
@@ -97,4 +137,14 @@ export function sheetCells(g: Pick<LabelGrid, 'columns' | 'rows'>): number {
 export function sheetLabel(s: LabelSheet): string {
   const size = `寬 ${s.labelWidthMm} × 高 ${s.labelHeightMm} mm`
   return `${s.model}：${sheetCells(s)} 格（${s.columns} × ${s.rows}），${size}${s.fullBleed ? '，全版切割' : ''}`
+}
+
+/**
+ * 英文選單上的名字：Avery 同規格的寫型號，例如「5160: 30 per sheet (3 × 10), 2⅝ × 1 in, address labels」；
+ * A4 的只寫格數與尺寸（分組名已經是 A4）
+ */
+export function sheetLabelEn(s: LabelSheet): string {
+  const size = s.nominal ?? `${s.labelWidthMm} × ${s.labelHeightMm} mm`
+  const head = s.brand === 'avery' ? `${s.model}: ` : ''
+  return `${head}${sheetCells(s)} per sheet (${s.columns} × ${s.rows}), ${size}${s.use ? `, ${s.use}` : ''}${s.fullBleed ? ', edge to edge' : ''}`
 }

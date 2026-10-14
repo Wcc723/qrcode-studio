@@ -10,6 +10,7 @@
 import { artifactPlan, artifactSvg, type ArtifactSettings } from '@/pure/batch/artifact'
 import { paintPlan, type PlanCanvas } from '@/pure/raster'
 import { zipParts, type ZipEntry } from '@/pure/batch/zip'
+import type { Locale } from '@/i18n/locale'
 
 export interface ExportItem {
   /** checkRows 的 normalized */
@@ -23,6 +24,8 @@ export interface ExportOptions extends ArtifactSettings {
   signal?: AbortSignal
   /** 做完幾張（含這一張）；呼叫端自己決定多久更新一次畫面 */
   onProgress?: (done: number, total: number) => void
+  /** 錯誤訊息的語言，預設繁中 */
+  locale?: Locale
 }
 
 export class BatchExportError extends Error {
@@ -39,19 +42,32 @@ function throwIfAborted(signal?: AbortSignal) {
   if (signal?.aborted) throw new DOMException('已取消', 'AbortError')
 }
 
-const OUT_OF_MEMORY = '瀏覽器沒有畫出圖片，可能是記憶體不足。請減少筆數或改小圖片大小再試一次。'
+const MESSAGES: Record<Locale, { outOfMemory: string; svgFailed: (name: string) => string; noCanvas: string; pngFailed: (name: string) => string }> = {
+  'zh-TW': {
+    outOfMemory: '瀏覽器沒有畫出圖片，可能是記憶體不足。請減少筆數或改小圖片大小再試一次。',
+    svgFailed: name => `「${name}」做不出來，請重新檢查內容。`,
+    noCanvas: '這個瀏覽器不能畫圖片，請改下載 SVG。',
+    pngFailed: name => `「${name}」做不出來，請重新檢查內容或把圖片大小調大。`,
+  },
+  en: {
+    outOfMemory: 'The browser did not draw the images, probably because it ran out of memory. Try fewer items or a smaller image size.',
+    svgFailed: name => `"${name}" could not be made. Check its content.`,
+    noCanvas: 'This browser cannot draw images. Download SVG instead.',
+    pngFailed: name => `"${name}" could not be made. Check its content or choose a larger image size.`,
+  },
+}
 
 /**
  * 每一條失敗的路都要 reject：toBlob 回 null、讀 Blob 失敗（例如記憶體不足）都算。
  * 少一條，外層就永遠等不到結果，畫面會一直停在「正在產生」。
  */
-function toPngBytes(canvas: HTMLCanvasElement): Promise<Uint8Array> {
+function toPngBytes(canvas: HTMLCanvasElement, outOfMemory: string): Promise<Uint8Array> {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
-      if (!blob) { reject(new BatchExportError(OUT_OF_MEMORY)); return }
+      if (!blob) { reject(new BatchExportError(outOfMemory)); return }
       blob.arrayBuffer().then(
         buf => resolve(new Uint8Array(buf)),
-        () => reject(new BatchExportError(OUT_OF_MEMORY)),
+        () => reject(new BatchExportError(outOfMemory)),
       )
     }, 'image/png')
   })
@@ -70,6 +86,7 @@ function unlessAborted<T>(task: Promise<T>, signal?: AbortSignal): Promise<T> {
 }
 
 export async function exportZip(items: readonly ExportItem[], opts: ExportOptions): Promise<Blob> {
+  const m = MESSAGES[opts.locale ?? 'zh-TW']
   const entries: ZipEntry[] = new Array(items.length)
   const total = items.length
   let done = 0
@@ -81,7 +98,7 @@ export async function exportZip(items: readonly ExportItem[], opts: ExportOption
     for (let i = 0; i < total; i++) {
       throwIfAborted(opts.signal)
       const svg = artifactSvg(items[i]!.normalized, opts)
-      if (svg === null) throw new BatchExportError(`「${items[i]!.name}」做不出來，請重新檢查內容。`)
+      if (svg === null) throw new BatchExportError(m.svgFailed(items[i]!.name))
       entries[i] = { name: items[i]!.name, data: enc.encode(svg) }
       done++
       if (performance.now() - sliceStart > SLICE_MS) {
@@ -93,18 +110,18 @@ export async function exportZip(items: readonly ExportItem[], opts: ExportOption
   } else {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
-    if (!ctx) throw new BatchExportError('這個瀏覽器不能畫圖片，請改下載 SVG。')
+    if (!ctx) throw new BatchExportError(m.noCanvas)
     const pending = new Set<Promise<void>>()
     for (let i = 0; i < total; i++) {
       throwIfAborted(opts.signal)
       const plan = artifactPlan(items[i]!.normalized, opts)
-      if (plan === null) throw new BatchExportError(`「${items[i]!.name}」做不出來，請重新檢查內容或把圖片大小調大。`)
+      if (plan === null) throw new BatchExportError(m.pngFailed(items[i]!.name))
       canvas.width = plan.width
       canvas.height = plan.height
       paintPlan(ctx as unknown as PlanCanvas, plan)
       const name = items[i]!.name
       const at = i
-      const job: Promise<void> = toPngBytes(canvas).then((data) => {
+      const job: Promise<void> = toPngBytes(canvas, m.outOfMemory).then((data) => {
         entries[at] = { name, data }
         done++
         report()

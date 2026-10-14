@@ -1,5 +1,5 @@
 /**
- * 內容範本：`https://example.com/asset/{編號}` 這種「固定的網址＋每一列的值」。
+ * 內容範本：`https://example.com/asset/{編號}` 這種「固定的網址＋每一列的值」。英文版的記號是 `{id}`。
  * Google 表單的預填網址（`…/viewform?usp=pp_url&entry.123456={編號}`）也是同一種寫法。
  *
  * - 範本留白：內容就是那一列的值，原樣不動。
@@ -9,18 +9,34 @@
  * - 中文輸入法打出的全形大括號 `｛編號｝` 也認得。
  */
 
+import type { Locale } from '../../i18n/locale'
+
 export const TEMPLATE_TOKEN = '{編號}'
 const TOKEN = /[{｛]編號[}｝]/g
+/** 英文版的記號；大小寫都認得 */
+export const TEMPLATE_TOKEN_EN = '{id}'
+const TOKEN_EN = /\{id\}/gi
 const URL_TEMPLATE = /^https?:\/\//i
+
+/** 這個語言的範本記號 */
+export function templateToken(locale: Locale = 'zh-TW'): string {
+  return locale === 'en' ? TEMPLATE_TOKEN_EN : TEMPLATE_TOKEN
+}
+const tokenPattern = (locale: Locale) => (locale === 'en' ? TOKEN_EN : TOKEN)
 
 export type TemplateCheck = { ok: true; isUrl: boolean; empty: boolean } | { ok: false; error: string }
 
 /** 範本本身合不合用（跟哪一列無關）。 */
-export function checkTemplate(template: string): TemplateCheck {
+export function checkTemplate(template: string, locale: Locale = 'zh-TW'): TemplateCheck {
   const t = template.trim()
   if (!t) return { ok: true, isUrl: false, empty: true }
-  if (!t.match(TOKEN)) {
-    return { ok: false, error: `範本裡要有 ${TEMPLATE_TOKEN}，每一張才會帶入自己那一列的值；不需要範本就把這一格清空。` }
+  if (!t.match(tokenPattern(locale))) {
+    return {
+      ok: false,
+      error: locale === 'en'
+        ? `Add ${TEMPLATE_TOKEN_EN} to the template so each code gets its own value from the list, or clear the field if you don't need a template.`
+        : `範本裡要有 ${TEMPLATE_TOKEN}，每一張才會帶入自己那一列的值；不需要範本就把這一格清空。`,
+    }
   }
   return { ok: true, isUrl: URL_TEMPLATE.test(t), empty: false }
 }
@@ -31,10 +47,10 @@ function wellFormed(s: string): string {
 }
 
 /** 把值代入範本。範本要先通過 `checkTemplate`；留白時回傳值本身。 */
-export function applyTemplate(template: string, value: string): string {
+export function applyTemplate(template: string, value: string, locale: Locale = 'zh-TW'): string {
   const t = template.trim()
   if (!t) return value
   const filled = URL_TEMPLATE.test(t) ? encodeURIComponent(wellFormed(value)) : value
   // 用函式當替換值：值裡的 $& 這類字樣不能被當成特殊替換符號
-  return t.replace(TOKEN, () => filled)
+  return t.replace(tokenPattern(locale), () => filled)
 }

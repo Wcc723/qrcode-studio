@@ -1,6 +1,6 @@
 /**
- * 印成 A4 標籤紙的列印規格：紙張、印表機印不到的紙邊、每格的內距、字級、一維條碼與 QR Code 的最小尺寸、
- * 位移的範圍、校正尺與對位測試頁。
+ * 印成標籤紙的列印規格：紙張（繁中版只有 A4，英文版另有 Letter）、印表機印不到的紙邊、每格的內距、字級、
+ * 一維條碼與 QR Code 的最小尺寸、位移的範圍、校正尺與對位測試頁。
  *
  * 毫米數字只寫在這裡：元件用這裡的常數與 mm() 組 CSS，不寫毫米字面值（src/batch-gates.test.ts 會掃）。
  * 每個標籤紙型號的格子尺寸是資料，放在 labelSheets.ts。
@@ -11,12 +11,25 @@
 import type { BarcodeSymbology } from '../validateBarcode'
 
 export const A4 = { widthMm: 210, heightMm: 297 } as const
+/** 美國的 Letter（8.5 × 11 in）。內部一律用 mm，英文版畫面上換成英寸 */
+export const LETTER = { widthMm: 215.9, heightMm: 279.4 } as const
+
+export type PaperId = 'a4' | 'letter'
+export interface Paper { id: PaperId; widthMm: number; heightMm: number }
+export const PAPERS: Readonly<Record<PaperId, Paper>> = {
+  a4: { id: 'a4', ...A4 },
+  letter: { id: 'letter', ...LETTER },
+}
 
 /**
- * 列印區顯示時才加進頁面的 @page 規則（離開就拿掉，其他頁照一般網頁列印）：A4、邊界 0。
- * 邊界 0 時瀏覽器沒有空間印頁首頁尾，格子的位置也才會照型號的數字落在紙上。
+ * 列印區顯示時才加進頁面的 @page 規則（離開就拿掉，其他頁照一般網頁列印）：紙張、邊界 0。
+ * 邊界 0 時瀏覽器沒有空間印頁首頁尾，格子的位置也才會照型號的數字落在紙上。換紙張時跟著換。
  */
 export const PAGE_RULE = '@page { size: A4; margin: 0; }'
+export const LETTER_PAGE_RULE = '@page { size: letter; margin: 0; }'
+export function pageRule(paper: PaperId): string {
+  return paper === 'letter' ? LETTER_PAGE_RULE : PAGE_RULE
+}
 
 /**
  * 每張紙的元素高度扣掉的安全量。剛好 297 mm 的元素在部分縮放與印表機設定下會被換算得多一點點，
@@ -43,6 +56,9 @@ export const CONTENT_GAP_MM = 1
 /** X／Y 位移的上下限與最小單位 */
 export const OFFSET_LIMIT_MM = 10
 export const OFFSET_STEP_MM = 0.1
+/** 英文版的位移用英寸填：最小單位 0.01 in，上下限是 OFFSET_LIMIT_MM 換成英寸再無條件捨去（不超過 mm 的上限） */
+export const OFFSET_STEP_IN = 0.01
+export const OFFSET_LIMIT_IN = Math.floor((OFFSET_LIMIT_MM / 25.4) * 100) / 100
 
 /** 自訂尺寸的範圍：格子太小放不下碼，欄列太多也排不進 A4 */
 export const CUSTOM_MIN_CELL_MM = 10
@@ -106,6 +122,9 @@ export const QR_WARN_MODULE_MM = 0.3
 
 /** 校正尺的長度：印出來量得剛好 5 公分，就是用實際大小（100%）列印 */
 export const CALIBRATION_MM = 50
+/** 英文版的校正尺用英寸：2 英吋，刻度到 1/16 英吋（美國的尺就是這樣刻的） */
+export const CALIBRATION_IN = 2
+export const CALIBRATION_IN_DIVISIONS = 16
 /** 尺身（刻度）的高度，數字另外再往下 */
 export const CALIBRATION_HEIGHT_MM = 6
 /** 尺的數字字高 */
@@ -129,6 +148,8 @@ export const PAGE_NUMBER_INSET_MM = 2
 
 /* ---------- 單位換算 ---------- */
 
+/** 1 in = 25.4 mm */
+export const MM_PER_IN = 25.4
 /** 1pt = 25.4 / 72 mm */
 export const MM_PER_PT = 25.4 / 72
 /** CSS 的 1mm 是 96 / 25.4 px */
@@ -153,6 +174,17 @@ export function pt(value: number): string {
 }
 
 /** 一張紙的元素尺寸（CSS），已扣掉 PAGE_FIT_GUARD_MM */
-export function sheetBox(): { width: string; height: string } {
-  return { width: mm(A4.widthMm), height: mm(A4.heightMm - PAGE_FIT_GUARD_MM) }
+export function sheetBox(paper: Pick<Paper, 'widthMm' | 'heightMm'> = A4): { width: string; height: string } {
+  return { width: mm(paper.widthMm), height: mm(paper.heightMm - PAGE_FIT_GUARD_MM) }
+}
+
+/** mm 換成英寸，四捨五入到 digits 位（英文版的畫面用） */
+export function mmToIn(value: number, digits = 2): number {
+  const f = 10 ** digits
+  return Math.round((value / MM_PER_IN) * f) / f
+}
+
+/** 英寸換成 mm */
+export function inToMm(value: number): number {
+  return value * MM_PER_IN
 }

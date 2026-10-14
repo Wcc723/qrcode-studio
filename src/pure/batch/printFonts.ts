@@ -8,7 +8,9 @@
  * （瀏覽器裡是 canvas 的 measureText），預渲染與測試用 `estimateMeasure` 粗估。
  */
 
-export type PrintFontId = 'jhenghei' | 'kai' | 'mingliu'
+import type { Locale } from '../../i18n/locale'
+
+export type PrintFontId = 'jhenghei' | 'kai' | 'mingliu' | 'arial' | 'verdana' | 'times'
 
 export interface PrintFont {
   id: PrintFontId
@@ -48,11 +50,47 @@ export const PRINT_FONTS: readonly PrintFont[] = [
   },
 ]
 
+/**
+ * 英文版的三套：Windows 與 Mac、iPhone 都內建，英文標籤最常用的無襯線、小字級最好讀的寬字、與一套襯線字。
+ * Android 與部分 Linux 沒有這幾套，會改用堆疊後面的開源近似字型（Liberation、DejaVu）。
+ */
+export const PRINT_FONTS_EN: readonly PrintFont[] = [
+  {
+    id: 'arial',
+    label: 'Arial',
+    stack: '"Arial", "Helvetica Neue", Helvetica, "Liberation Sans", sans-serif',
+    probes: ['Arial'],
+    fallbackNote: 'will use a similar sans-serif font, so text widths may differ slightly',
+  },
+  {
+    id: 'verdana',
+    label: 'Verdana',
+    stack: '"Verdana", "DejaVu Sans", sans-serif',
+    probes: ['Verdana'],
+    fallbackNote: 'will use a similar sans-serif font, so text widths may differ slightly',
+  },
+  {
+    id: 'times',
+    label: 'Times New Roman',
+    stack: '"Times New Roman", "Times", "Liberation Serif", serif',
+    probes: ['Times New Roman', 'Times'],
+    fallbackNote: 'will use another serif font, so text widths may differ slightly',
+  },
+]
+
 /** 標籤的字小，黑體在小字級最好讀 */
 export const DEFAULT_PRINT_FONT: PrintFontId = 'jhenghei'
+export const DEFAULT_PRINT_FONT_EN: PrintFontId = 'arial'
+
+/** 這個語言的字型選單與預設字型 */
+export function printFontsFor(locale: Locale): { fonts: readonly PrintFont[]; defaultId: PrintFontId } {
+  return locale === 'en'
+    ? { fonts: PRINT_FONTS_EN, defaultId: DEFAULT_PRINT_FONT_EN }
+    : { fonts: PRINT_FONTS, defaultId: DEFAULT_PRINT_FONT }
+}
 
 export function printFont(id: PrintFontId): PrintFont {
-  return PRINT_FONTS.find(f => f.id === id) ?? PRINT_FONTS[0]!
+  return PRINT_FONTS.find(f => f.id === id) ?? PRINT_FONTS_EN.find(f => f.id === id) ?? PRINT_FONTS[0]!
 }
 
 /** 量字寬的函式：給 CSS font 簡寫與文字，回傳寬度（px）。瀏覽器裡由 canvas 提供，測試可以注入 */

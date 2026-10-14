@@ -4,12 +4,14 @@
  * 刻意不進 src/pure/index.ts 的 builders registry：那份是「QrType → QR payload 字串」
  * 的映射，一維條碼不是 QR payload，只做 export *。
  */
+import type { Locale } from '../i18n/locale'
+
 export type BarcodeSymbology = 'code128' | 'ean13' | 'ean8' | 'code39' | 'itf14'
 export type BarcodeErrorCode = 'empty' | 'length' | 'charset' | 'checkDigit' | 'code39Star'
 
 export interface BarcodeValidation {
   ok: boolean
-  error?: string               // zh-TW 訊息，ok === true 時不存在
+  error?: string               // 給畫面的訊息（預設繁中，英文版傳 locale），ok === true 時不存在
   code?: BarcodeErrorCode      // 機器可讀的失敗原因，ok === true 時不存在
   normalized?: string          // ok === true 時必定存在：真正送去編碼的字串
   appendedCheckDigit?: boolean // ok === true 時必定存在：檢查碼是否由工具補上
@@ -28,7 +30,56 @@ export const CODE39_MAX_LENGTH = 48
 // 同上，80 字元約 229mm。
 export const CODE128_MAX_LENGTH = 80
 
-const EMPTY_MESSAGE = '請輸入條碼內容。'
+/** 錯誤訊息（繁中是原本的字串，英文給英文版用）；listBad 已經把不支援的字元排好 */
+interface BarcodeMessages {
+  empty: string
+  list: (shown: string[], total: number) => string
+  gtinCharset: (name: string, bad: string) => string
+  gtinLength: (name: string, dataLen: number, actual: number) => string
+  checkDigit: (name: string, dataLen: number, expected: string, actual: string) => string
+  code39Star: string
+  code39Charset: (bad: string) => string
+  code39Length: (actual: number) => string
+  code128Charset: (bad: string) => string
+  code128Length: (actual: number) => string
+}
+
+const MESSAGES: Record<Locale, BarcodeMessages> = {
+  'zh-TW': {
+    empty: '請輸入條碼內容。',
+    list: (shown, total) => {
+      const text = shown.map(c => `「${c}」`).join('、')
+      return total > 3 ? `${text}（共 ${total} 個）` : text
+    },
+    gtinCharset: (name, bad) => `${name} 只能輸入數字 0 到 9。不支援的字元：${bad}。`,
+    gtinLength: (name, dataLen, actual) =>
+      `${name} 需要 ${dataLen} 位數字（工具會自動補上檢查碼）或 ${dataLen + 1} 位完整條碼。目前有 ${actual} 位。`,
+    checkDigit: (name, dataLen, expected, actual) =>
+      `檢查碼不符。${name} 前 ${dataLen} 位算出的檢查碼應該是 ${expected}，你輸入的是 ${actual}。請確認號碼，或只輸入前 ${dataLen} 位讓工具自動補。`,
+    code39Star: '* 是 Code 39 頭尾自動加上的記號，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。',
+    code39Charset: bad => `Code 39 只支援數字、大寫英文與 - . $ / + % 和半形空白。不支援的字元：${bad}。`,
+    code39Length: actual => `Code 39 最多 ${CODE39_MAX_LENGTH} 個字元，目前有 ${actual} 個。請縮短內容，或改用 Code 128。`,
+    code128Charset: bad => `Code 128 只能放英文、數字與鍵盤上的半形符號。不支援的字元：${bad}。中文或全形符號請改用 QR Code。`,
+    code128Length: actual => `Code 128 最多 ${CODE128_MAX_LENGTH} 個字元，目前有 ${actual} 個。請縮短內容，太寬的條碼不容易掃描。`,
+  },
+  en: {
+    empty: 'Enter the barcode content.',
+    list: (shown, total) => {
+      const text = shown.map(c => `"${c}"`).join(', ')
+      return total > 3 ? `${text} (${total} in total)` : text
+    },
+    gtinCharset: (name, bad) => `${name} takes the digits 0 to 9 only. Not allowed: ${bad}.`,
+    gtinLength: (name, dataLen, actual) =>
+      `${name} needs ${dataLen} digits (the check digit is added for you) or all ${dataLen + 1} digits. This has ${actual}.`,
+    checkDigit: (name, dataLen, expected, actual) =>
+      `The check digit does not match. From the first ${dataLen} digits, the ${name} check digit should be ${expected}, not ${actual}. Check the number, or enter just the first ${dataLen} digits and let the tool add it.`,
+    code39Star: '* marks the start and end of every Code 39 barcode and is added automatically, so it cannot appear in the content. Remove it, or wrap the whole content as *CONTENT*.',
+    code39Charset: bad => `Code 39 takes only numbers, capital letters, - . $ / + % and spaces. Not allowed: ${bad}.`,
+    code39Length: actual => `Code 39 holds up to ${CODE39_MAX_LENGTH} characters, and this has ${actual}. Shorten it or switch to Code 128.`,
+    code128Charset: bad => `Code 128 takes letters, numbers and keyboard symbols only. Not allowed: ${bad}. For anything else, use a QR code.`,
+    code128Length: actual => `Code 128 holds up to ${CODE128_MAX_LENGTH} characters, and this has ${actual}. Shorten it: very wide barcodes are hard to scan.`,
+  },
+}
 
 /**
  * GS1 mod-10。權重自「最右資料位」起為 3，往左交替 3,1,3,1…
@@ -65,10 +116,9 @@ function charLabel(ch: string): string {
 }
 
 /** 去重、保留首次出現順序、最多列 3 個，超過時附總數。 */
-function listBad(chars: string[]): string {
+function listBad(chars: string[], m: BarcodeMessages): string {
   const uniq = [...new Set(chars)]
-  const shown = uniq.slice(0, 3).map(c => `「${charLabel(c)}」`).join('、')
-  return uniq.length > 3 ? `${shown}（共 ${uniq.length} 個）` : shown
+  return m.list(uniq.slice(0, 3).map(charLabel), uniq.length)
 }
 
 function badChars(value: string, allowed: (ch: string) => boolean): string[] {
@@ -86,35 +136,29 @@ const GTIN: Record<'ean13' | 'ean8' | 'itf14', GtinConfig> = {
   itf14: { name: 'ITF-14', dataLen: 13 },
 }
 
-function validateGtin(cfg: GtinConfig, raw: string): BarcodeValidation {
+function validateGtin(cfg: GtinConfig, raw: string, m: BarcodeMessages): BarcodeValidation {
   // 去掉所有空白與半形連字號，支援貼上 978-0-201-37962-4 或 5449 0000 0099 6。
   // JS 的 \s 含不斷行空白與全形空白，所以從網頁複製的號碼也吃得下。
   const digits = raw.replace(/[\s-]/g, '')
-  if (!digits) return fail('empty', EMPTY_MESSAGE)
+  if (!digits) return fail('empty', m.empty)
 
   const bad = badChars(digits, ch => ch >= '0' && ch <= '9')
-  if (bad.length) {
-    return fail('charset', `${cfg.name} 只能輸入數字 0 到 9。不支援的字元：${listBad(bad)}。`)
-  }
+  if (bad.length) return fail('charset', m.gtinCharset(cfg.name, listBad(bad, m)))
 
   const { name, dataLen } = cfg
   if (digits.length !== dataLen && digits.length !== dataLen + 1) {
-    return fail('length',
-      `${name} 需要 ${dataLen} 位數字（工具會自動補上檢查碼）或 ${dataLen + 1} 位完整條碼。目前有 ${digits.length} 位。`)
+    return fail('length', m.gtinLength(name, dataLen, digits.length))
   }
 
   if (digits.length === dataLen) return pass(digits + gtinCheckDigit(digits), true)
 
   const expected = gtinCheckDigit(digits.slice(0, dataLen))
   const actual = digits[dataLen]
-  if (expected !== actual) {
-    return fail('checkDigit',
-      `檢查碼不符。${name} 前 ${dataLen} 位算出的檢查碼應該是 ${expected}，你輸入的是 ${actual}。請確認號碼，或只輸入前 ${dataLen} 位讓工具自動補。`)
-  }
+  if (expected !== actual) return fail('checkDigit', m.checkDigit(name, dataLen, expected, actual!))
   return pass(digits, false)
 }
 
-function validateCode39(raw: string): BarcodeValidation {
+function validateCode39(raw: string, m: BarcodeMessages): BarcodeValidation {
   // Code 39 無小寫可言，自動轉大寫與所有條碼庫的既有行為一致。
   let value = raw.trim().toUpperCase()
   // 成對的前後 * 是傳統的起始／結束寫法，剝掉；算圖器會自己加回去，
@@ -122,30 +166,21 @@ function validateCode39(raw: string): BarcodeValidation {
   if (value.length >= 2 && value.startsWith('*') && value.endsWith('*')) {
     value = value.slice(1, -1)
   }
-  if (!value) return fail('empty', EMPTY_MESSAGE)
+  if (!value) return fail('empty', m.empty)
 
-  if (value.includes('*')) {
-    return fail('code39Star',
-      '* 是 Code 39 頭尾自動加上的記號，不能出現在內容裡。請移除 *，或改成成對的 *內容* 形式。')
-  }
+  if (value.includes('*')) return fail('code39Star', m.code39Star)
 
   const bad = badChars(value, ch => CODE39_CHARSET.includes(ch))
-  if (bad.length) {
-    return fail('charset',
-      `Code 39 只支援數字、大寫英文與 - . $ / + % 和半形空白。不支援的字元：${listBad(bad)}。`)
-  }
+  if (bad.length) return fail('charset', m.code39Charset(listBad(bad, m)))
 
-  if (value.length > CODE39_MAX_LENGTH) {
-    return fail('length',
-      `Code 39 最多 ${CODE39_MAX_LENGTH} 個字元，目前有 ${value.length} 個。請縮短內容，或改用 Code 128。`)
-  }
+  if (value.length > CODE39_MAX_LENGTH) return fail('length', m.code39Length(value.length))
   return pass(value, false)
 }
 
-function validateCode128(raw: string): BarcodeValidation {
+function validateCode128(raw: string, m: BarcodeMessages): BarcodeValidation {
   // 不轉大小寫：大小寫是資料。前後空白在條碼圖上看不出來，屬純貼上雜訊，去掉。
   const value = raw.trim()
-  if (!value) return fail('empty', EMPTY_MESSAGE)
+  if (!value) return fail('empty', m.empty)
 
   // 只收可列印 ASCII 0x20–0x7E。控制字元與 FNC1–FNC4 在文字框裡無法有意義地輸入，
   // 且掃描器對它們的輸出行為差異極大，會產生無法 debug 的案例。GS1-128 不在範圍內。
@@ -153,15 +188,9 @@ function validateCode128(raw: string): BarcodeValidation {
     const cp = ch.codePointAt(0)!
     return cp >= 0x20 && cp <= 0x7e
   })
-  if (bad.length) {
-    return fail('charset',
-      `Code 128 只能放英文、數字與鍵盤上的半形符號。不支援的字元：${listBad(bad)}。中文或全形符號請改用 QR Code。`)
-  }
+  if (bad.length) return fail('charset', m.code128Charset(listBad(bad, m)))
 
-  if (value.length > CODE128_MAX_LENGTH) {
-    return fail('length',
-      `Code 128 最多 ${CODE128_MAX_LENGTH} 個字元，目前有 ${value.length} 個。請縮短內容，太寬的條碼不容易掃描。`)
-  }
+  if (value.length > CODE128_MAX_LENGTH) return fail('length', m.code128Length(value.length))
   return pass(value, false)
 }
 
@@ -170,10 +199,11 @@ function validateCode128(raw: string): BarcodeValidation {
  * 不可調換：ABCDEFGHIJKL 應報「只能輸入數字」而不是長度；54490000O996
  * 應指出把 0 打成字母 O，那是最高頻的真實輸入錯誤。
  */
-export function validateBarcode(sym: BarcodeSymbology, raw: string): BarcodeValidation {
+export function validateBarcode(sym: BarcodeSymbology, raw: string, locale: Locale = 'zh-TW'): BarcodeValidation {
+  const m = MESSAGES[locale]
   switch (sym) {
-    case 'code39': return validateCode39(raw)
-    case 'code128': return validateCode128(raw)
-    default: return validateGtin(GTIN[sym], raw)
+    case 'code39': return validateCode39(raw, m)
+    case 'code128': return validateCode128(raw, m)
+    default: return validateGtin(GTIN[sym], raw, m)
   }
 }

@@ -1,5 +1,5 @@
 /**
- * 標籤紙的排版（純函式）：每一格在 A4 上的位置、從第 N 格開始、每筆印 N 份、跨頁、X／Y 位移，
+ * 標籤紙的排版（純函式）：每一格在紙上的位置（A4 或 Letter，預設 A4）、從第 N 格開始、每筆印 N 份、跨頁、X／Y 位移，
  * 以及格子裡可以放碼與字的範圍（內距、避開印表機印不到的紙邊）。
  *
  * 座標原點是紙的左上角，單位 mm，格子依列優先編號（先排滿第一列，再換下一列），跟拿著標籤紙看的順序一樣。
@@ -8,8 +8,15 @@
  *     const pages = placeLabels(items, sheet, { startCell: 5, copies: 2, offset: { xMm: 0.5, yMm: -1 } })
  *     pages[0].cells[0]   // { index: 0, rect: {…}, item: null }：第 1 到 4 格留白
  */
-import { A4, CELL_PADDING_MM, CUSTOM_MAX_COLUMNS, CUSTOM_MAX_ROWS, CUSTOM_MIN_CELL_MM, OFFSET_LIMIT_MM, OFFSET_STEP_MM, PRINTER_EDGE_MM } from './paper'
+import {
+  A4, CELL_PADDING_MM, CUSTOM_MAX_COLUMNS, CUSTOM_MAX_ROWS, CUSTOM_MIN_CELL_MM, MM_PER_IN, OFFSET_LIMIT_IN, OFFSET_LIMIT_MM,
+  OFFSET_STEP_IN, OFFSET_STEP_MM, PAPERS, PRINTER_EDGE_MM, type Paper,
+} from './paper'
 import { sheetCells, type LabelGrid } from './labelSheets'
+import type { Locale } from '../../i18n/locale'
+
+/** 紙的寬高（只用到這兩個數字） */
+type PaperSize = Pick<Paper, 'widthMm' | 'heightMm'>
 
 export interface Rect { x: number; y: number; w: number; h: number }
 export interface Offset { xMm: number; yMm: number }
@@ -39,16 +46,21 @@ export function gridHeight(g: LabelGrid): number {
 }
 
 /** 右邊界與下邊界：資料裡沒有，用紙的寬高反推 */
-export function gridRight(g: LabelGrid): number {
-  return round3(A4.widthMm - g.leftMm - gridWidth(g))
+export function gridRight(g: LabelGrid, paper: PaperSize = A4): number {
+  return round3(paper.widthMm - g.leftMm - gridWidth(g))
 }
-export function gridBottom(g: LabelGrid): number {
-  return round3(A4.heightMm - g.topMm - gridHeight(g))
+export function gridBottom(g: LabelGrid, paper: PaperSize = A4): number {
+  return round3(paper.heightMm - g.topMm - gridHeight(g))
+}
+
+/** 整組格子都在這張紙裡面 */
+export function gridFitsPaper(g: LabelGrid, paper: PaperSize): boolean {
+  return g.leftMm >= 0 && g.topMm >= 0 && gridRight(g, paper) >= -EPS && gridBottom(g, paper) >= -EPS
 }
 
 /** 整組格子都在 A4 裡面 */
 export function gridFitsA4(g: LabelGrid): boolean {
-  return g.leftMm >= 0 && g.topMm >= 0 && gridRight(g) >= -EPS && gridBottom(g) >= -EPS
+  return gridFitsPaper(g, A4)
 }
 
 /* ---------- 位移 ---------- */
@@ -60,6 +72,15 @@ export function clampOffset(value: unknown): number {
   const stepped = Math.round(n / OFFSET_STEP_MM) * OFFSET_STEP_MM
   const clamped = Math.min(OFFSET_LIMIT_MM, Math.max(-OFFSET_LIMIT_MM, stepped))
   return Math.round(clamped * 10) / 10 || 0
+}
+
+/** 英文版：位移用英寸填，取到 OFFSET_STEP_IN、限制在 ±OFFSET_LIMIT_IN；不是數字就是 0 */
+export function clampOffsetIn(value: unknown): number {
+  const n = typeof value === 'number' ? value : typeof value === 'string' && value.trim() ? Number(value) : Number.NaN
+  if (!Number.isFinite(n)) return 0
+  const stepped = Math.round(n / OFFSET_STEP_IN) * OFFSET_STEP_IN
+  const clamped = Math.min(OFFSET_LIMIT_IN, Math.max(-OFFSET_LIMIT_IN, stepped))
+  return Math.round(clamped * 100) / 100 || 0
 }
 
 export function shiftRect(r: Rect, offset: Offset): Rect {
@@ -156,14 +177,14 @@ export interface ContentBox {
  * 取交集：全版切割或貼著紙邊的型號，最外圈的格子會被縮小，碼與字不會被印表機切掉。
  * 縮完沒有空間時寬或高是 0。
  */
-export function contentBox(rect: Rect, avoidEdge: boolean): ContentBox {
+export function contentBox(rect: Rect, avoidEdge: boolean, paper: PaperSize = A4): ContentBox {
   let left = rect.x + CELL_PADDING_MM
   let top = rect.y + CELL_PADDING_MM
   let right = rect.x + rect.w - CELL_PADDING_MM
   let bottom = rect.y + rect.h - CELL_PADDING_MM
   let clipped = false
   if (avoidEdge) {
-    const edge = { left: PRINTER_EDGE_MM, top: PRINTER_EDGE_MM, right: A4.widthMm - PRINTER_EDGE_MM, bottom: A4.heightMm - PRINTER_EDGE_MM }
+    const edge = { left: PRINTER_EDGE_MM, top: PRINTER_EDGE_MM, right: paper.widthMm - PRINTER_EDGE_MM, bottom: paper.heightMm - PRINTER_EDGE_MM }
     if (left < edge.left - EPS) { left = edge.left; clipped = true }
     if (top < edge.top - EPS) { top = edge.top; clipped = true }
     if (right > edge.right + EPS) { right = edge.right; clipped = true }
@@ -176,8 +197,8 @@ export function contentBox(rect: Rect, avoidEdge: boolean): ContentBox {
 }
 
 /** 有幾格的內容會碰到印表機印不到的紙邊（不內縮的話）；0 表示這個型號不用擔心 */
-export function edgeCellCount(g: LabelGrid, offset: Offset): number {
-  return testPageCells(g, offset).filter(r => contentBox(r, true).clipped).length
+export function edgeCellCount(g: LabelGrid, offset: Offset, paper: PaperSize = A4): number {
+  return testPageCells(g, offset).filter(r => contentBox(r, true, paper).clipped).length
 }
 
 /* ---------- 自訂尺寸 ---------- */
@@ -206,52 +227,101 @@ function toAscii(s: string): string {
 const NUMBER = /^\d+(?:\.\d+)?$/
 const INTEGER = /^\d+$/
 
-/** 自訂尺寸的欄位轉成格子；欄位不合理或排不進 A4 時回傳是哪一欄、錯在哪裡 */
-export function parseCustomGrid(input: CustomGridInput): CustomGridResult {
+/** 自訂尺寸的單位：繁中版填 mm，英文版填英寸（內部一律換成 mm） */
+export type CustomUnit = 'mm' | 'in'
+
+export interface CustomGridOptions {
+  /** 預設 A4 */
+  paper?: Paper
+  /** 錯誤訊息的語言，預設繁中 */
+  locale?: Locale
+  /** 欄位的單位，預設 mm */
+  unit?: CustomUnit
+}
+
+interface CustomGridMessages {
+  names: Record<CustomGridField, string>
+  integer: (name: string, max: number) => string
+  size: (name: string) => string
+  gap: (name: string) => string
+  /** total、limit 已經換成畫面上的單位 */
+  tooWide: (columns: number, total: number, paper: Paper) => string
+  tooTall: (rows: number, total: number, paper: Paper) => string
+}
+
+const inch = (value: number, digits = 2) => Math.round((value / MM_PER_IN) * 10 ** digits) / 10 ** digits
+const PAPER_NAME: Record<Paper['id'], string> = { a4: 'A4', letter: 'Letter' }
+
+const CUSTOM_MESSAGES: Record<Locale, CustomGridMessages> = {
+  'zh-TW': {
+    names: { columns: '欄數', rows: '列數', labelWidthMm: '單格寬', labelHeightMm: '單格高', topMm: '上邊界', leftMm: '左邊界', colGapMm: '欄距', rowGapMm: '列距' },
+    integer: (name, max) => `${name}請填 1 到 ${max} 的整數。`,
+    size: name => `${name}請填 ${CUSTOM_MIN_CELL_MM} 以上的數字（mm）。`,
+    gap: name => `${name}請填 0 以上的數字（mm）。`,
+    tooWide: (columns, total, paper) => `左邊界加上 ${columns} 欄的寬度共 ${round3(total)} mm，超出 ${PAPER_NAME[paper.id]} 的寬 ${paper.widthMm} mm。`,
+    tooTall: (rows, total, paper) => `上邊界加上 ${rows} 列的高度共 ${round3(total)} mm，超出 ${PAPER_NAME[paper.id]} 的高 ${paper.heightMm} mm。`,
+  },
+  en: {
+    names: { columns: 'Columns', rows: 'Rows', labelWidthMm: 'Label width', labelHeightMm: 'Label height', topMm: 'Top margin', leftMm: 'Left margin', colGapMm: 'Column gap', rowGapMm: 'Row gap' },
+    integer: (name, max) => `${name} must be a whole number from 1 to ${max}.`,
+    // 下限換成英寸無條件進位，填到畫面上寫的數字一定會過
+    size: name => `${name} must be at least ${Math.ceil((CUSTOM_MIN_CELL_MM / MM_PER_IN) * 100) / 100} in.`,
+    gap: name => `${name} must be 0 or more (inches).`,
+    tooWide: (columns, total, paper) =>
+      `The left margin plus ${columns} columns comes to ${inch(total, 3)} in, wider than a ${PAPER_NAME[paper.id]} sheet (${inch(paper.widthMm, 3)} in).`,
+    tooTall: (rows, total, paper) =>
+      `The top margin plus ${rows} rows comes to ${inch(total, 3)} in, taller than a ${PAPER_NAME[paper.id]} sheet (${inch(paper.heightMm, 3)} in).`,
+  },
+}
+
+/** 自訂尺寸的欄位轉成格子（mm）；欄位不合理或排不進紙張時回傳是哪一欄、錯在哪裡 */
+export function parseCustomGrid(input: CustomGridInput, opts: CustomGridOptions = {}): CustomGridResult {
+  const paper = opts.paper ?? PAPERS.a4
+  const m = CUSTOM_MESSAGES[opts.locale ?? 'zh-TW']
+  const toMm = (n: number) => (opts.unit === 'in' ? round3(n * MM_PER_IN) : n)
   const fail = (field: CustomGridField, error: string): CustomGridResult => ({ ok: false, field, error })
-  const ints: [CustomGridField, string, number][] = [['columns', '欄數', CUSTOM_MAX_COLUMNS], ['rows', '列數', CUSTOM_MAX_ROWS]]
+  const ints: [CustomGridField, number][] = [['columns', CUSTOM_MAX_COLUMNS], ['rows', CUSTOM_MAX_ROWS]]
   const values: Partial<Record<CustomGridField, number>> = {}
-  for (const [field, name, max] of ints) {
+  for (const [field, max] of ints) {
     const raw = toAscii(input[field])
-    if (!INTEGER.test(raw) || Number(raw) < 1 || Number(raw) > max) return fail(field, `${name}請填 1 到 ${max} 的整數。`)
+    if (!INTEGER.test(raw) || Number(raw) < 1 || Number(raw) > max) return fail(field, m.integer(m.names[field], max))
     values[field] = Number(raw)
   }
-  const sizes: [CustomGridField, string][] = [['labelWidthMm', '單格寬'], ['labelHeightMm', '單格高']]
-  for (const [field, name] of sizes) {
+  const sizes: CustomGridField[] = ['labelWidthMm', 'labelHeightMm']
+  for (const field of sizes) {
     const raw = toAscii(input[field])
-    if (!NUMBER.test(raw) || Number(raw) < CUSTOM_MIN_CELL_MM) return fail(field, `${name}請填 ${CUSTOM_MIN_CELL_MM} 以上的數字（mm）。`)
-    values[field] = Number(raw)
+    if (!NUMBER.test(raw) || toMm(Number(raw)) < CUSTOM_MIN_CELL_MM) return fail(field, m.size(m.names[field]))
+    values[field] = toMm(Number(raw))
   }
-  const gaps: [CustomGridField, string][] = [['topMm', '上邊界'], ['leftMm', '左邊界'], ['colGapMm', '欄距'], ['rowGapMm', '列距']]
-  for (const [field, name] of gaps) {
+  const gaps: CustomGridField[] = ['topMm', 'leftMm', 'colGapMm', 'rowGapMm']
+  for (const field of gaps) {
     const raw = toAscii(input[field]) || '0'
-    if (!NUMBER.test(raw)) return fail(field, `${name}請填 0 以上的數字（mm）。`)
-    values[field] = Number(raw)
+    if (!NUMBER.test(raw)) return fail(field, m.gap(m.names[field]))
+    values[field] = toMm(Number(raw))
   }
   const grid = values as unknown as LabelGrid
-  const right = gridRight(grid)
+  const right = gridRight(grid, paper)
   if (right < -EPS) {
-    const total = round3(grid.leftMm + gridWidth(grid))
-    return fail(grid.colGapMm > 0 ? 'colGapMm' : 'labelWidthMm', `左邊界加上 ${grid.columns} 欄的寬度共 ${total} mm，超出 A4 的寬 ${A4.widthMm} mm。`)
+    return fail(grid.colGapMm > 0 ? 'colGapMm' : 'labelWidthMm', m.tooWide(grid.columns, grid.leftMm + gridWidth(grid), paper))
   }
-  const bottom = gridBottom(grid)
+  const bottom = gridBottom(grid, paper)
   if (bottom < -EPS) {
-    const total = round3(grid.topMm + gridHeight(grid))
-    return fail(grid.rowGapMm > 0 ? 'rowGapMm' : 'labelHeightMm', `上邊界加上 ${grid.rows} 列的高度共 ${total} mm，超出 A4 的高 ${A4.heightMm} mm。`)
+    return fail(grid.rowGapMm > 0 ? 'rowGapMm' : 'labelHeightMm', m.tooTall(grid.rows, grid.topMm + gridHeight(grid), paper))
   }
   return { ok: true, grid }
 }
 
-/** 把一個型號的數字填進自訂尺寸的欄位（選「自訂」時從目前的型號開始改） */
-export function customInputFrom(g: LabelGrid): CustomGridInput {
+/** 把一個型號的數字填進自訂尺寸的欄位（選「自訂」時從目前的型號開始改）；英寸取到 0.001 */
+export function customInputFrom(g: LabelGrid, unit: CustomUnit = 'mm'): CustomGridInput {
+  const len = (v: number) => String(unit === 'in' ? inch(v, 3) : v)
   return {
     columns: String(g.columns),
     rows: String(g.rows),
-    labelWidthMm: String(g.labelWidthMm),
-    labelHeightMm: String(g.labelHeightMm),
-    topMm: String(g.topMm),
-    leftMm: String(g.leftMm),
-    colGapMm: String(g.colGapMm),
-    rowGapMm: String(g.rowGapMm),
+    labelWidthMm: len(g.labelWidthMm),
+    labelHeightMm: len(g.labelHeightMm),
+    topMm: len(g.topMm),
+    leftMm: len(g.leftMm),
+    colGapMm: len(g.colGapMm),
+    rowGapMm: len(g.rowGapMm),
   }
 }
