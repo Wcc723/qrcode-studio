@@ -3,6 +3,22 @@
 本檔記錄使用者感知得到的改版。版本號與 `package.json` 的 `version` 一致，
 tag 在部署成功且線上驗過之後才打。
 
+## [1.9.3] - 2026-10-15
+
+### 修正
+
+- 〈Excel 怎麼做 QR Code 與條碼〉的分享圖：試算表裡的條碼加寬，現在跟旁邊的 QR Code 一樣讀得出來（1.9.2 那版條碼太窄，掃不到，#21）。
+- 同一篇「四種做法比一比」的表格，IMAGE 函數那一列補上公式的限制：內容有中文或空白要搭配 ENCODEURL，它只有 Windows 版 Excel 能用。
+  原本只寫在做法一那一節，Mac 與手機的替代寫法仍在那裡（#21）。文章的更新日沒有變。
+- 教學分享圖的替代文字補上圖角標籤的字（構造、LOGO、手機、LINE、SVG、Excel）與 Excel 那張試算表上的欄名、財產編號，跟圖上的字一致（#21）。
+
+### 技術
+
+- `scripts/brand/render.mjs` 檢查圖裡的碼時連碼制一起比對，每個碼都要各自讀到。1.9.2 只比內容，Excel 那張每列的 QR Code 跟條碼內容相同，
+  條碼讀不到也會過關，所以 1.9.2「圖裡的碼讀不讀得出來」那句其實只驗到 QR Code。Noto Sans TC 的載入檢查改成照字的實際字重（700 與 900）
+  分別檢查；檔頭 sharp 的說明跟上 package.json（已經列在 devDependencies）。
+- `scripts/figures/batch-screenshots.mjs` 兩張圖都截完、確認頁面沒有錯誤才寫檔，中途出錯不會蓋掉上線的圖。
+
 ## [1.9.2] - 2026-10-15
 
 ### 新增
@@ -21,7 +37,8 @@ tag 在部署成功且線上驗過之後才打。
 
 ### 技術
 
-- 產分享圖的 `scripts/brand/render.mjs` 每畫一張會自己檢查：字有沒有伸進右邊的圖、圖裡的碼用站上同一版解碼器讀不讀得出來，不過就停。
+- 產分享圖的 `scripts/brand/render.mjs` 每畫一張會自己檢查：字有沒有伸進右邊的圖、圖裡的碼用站上同一版解碼器讀不讀得出來，不過就停
+  （這一版只比內容，Excel 那張的 Code 128 其實沒驗到，1.9.3 補上）。
 - SEO 稽核多驗：教學每篇的 og:image 是自己那張，`twitter:image` 與 Article 的 `image` 跟它同一張；`cards.mjs` 的每張分享圖都有頁面用；
   分享圖的上限從 300 KB 收緊到 200 KB。
 - 教學裡兩張批次頁範例圖的截圖腳本放進 repo（`scripts/figures/batch-screenshots.mjs`，不進 build），合成清冊、視窗與裁切寫在

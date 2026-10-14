@@ -65,9 +65,12 @@
   小標籤是文章裡的重點。字長的大標用 `titleSize` 縮小、`titleTop` 往下移，`render.mjs` 會擋下伸進右邊圖裡的字。
 - **右邊的圖**跟文章有關：`figure` 直接放文章裡的示意圖（構造圖、靜區圖），`ec` 是容錯等級那篇的四張對照圖，`qr` 是這篇網址的
   QR Code（加 LOGO 那篇在中間放站徽，容錯等級 H），`scan` 沿用掃描器那張的版面，`sheet` 是 Excel 那篇的試算表（財產編號、QR Code、
-  Code 128）。圖裡的碼都是真的：`qr`、`scan` 掃了就到這篇，`figure`、`ec` 是示意圖原本編的網址，`render.mjs` 產完會用站上同一版的
-  解碼器讀一次，讀不到就停、不寫檔。
-- **替代文字**在 `src/content/guide-og.ts`：以大標開頭，接著橫幅那句與每個小標籤（`guide-og.test.ts` 逐字對 `cards.mjs`）。
+  Code 128，字在 `cards.mjs` 的 `sheet`）。圖裡的碼都是真的：`qr`、`scan` 掃了就到這篇，`figure`、`ec` 是示意圖原本編的網址，
+  `sheet` 每列的 QR Code 與 Code 128 都編那一列的財產編號。`render.mjs` 產完會用站上同一版的解碼器讀一次，每個碼都要以對的碼制
+  讀出對的內容（同一列的 QR Code 不能替條碼過關，容錯等級那張的四個 QR Code 也要四個都讀到），少一個就停、不寫檔。
+  試算表的條碼欄比其他欄寬：Code 128 每個模組要約 2 px、左右要留白，解碼器才讀得出來（v1.9.2 那版太窄，三條都讀不到）。
+- **替代文字**在 `src/content/guide-og.ts`：以大標開頭，接著橫幅那句與每個小標籤，最後一句講右邊的圖，寫著圖角標籤（`tag`）的字，
+  Excel 那篇再寫出試算表上的欄名與財產編號（`guide-og.test.ts` 逐字對 `cards.mjs`）。
   改了圖上的字，替代文字一起改，再重跑 `render.mjs og-guide-<slug>.png`。
 - **日期**：只換分享圖不算實質改寫，`guides.ts` 的 `updated` 與 sitemap 的 `<lastmod>` 都不動。
 - 新增一篇教學時，`cards.mjs` 加一張 `guide` 對到新 slug 的卡片、`guide-og.ts` 加替代文字、重跑 `render.mjs`；漏了哪一樣，
@@ -91,8 +94,10 @@ node scripts/brand/clean-logo.mjs <原圖.png> scripts/brand/logo-source.png
 PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/brand/render.mjs
 ```
 
-`render.mjs` 每畫一張分享圖會自己檢查兩件事，不過就停：大標、橫幅與小標籤沒有伸進右邊的圖（白底卡片右緣上限 x = 700，
-站徽那種透明底的圖 730），以及圖裡的碼用站上同一版解碼器（`zxing-wasm/reader`，讀 `node_modules` 那份 WASM，不連網）讀得出來、內容對。
+`render.mjs` 每畫一張分享圖會自己檢查三件事，不過就停、不寫檔：圖上的漢字照各自的字重（大標與橫幅 900，其他 700）都用 Noto Sans TC 畫
+（沒連網載不到就會換成後備字型）；大標、橫幅與小標籤沒有伸進右邊的圖（白底卡片右緣上限 x = 700，站徽那種透明底的圖 730）；
+圖裡的每個碼（QR Code、Code 128、EAN-13）用站上同一版解碼器（`zxing-wasm/reader`，讀 `node_modules` 那份 WASM，不連網）讀得出來，
+碼制與內容都對。
 
 產完用 `npm run build` 跑一次稽核：`seo:audit` 會驗每張分享圖是 1200×630、小於 200 KB，
 apple-touch-icon 與 maskable 圖示不透明，manifest 的 192 與 512 各有一張 any、一張 maskable，maskable 逐像素驗安全圓外只有底色，
