@@ -165,4 +165,5 @@ apple-touch-icon 與 maskable 圖示不透明，manifest 的 192 與 512 各有�
 - 1.9.5 的站台預設圖就是這樣換的：首頁的連結分享過很多次，圖上的「7 種類型」不換檔名就可能一直留在 Facebook 上，
   所以 `og-default.png` 改成 `og-default-2.png`（`cards.mjs` 的 `out` 與 `site.ts` 的 `ogImage.path`）。
 - 同一版純文字那張換了小標籤，但沒換檔名：`og-text.png` 是 1.9.4 才上線的新網址，換圖前幾乎沒有機會被抓過。
+
 平台碰到新網址會自己抓新圖，不必清快取。不要在網址後面加 `?v=2`：`seo:audit` 會找不到檔案，也對不到 `cards.mjs` 的卡片。

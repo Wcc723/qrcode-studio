@@ -16,7 +16,7 @@
 - [x] ✅ 每頁有 `<link rel="canonical">`（帶尾斜線、無 query）
 - [x] ✅ noindex 掃描乾淨（僅 404 頁有 `noindex, follow`，公開頁皆無）
 - [x] ✅ Open Graph（og:title/description/url/type/site_name/locale）與 Twitter 卡（card/title/description）
-- [x] ✅ **og:image / twitter:image**：`public/og-default.png`（1200×630）已就位，`site.ogImage` 已啟用
+- [x] ✅ **og:image / twitter:image**：`public/og-default-2.png`（1200×630，1.9.5 起；舊的 `og-default.png` 留著）已就位，`site.ogImage` 已啟用；各頁的專屬分享圖見 `scripts/brand/cards.mjs`
 - [x] ✅ JSON-LD：每頁 SoftwareApplication（QR 工具頁）/ WebApplication（`/scan/` 掃描器、`/barcode/` 條碼產生器）/ Article（教學文）+ BreadcrumbList；全站一份 Organization（App.vue），用 pocketool.app 各站共用的 `@id`（`https://www.pocketool.app/#organization`），各頁 publisher 指向它（audit 逐頁斷言 @id、name、url、logo）
 - [x] ✅ JSON-LD 與畫面文字一致（2026-09-29 全站逐頁抽查）：工具名稱、免費（price 0）、文章標題、作者、發佈與更新日期、出品方名稱都在畫面上看得到
 - [x] ✅ 隱私權政策頁存在（`/privacy`；AdSlot 目前停用，仍預留）
@@ -27,7 +27,7 @@
 - [x] ✅ 子路徑前綴只存在於三處：`vite.config.ts` 的 `base` 與 `build.outDir`、`src/main.ts` 的 router base、`scripts/gen-sitemap.mjs` 的 `BASE`／`dist`。頁面層與 `src/router.ts` 一律不得硬編前綴；CI 也不再用 `SITE_URL` 覆蓋
 - [x] ✅ www / 非 www：本站已掛在 `www.pocketool.app` 底下，apex `pocketool.app` 由 zone 層級的 Single Redirect 301 到 www，本站不需另外處理
 - [x] ✅ Cloudflare `html_handling: "force-trailing-slash"` 與 canonical 的尾斜線寫法一致
-- [x] ✅ 預設分享圖 `public/og-default.png`（1200×630，糖果風）已就位，`site.ogImage` 已設定，og:image / twitter:image 皆輸出（Organization.logo 用 hub 的品牌圖，不是這張）。
+- [x] ✅ 預設分享圖 `public/og-default-2.png`（1200×630，糖果風；1.9.5 起，`cards.mjs` 的 `fallback` 卡）已就位，`site.ogImage` 已設定，og:image / twitter:image 皆輸出（Organization.logo 用 hub 的品牌圖，不是這張）。
 
 ## C. 外部平台操作（⚠️ 無法自動化，逐項手動完成）
 

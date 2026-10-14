@@ -7,7 +7,7 @@
 // 所以頁面的 title 改了說法，這裡跟著改再重跑 render.mjs。小標籤與橫幅不寫數量（例如「幾種類型」），以後加東西才不會過時。
 // 換了已經分享出去的圖要給新檔名（out 與頁面的 ogImage.path 一起改，舊檔留在 public/），理由見 docs/brand/README.md「已經分享出去的連結」。
 export const CARDS = [
-  // 站台預設圖（fallback）：首頁、關於、隱私權、常見問題與 404 用它（site.ts 的 ogImage），只有它不必以大標開頭、大標也不必在 title 裡。
+  // 站台預設圖（fallback）：首頁、關於、隱私權、常見問題用它（site.ts 的 ogImage；404 頁不輸出 og 標籤），只有它不必以大標開頭、大標也不必在 title 裡。
   // 1.9.5 把小標籤的「7 種類型」換成不帶數字的說法，首頁的連結分享過很多次，所以換新檔名 -2（舊的 og-default.png 留在 public/）。
   {
     out: 'og-default-2.png',

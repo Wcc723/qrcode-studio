@@ -22,7 +22,7 @@ export const site = {
   // 舊子網域 qrcode-studio.pocketool.app 由 Cloudflare Bulk Redirect 301 過來。
   url: 'https://www.pocketool.app/qrcode-studio',
   defaultLocale: 'zh-TW',
-  // 預設社群分享圖（1200×630）：首頁、關於、隱私權、常見問題與 404 用它，個別頁面可用 useSeoHead 的 ogImage 覆寫。
+  // 預設社群分享圖（1200×630）：首頁、關於、隱私權、常見問題用它（404 頁不輸出 og 標籤），個別頁面可用 useSeoHead 的 ogImage 覆寫。
   // 圖上的字在 scripts/brand/cards.mjs（fallback 那張）：替代文字寫著大標、每個小標籤，最後一句講右邊的圖。
   // 檔名帶 -2：1.9.5 拿掉圖上的「7 種類型」時換了新檔名，已經分享出去的首頁連結才會抓新圖（舊的 og-default.png 留在 public/）。
   ogImage: {
