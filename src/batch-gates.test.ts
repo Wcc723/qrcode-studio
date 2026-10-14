@@ -269,6 +269,23 @@ describe('常見問題對得上程式', () => {
     for (const sym of ['qr', 'ean13', 'code128'] as const) expect(fails(sym, ''), sym).toBe(true)
   })
 
+  it('英文批次頁說「不存進瀏覽器的儲存空間」的每一句，都寫出記住位移的例外（位移真的會寫 localStorage）', () => {
+    // 單引號字串，允許 \' 跳脫
+    const strings = (source: string) => [...source.matchAll(/'((?:[^'\\\n]|\\.)*)'/g)].map(m => m[1]!.replace(/\\'/g, '\''))
+    const page = strings(read('src/pages/en/EnBatchPage.vue'))
+    const privacyNote = read('src/locales/ui.en.ts').match(/^ {2}batch: '((?:[^'\\\n]|\\.)*)',$/m)![1]!.replace(/\\'/g, '\'')
+    const claims = [...page, privacyNote].filter(s => /browser storage/i.test(s))
+    expect(claims.length).toBeGreaterThanOrEqual(2)
+    for (const s of claims) {
+      expect(s, s).not.toMatch(/\bnothing is saved\b/i)
+      expect(s, s).toContain('If you tick "Remember this printer\'s offset", only the two offset numbers are saved')
+    }
+    const faq = page.find(s => s.startsWith('No. Your list and the finished images'))!
+    expect(faq).toContain('none of it is saved in the URL, cookies or browser storage')
+    // 例外是真的：位移那個檔案確實寫 localStorage
+    expect(readCode(OFFSET_STORE)).toMatch(/localStorage\?\.setItem\(/)
+  })
+
   it('批次頁「為什麼沒有顏色和 LOGO？」連到首頁，錨文字是「免費 QR Code 產生器」', () => {
     const page = read('src/pages/BatchPage.vue')
     expect(page).toMatch(/q: '為什麼沒有顏色和 LOGO？'[^\n]*link: \{ lead: '[^']+', to: '\/', text: '免費 QR Code 產生器' \}/)
