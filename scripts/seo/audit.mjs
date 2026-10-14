@@ -82,6 +82,8 @@ const isEnPage = (name) => name.startsWith('en/')
 const metaContent = (html, prop) =>
   pick(html, new RegExp(`<meta[^>]+(?:property|name)=["']${prop.replace(/[:.]/g, '\\$&')}["'][^>]+content=["']([^"']*)["']`, 'i'))
 const ogImages = new Map()
+/** 各頁 og:image 用到的 cards.mjs 卡片（out），最後驗每張卡片都有頁面用 */
+const cardsInUse = new Set()
 const squashText = (html) => (html ?? '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<!--[\s\S]*?-->/g, '')
   .replace(/<[^>]+>/g, '').replace(/\s+/g, '')
 const jsonLd = (html) => [...html.matchAll(/<script[^>]+type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)]
@@ -199,7 +201,18 @@ for (const f of pages) {
   // 站台根目錄的分享圖都是 render.mjs 照 cards.mjs 產的。對不到卡片的話底下的對帳會安靜跳過，所以這裡先紅；
   // 換了檔名沒改 cards.mjs 的 out、或在網址後面加 ?v= 都會停在這條。子目錄的圖（教學示意圖）不是卡片，不在此限。
   if (ogPath && !ogPath.includes('/')) add(`[${name}] og:image 是 cards.mjs 裡的一張分享圖`, !!card, ogPath)
+  // 教學每篇用自己那張（cards.mjs 的 guide 對到網址的 slug），不再共用站台預設圖：分享到 LINE、Facebook 才看得出是哪一篇。
+  // 對到之後，下面「專屬分享圖」那條就會驗替代文字以大標開頭、有橫幅那句、大標在 title 裡。
+  const guideSlug = (name.match(/^guide\/([^/]+)\/index\.html$/) || [])[1]
+  if (guideSlug) {
+    add(`[${name}] og:image 是這篇自己的分享圖（cards.mjs 的 guide 是 ${guideSlug}）`, card?.guide === guideSlug, ogPath ?? '')
+    add(`[${name}] twitter:image 跟 og:image 是同一張`, !!ogImage && metaContent(html, 'twitter:image') === ogImage, metaContent(html, 'twitter:image') ?? '')
+    add(`[${name}] twitter:image:alt 跟 og:image:alt 一樣`, !!metaContent(html, 'og:image:alt') && metaContent(html, 'twitter:image:alt') === metaContent(html, 'og:image:alt'))
+    const article = jsonLd(html).find((ld) => ld?.['@type'] === 'Article')
+    add(`[${name}] Article 的 image 是這篇的分享圖`, !!ogImage && JSON.stringify(article?.image) === JSON.stringify([ogImage]), JSON.stringify(article?.image ?? null))
+  }
   if (card) {
+    cardsInUse.add(card.out)
     const alt = squashText(metaContent(html, 'og:image:alt'))
     const headline = squashText(card.lines.map((l) => l.text).join(''))
     add(`[${name}] 分享圖的替代文字寫著圖上的大標「${headline}」`, alt.includes(headline), metaContent(html, 'og:image:alt') ?? '')
@@ -212,6 +225,10 @@ for (const f of pages) {
   if (title) titles.set(name, title)
   if (desc) descs.set(name, desc)
 }
+
+// cards.mjs 的每張卡片都要有頁面用：換了檔名或拿掉頁面卻留著卡片，表示 public/ 多了一張沒人用的圖、或某頁退回了預設圖
+const unusedCards = CARDS.map((c) => c.out).filter((out) => !cardsInUse.has(out))
+add('cards.mjs 的每張分享圖都有頁面用', unusedCards.length === 0, unusedCards.join(' '))
 
 // 唯一性
 const dupTitles = [...titles.values()].filter((v, _i, a) => a.indexOf(v) !== a.lastIndexOf(v))
@@ -263,11 +280,11 @@ for (const f of htmlFiles) {
     others.map(([h]) => h).join(' '))
 }
 
-// 分享圖：社群平台對大檔會逾時或直接不抓，全部壓在 300 KB 以下；實際尺寸要等於頁面宣告的 og:image:width／height，
-// 而且是 1200×630（Facebook、LINE 的大卡比例）。
+// 分享圖：社群平台對大檔會逾時或直接不抓，全部壓在 200 KB 以下（render.mjs 量化成 256 色，目前都在 130 KB 內）；
+// 實際尺寸要等於頁面宣告的 og:image:width／height，而且是 1200×630（Facebook、LINE 的大卡比例）。
 for (const [f, declared] of ogImages) {
   const size = statSync(f).size
-  add(`[og] ${rel(f)} 小於 300 KB`, size < 300 * 1024, `${Math.round(size / 1024)} KB`)
+  add(`[og] ${rel(f)} 小於 200 KB`, size < 200 * 1024, `${Math.round(size / 1024)} KB`)
   const info = pngInfo(f)
   add(`[og] ${rel(f)} 是 1200×630 的 PNG，等於頁面宣告的尺寸`,
     !!info && info.w === 1200 && info.h === 630 && [...declared].every((d) => d === `${info.w}×${info.h}`),

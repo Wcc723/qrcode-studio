@@ -37,8 +37,9 @@
 | `scripts/brand/logo-source.png` | 正本 A，512×512 透明 PNG |
 | `scripts/brand/favicon-source.png` | 分頁圖示用的 C，512×512 透明 PNG |
 | `scripts/brand/clean-logo.mjs` | 把生成的原圖整理成正本：清掉去背殘留的洋紅雜點與邊緣色偏、裁掉空白、置中縮成 512 |
-| `scripts/brand/render.mjs` | 從兩張正本產生全部圖示與分享圖（繁中三張、英文三張） |
-| `scripts/brand/cards.mjs` | 分享圖上的文字（站名從 `src/config/site.ts` 讀） |
+| `scripts/brand/render.mjs` | 從兩張正本產生全部圖示與分享圖（繁中三張、英文三張、教學每篇一張） |
+| `scripts/brand/cards.mjs` | 分享圖上的文字與右邊放什麼圖（站名與網址從 `src/config/site.ts` 讀） |
+| `src/content/guide-og.ts` | 教學分享圖的替代文字（其他頁的寫在頁面的 `useSeoHead` 或 `site.ts`） |
 | `docs/brand/logo-compare.png` | 上面那張三案對照表 |
 | `docs/brand/candidate-b.png` | 未採用的 B 案 |
 
@@ -54,6 +55,23 @@
 | `icon-maskable-192.png`、`icon-maskable-512.png` | `manifest.webmanifest` 的 maskable 圖示：紙色滿版底，站徽縮到整個落在半徑 40% 的安全圓內，Android 裁成圓形、方圓形或水滴形都切不到 | A |
 | `og-default.png`、`og-scan.png`、`og-barcode.png` | 1200×630 分享圖，文字由 HTML 排版（不用生圖模型產字），掃描器與條碼那兩張裡的碼是真的、掃得出來 | A |
 | `og-en.png`、`og-en-batch.png`、`og-en-barcode.png` | 英文版三頁的分享圖（`cards.mjs` 的 `lang: 'en'`）：站名用 `siteNameEn`，字全是英文，只用內嵌的 Fredoka，不必連網載 Noto Sans TC | A |
+| `og-guide-<slug>.png` | 教學每篇一張（`cards.mjs` 的 `guide` 對到 slug），見下一節 | A |
+
+### 教學的分享圖
+
+分享到 LINE 或 Facebook 時要看得出是哪一篇，所以每篇一張，不共用 `og-default.png`。
+
+- **大標**是文章 title 的一段（例如〈什麼是 QR Code？原理、版本容量與安全性完整介紹〉取「什麼是 QR Code？」），橫幅接著補這篇在講什麼，
+  小標籤是文章裡的重點。字長的大標用 `titleSize` 縮小、`titleTop` 往下移，`render.mjs` 會擋下伸進右邊圖裡的字。
+- **右邊的圖**跟文章有關：`figure` 直接放文章裡的示意圖（構造圖、靜區圖），`ec` 是容錯等級那篇的四張對照圖，`qr` 是這篇網址的
+  QR Code（加 LOGO 那篇在中間放站徽，容錯等級 H），`scan` 沿用掃描器那張的版面，`sheet` 是 Excel 那篇的試算表（財產編號、QR Code、
+  Code 128）。圖裡的碼都是真的：`qr`、`scan` 掃了就到這篇，`figure`、`ec` 是示意圖原本編的網址，`render.mjs` 產完會用站上同一版的
+  解碼器讀一次，讀不到就停、不寫檔。
+- **替代文字**在 `src/content/guide-og.ts`：以大標開頭，接著橫幅那句與每個小標籤（`guide-og.test.ts` 逐字對 `cards.mjs`）。
+  改了圖上的字，替代文字一起改，再重跑 `render.mjs og-guide-<slug>.png`。
+- **日期**：只換分享圖不算實質改寫，`guides.ts` 的 `updated` 與 sitemap 的 `<lastmod>` 都不動。
+- 新增一篇教學時，`cards.mjs` 加一張 `guide` 對到新 slug 的卡片、`guide-og.ts` 加替代文字、重跑 `render.mjs`；漏了哪一樣，
+  `guide-og.test.ts` 或 `seo:audit` 會紅。
 
 JSON-LD 的 `Organization.logo` 是出品方口袋工具的品牌圖，網址在 hub（`src/config/site.ts` 的 `publisher.logo`，
 站群每個站同一個網址），不是本產品的站徽，改站徽時不動它。
@@ -73,12 +91,16 @@ node scripts/brand/clean-logo.mjs <原圖.png> scripts/brand/logo-source.png
 PLAYWRIGHT_MODULE=<playwright 套件目錄> node scripts/brand/render.mjs
 ```
 
-產完用 `npm run build` 跑一次稽核：`seo:audit` 會驗每張分享圖是 1200×630、小於 300 KB，
+`render.mjs` 每畫一張分享圖會自己檢查兩件事，不過就停：大標、橫幅與小標籤沒有伸進右邊的圖（白底卡片右緣上限 x = 700，
+站徽那種透明底的圖 730），以及圖裡的碼用站上同一版解碼器（`zxing-wasm/reader`，讀 `node_modules` 那份 WASM，不連網）讀得出來、內容對。
+
+產完用 `npm run build` 跑一次稽核：`seo:audit` 會驗每張分享圖是 1200×630、小於 200 KB，
 apple-touch-icon 與 maskable 圖示不透明，manifest 的 192 與 512 各有一張 any、一張 maskable，maskable 逐像素驗安全圓外只有底色，
 頁首站徽、favicon、manifest 都帶 `/qrcode-studio/` 前綴而且檔案存在；
-分享圖也拿 `cards.mjs` 對帳（站台根目錄的 og:image 要是其中一張，替代文字寫著圖上的大標，掃描器與條碼那兩頁的替代文字
-以大標開頭、有橫幅那句，大標也要在 title 裡）。它驗不到 PNG 本身：`cards.mjs` 改了字卻沒重跑 `render.mjs`，稽核不會紅。
-只重畫某幾張時在指令後面接檔名（例如 `og-scan.png og-barcode.png`），另外兩張不會動；重畫後把圖裡的碼用站上的掃描器讀一次。
+分享圖也拿 `cards.mjs` 對帳（站台根目錄的 og:image 要是其中一張，替代文字寫著圖上的大標；專屬分享圖（`og-default.png` 以外）的替代文字
+以大標開頭、有橫幅那句，大標也要在 title 裡；教學每篇用自己那張，`twitter:image` 與 Article 的 `image` 跟 og:image 同一張；
+每張卡片都要有頁面用到）。它驗不到 PNG 本身：`cards.mjs` 改了字卻沒重跑 `render.mjs`，稽核不會紅。
+只重畫某幾張時在指令後面接檔名（例如 `og-scan.png og-barcode.png`），其他張不會動。
 
 ### 已經分享出去的連結
 

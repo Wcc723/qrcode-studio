@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { findGuide } from '@/content/guides'
 import { guideBodies } from '@/content/guide-bodies'
+import { guideOgImage } from '@/content/guide-og'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { site, author, publisher } from '@/config/site'
 import { withBase } from '@/utils/with-base'
@@ -21,6 +22,8 @@ useSeoHead({
   title: g.value.title, description: g.value.description, path: `/guide/${g.value.slug}`,
   kind: 'article',
   dates: { published: g.value.published, modified: g.value.updated },
+  // 每篇自己的分享圖（og:image、twitter:image 與 Article 的 image），替代文字跟圖上的字一致
+  ogImage: guideOgImage(g.value.slug),
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: '教學', url: `${site.url}/guide/` },
