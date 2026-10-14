@@ -12,6 +12,7 @@ import { checkRows } from './rows'
 import { PRINT_FONTS_EN, printFontsFor } from './printFonts'
 import { validateBarcode } from '../validateBarcode'
 import { detectHeaderRow, guessColumns, parseClipboardTable } from './table'
+import { batchCopy } from './copy'
 
 const PT = 25.4 / 72
 
@@ -139,6 +140,20 @@ describe('英文版的位移：英寸，0.01 in 一格', () => {
     expect(clampOffsetIn('')).toBe(0)
     expect(clampOffsetIn('abc')).toBe(0)
     expect(Object.is(clampOffsetIn('-0.001'), 0)).toBe(true)
+  })
+})
+
+describe('EAN-13 的 20 到 29 開頭', () => {
+  // GS1 General Specifications 的 GS1 Prefix 表：20 到 29 是「限定流通的號碼（RCN），用在一個地區內，由各國的 GS1 決定」，
+  // 不是保留給店內用；只限一家公司內部的是 04。英文的說法照這個寫，不再寫成 reserved for in-store use。
+  it('英文的提醒寫成限定流通的號碼、各國 GS1 決定用法，不說保留給店內用', () => {
+    const note = batchCopy.en.check.storeCode
+    expect(note).toContain('restricted circulation numbers')
+    expect(note).toContain('GS1 office in each country')
+    expect(note).not.toMatch(/reserved for in-store/i)
+  })
+  it('繁中照 GS1 台灣的前置碼表叫店內碼，句子不變', () => {
+    expect(batchCopy['zh-TW'].check.storeCode).toBe('20 到 29 開頭的 EAN-13 是店內碼，只在你自己的店裡有效，不能拿去通路上架；要上架請向 GS1 台灣申請正式的商品條碼。')
   })
 })
 

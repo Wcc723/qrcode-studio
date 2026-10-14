@@ -94,7 +94,7 @@ useSeoHead({
       <p class="mt-3">Number the boxes and print QR code labels with the room and a short list of contents on each one. Link each code to a shared sheet or form with the full packing list, and anyone unpacking can see what is inside without opening the box.</p>
 
       <h3 class="text-xl font-700 text-ink mt-6">Product barcodes and in-store codes</h3>
-      <p class="mt-3">For products you only sell yourself, EAN-13 numbers starting with 20 to 29 are reserved for in-store use: choose a sequence with prefix 20 and zero padding 10, and every check digit is calculated for you. To sell through retailers, you need official numbers from GS1 US or the GS1 office in your country; this tool draws the barcodes for numbers you already have.</p>
+      <p class="mt-3">For codes used only inside your own business, you can use EAN-13 numbers starting with 20 to 29. GS1 sets these aside as restricted circulation numbers: they are never issued as product GTINs, and the GS1 office in each country decides how they may be used. Choose a sequence with prefix 20 and zero padding 10, and every check digit is calculated for you. To sell through retailers, you need official numbers from GS1 US or the GS1 office in your country; this tool draws the barcodes for numbers you already have.</p>
 
       <h3 class="text-xl font-700 text-ink mt-6">Google Forms with each code's ID filled in</h3>
       <ol class="list-decimal pl-5 mt-3 space-y-1">

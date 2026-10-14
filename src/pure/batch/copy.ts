@@ -357,7 +357,7 @@ export const batchCopy: Record<Locale, BatchCopy> = {
       duplicates: n => `${formatCount(n)} ${n === 1 ? 'value appears' : 'values appear'} more than once`,
       sep: ', ',
       appended: (n, digits) => `${formatCount(n)} had only ${digits} digits, so the check digit was added. The preview and file names below use the complete numbers.`,
-      storeCode: 'EAN-13 numbers starting with 20 to 29 are for use inside your own business only, not for products sold through retailers. For retail products, get official barcodes from GS1 US (or the GS1 office in your country).',
+      storeCode: 'EAN-13 numbers starting with 20 to 29 are restricted circulation numbers: GS1 never issues them as product numbers (GTINs), and the GS1 office in each country decides how they may be used. Keep them inside your own business, not on products sold through retailers. For retail products, get official barcodes from GS1 US (or the GS1 office in your country).',
       code39Shift: n => `${formatCount(n)} contain $ / + % characters. Some scanners read them together with the next character, so what they read may not match your list. If a machine will read these, test-scan one first or switch to Code 128.`,
       issueLine: (line, u) => `${cap(u.one)} ${line}`,
       quote: [' "', '"'],
