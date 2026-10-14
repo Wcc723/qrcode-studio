@@ -11,13 +11,14 @@
 - 子路徑相關設定（base、routes、assets 目錄、`_headers`、`404.html`）改動前，先讀本檔的子路徑章節與 workspace 的 `docs/runbooks/subpath-migration.md`
 - `/scan/` 的解碼器 WASM 一律自架，不得改回第三方 CDN；`zxing-wasm` 必須精確鎖版（見「圖片解碼」章節）
 - 新增或移除路由時，要同步更新 `scripts/seo/audit.mjs` 的 `EXPECTED_PATHS`，否則 build 會擋下來
+- 新增或移除中英成對的頁面時，`src/i18n/pairs.ts`、`src/router.ts` 的英文路由與 `scripts/seo/audit.mjs` 的 `EXPECTED_PAIRS` 一起改（見「中英文版」）
 
 ## 這個 repo 是什麼
 
 **QR Code 製造機**（英文 QR Code Maker，2026-09-26 前叫 QR Code Studio），正式網址 `https://www.pocketool.app/qrcode-studio/`。在瀏覽器內產生
 網址 / WiFi / 電子名片 / Email 等類型的 QR Code，可自訂顏色、漸層、LOGO 與容錯等級，
 下載 PNG / SVG / JPG。Vue 3 + Vite + vite-ssg + UnoCSS（圖示用建置時打包的 Lucide），
-每條路由都預渲染成靜態 HTML。
+每條路由都預渲染成靜態 HTML。英文版（QR Code Maker）在 `/qrcode-studio/en/`，目前有首頁、批次與條碼三頁（見「中英文版」）。
 
 它屬於 `pocketool.app` 站群，hub 是
 `https://www.pocketool.app`（repo `pocket-tool-blog`，workspace 內在 `../pocket-tool-blog`），
@@ -148,8 +149,34 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
 
 ## 批次產生（`/batch/`）
 
-編碼器與批次邏輯不進 entry chunk、清單只在記憶體、GA 只送三個字面值、單次上限要先實測；印成 A4 標籤紙的毫米數字只在 `paper.ts`、
-`@page` 只在列印區顯示時才加、不產生 PDF：規則、測試與實機驗收清單見 `docs/batch.md`。
+編碼器與批次邏輯不進 entry chunk、清單只在記憶體、GA 只送三個字面值、單次上限要先實測；印成標籤紙的毫米數字只在 `paper.ts`、
+`@page` 只在列印區顯示時才加（跟著紙張換 A4 或 Letter）、不產生 PDF：規則、測試與實機驗收清單見 `docs/batch.md`。
+
+## 中英文版（`/en/`）
+
+英文版的網址前綴是 `/en/`，2026-10 先做首頁（網址 QR Code）、`/en/batch/`、`/en/barcode/` 三頁，跟繁中的同一頁成對。
+既有的繁中網址、canonical、title、description 一律不動。細節（文案字典、Letter 標籤紙、測試）見 `docs/i18n.md`。
+
+- **語系只看路由的 `meta.locale`**（英文路由才有 `'en'`）。`App.vue` 依它 provide 給整棵元件樹、同步 vue-i18n 的 locale、
+  設 `<html lang>`；元件用 `useLocale()`（`src/i18n/locale.ts`）取，不讀網址。沒有 provide 時（單獨掛元件的測試）是繁中。
+- **文案是型別化的字典，不放 vue-i18n 的 messages**：共用元件在 `src/locales/ui.ts`（繁中，進 entry）與 `ui.en.ts`（英文，
+  只有英文頁 import，用 `provideUiCopy()` 交給底下的元件，英文字串不進 entry chunk）；條碼在 `src/locales/barcode.ts`；
+  批次與標籤紙在 `src/pure/batch/copy.ts`；純函式自己的錯誤訊息（條碼檢查、連號、範本、逐列檢查、自訂尺寸、匯出）寫在各自的檔案，
+  多一個 `locale` 參數、預設繁中。**繁中字串搬進字典時一個字都不改**。英文是給美國使用者寫的，不是逐字翻譯。
+- **hreflang 只放在成對的頁**（`src/i18n/pairs.ts` 的 `PAGE_PAIRS`）：`zh-Hant-TW`、`en`、`x-default` 三條，兩邊互指；
+  其他繁中頁維持只指向自己的一條 `zh-Hant-TW`。**`x-default` 指繁中那一頁**：沒有前綴的網址就是預設版，跟 hub
+  （同一個網域的 `/` 與 `/en/`）一樣；`zh-Hant-TW` 只對得到台灣的繁中，香港、海外等其他中文使用者落到 x-default 也是中文，
+  英文用的是不分地區的 `en`，各地的英文使用者都對得到。
+- **語言跟著頁走**：`<html lang>` 是 `zh-Hant-TW`／`en`，`og:locale` 是 `zh_TW`／`en_US`，JSON-LD 的 `inLanguage` 同樣，
+  `WebSite` 的 `name` 換成 `site.nameEn`（繁中名與舊名放 `alternateName`，網址都是同一個 `${site.url}/`），英文工具頁的價格寫 `USD`。
+  `og:site_name` 用 `site.siteNameEn`，頁尾的商標聲明用 `site.trademarkEn`，回報問題連到問題回報的英文頁。
+- **語言切換在頁首**：成對的頁連到另一個語言的同一頁，沒有對應頁就連到該語言的首頁（`switchTarget`）。
+  手機在導覽那一排的最後；768 到 1023px 只留圖示（一排才放得下繁中的五個連結）。
+- **GA 不分 property、不加參數**：兩種語言都是 `content_group: 'qrcode-studio'`，語言從網址前綴 `/qrcode-studio/en/` 分
+  （每筆事件都帶網址）。批次的 `batch_download` 仍然只有三個字面值。
+- **英文頁沒有的東西連到繁中**：英文頁尾「In Chinese only」連掃描器、WiFi、電子名片與教學；英文首頁只開網址一種（`GeneratorTool` 的 `only`）。
+- `seo:audit` 驗：每頁的 hreflang 集合、`<html lang>`、`og:locale`、`inLanguage`、語言切換的連結；英文三頁的 title、H1、
+  description 長度、`<main>` 裡沒有中文、批次頁的目標字與錨文字；英文的批次文案、Letter 的 `@page` 與 Avery 同規格的型號不進 entry chunk。
 
 ## v-html 的富文字連結要自己補前綴
 
@@ -247,15 +274,16 @@ sitemap 的 `<lastmod>` 與 `article:modified_time` 都從它來。
 2026-09-26 由 QR Code Studio 改名為 QR Code 製造機。**只換顯示的名字**：網址 slug、Worker 名、GA 的 `content_group`
 都還是 `qrcode-studio`，不要跟著改。
 
-- **唯一開關是 `src/config/site.ts`**：`name`（產品名）、`nameEn`（英文名）、`formerNames`（舊名）、`siteName`（og:site_name）、
-  `trademark`（商標聲明）。頁面與元件一律用 `site.name`，不要寫死；`src/brand.test.ts` 掃原始碼，寫死新名或舊名都會紅。
+- **唯一開關是 `src/config/site.ts`**：`name`（產品名）、`nameEn`（英文名）、`formerNames`（舊名）、`siteName`／`siteNameEn`（og:site_name）、
+  `trademark`／`trademarkEn`（商標聲明）。頁面與元件一律用 `site.name`、`site.nameEn`，不要寫死；`src/brand.test.ts` 掃原始碼，
+  寫死新名、英文名或舊名都會紅。
 - **舊名只出現在兩處**：JSON-LD `WebSite.alternateName`（跟英文名一起）與關於頁更新紀錄的「原名」。`seo:audit` 逐頁驗
   title、og 標籤與畫面文字沒有舊名（關於頁剛好一次）。
 - **title**：首頁與 7 個類型頁本來就沒有品牌後綴，改名不動；FAQ、教學總覽、隱私權、404 的後綴與關於頁跟著 `site.name`。
   `seo:audit` 的 `PRODUCT_NAME` 刻意再寫一次、不從 `site.ts` 推導，改名時兩邊一起改。
 - **商標聲明**：名稱含 QR Code，頁尾與關於頁的「商標」一節都要有 DENSO WAVE 的註冊商標聲明（`site.trademark`），`seo:audit` 逐頁驗。
 - **站徽**：正本在 `scripts/brand/`（`logo-source.png` 與分頁圖示用的簡化版 `favicon-source.png`），`node scripts/brand/render.mjs`
-  從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與三張分享圖（產物進版控，不進 build）。
+  從它們產生 `public/` 的頁首站徽、favicon、apple-touch-icon、manifest 圖示與分享圖（繁中三張、英文三張，產物進版控，不進 build）。
   manifest 圖示的 any 與 maskable 各兩張，不合寫成 `any maskable`，`seo:audit` 逐像素驗 maskable 的安全圓。
   選案理由、檔案對照與重產方式在 `docs/brand/README.md`。
 - **分享圖上的字**在 `scripts/brand/cards.mjs`，替代文字在頁面的 `useSeoHead`（`/scan/`、`/barcode/` 各自寫，其他頁用

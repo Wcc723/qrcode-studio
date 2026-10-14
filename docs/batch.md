@@ -71,6 +71,15 @@
 
   實體印表機的對位與縮放 agent 驗不到，上線前照 `docs/label-print-acceptance.md` 實機印。
 
+## 英文版（`/en/batch/`）
+
+同一個工具卡，文案在 `src/pure/batch/copy.ts`。標籤紙是美國 Letter（跟 Avery 5160、5163、5167、22806 同規格）加一個 A4 21 格，
+畫面上的長度用英寸、校正尺 2 in、字型是 Arial、Verdana、Times New Roman，範本記號是 `{id}`；內部的數字照樣是 mm、只在 `paper.ts`
+與型號資料裡。型號的出處、單位換算與測試見 `docs/i18n.md`。
+
+- 螢幕預覽的縮放（`LabelSheets.vue` 的 `fit`）在 ResizeObserver 的回呼裡改到下一個畫面才套：直接改 zoom 的話，
+  WebKit 在窄螢幕切換列印與螢幕版面時會報「ResizeObserver loop completed with undelivered notifications」（v1.9.0 修，繁中頁也一樣）。
+
 ## 檔案
 
 | 檔案 | 內容 |
@@ -79,6 +88,7 @@
 | `src/components/batch/` | 工具卡（`BatchTool.vue`）、膠囊單選、預覽格；標籤紙的設定（`LabelPrint.vue`）、A4 預覽與列印區（`LabelSheets.vue`）、校正尺 |
 | `src/composables/useBatch.ts` | 狀態與推導：三種輸入、範本、逐列檢查、檔名、預覽、匯出、輸出方式 |
 | `src/composables/useBatchLabels.ts` | 標籤紙的狀態：型號或自訂、起始格、份數、每格的字、字型、內縮、位移、排好的每一頁、提醒與擋下的原因、列印 |
+| `src/pure/batch/copy.ts` | 批次頁畫面上的字（繁中與英文）；純函式自己的錯誤訊息在各自的檔案 |
 | `src/pure/batch/` | 純函式：貼上解析（`table.ts`）、連號（`sequence.ts`）、範本與網址轉碼（`template.ts`）、逐列檢查與檔名（`rows.ts`、`filename.ts`）、QR 模組矩陣（`qrMatrix.ts`）、每張的檔案內容（`artifact.ts`）、ZIP（`zip.ts`）；標籤紙的規格（`paper.ts`）、型號（`labelSheets.ts`）、排版（`labelLayout.ts`）、每格的碼與字（`labelContent.ts`）、系統字型（`printFonts.ts`） |
 | `src/utils/batch-export.ts` | 分批產生、進度、取消，組成 ZIP 的 Blob |
 | `src/utils/batch-analytics.ts` | 唯一可以送 GA 的地方 |

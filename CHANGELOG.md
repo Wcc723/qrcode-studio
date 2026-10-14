@@ -3,6 +3,34 @@
 本檔記錄使用者感知得到的改版。版本號與 `package.json` 的 `version` 一致，
 tag 在部署成功且線上驗過之後才打。
 
+## [1.9.0] - 2026-10-14
+
+### 新增
+
+- **英文版 QR Code Maker**（網址前綴 `/en/`，#15）。先做三頁，跟繁中的同一頁成對：
+  - `/en/`：免費 QR Code 產生器（網址），可調顏色、加 LOGO，下載 PNG、SVG、JPG 或複製圖片。
+  - `/en/batch/`：Bulk QR code and barcode generator。從 Excel、Google 試算表或 CSV 貼上清單、每行一筆或連號，下載 ZIP，
+    或印在美國 Letter 標籤紙上：內建跟 Avery 5160、5163、5167、22806 同規格的型號（位置照 Avery 官方範本），另有一個 A4 21 格與自訂尺寸。
+    英文版的長度用英寸（型號尺寸、自訂尺寸、位移、2 英吋的校正尺），字型是 Arial、Verdana、Times New Roman，範本記號是 `{id}`，
+    也認得 Asset tag、Serial number 這類英文欄名。
+  - `/en/barcode/`：Barcode generator（Code 128、EAN-13、EAN-8、Code 39、ITF-14），列印資訊附英寸與 mil。
+  - 說明文章與常見問題是給美國使用者寫的（inventory、storage bins、asset tags、moving boxes），頁尾有英文的 DENSO WAVE 商標聲明，
+    隱私說明與頁尾連到口袋工具的英文頁，回報問題連到英文的回報頁。三頁各有英文的分享圖。
+- **語言切換**：頁首多一個語言切換，連到另一個語言的同一頁；還沒有英文版的頁面連到英文首頁。
+- 繁中的首頁、批次與條碼三頁加上 `en` 與 `x-default` 的 hreflang（x-default 指繁中）；其他頁的網址、標題、說明都沒有變。
+
+### 修正
+
+- 批次頁印標籤紙時，窄螢幕的 Safari 切換列印預覽會報「ResizeObserver loop」錯誤：預覽的縮放改到下一個畫面才套。
+
+### 技術
+
+- 文案改成中英兩份的型別化字典（共用元件、條碼、批次各一份），語系只看路由；英文的字串只在英文頁的程式裡，繁中頁不必多下載。
+  純函式的錯誤訊息多一個語言參數，預設繁中，原本的字一個都沒改。
+- 標籤紙的排版、列印規則與對位測試頁可以換紙張（A4 或 Letter），`@page` 跟著換。
+- SEO 稽核加上中英成對的檢查：每頁的 hreflang、`<html lang>`、`og:locale`、JSON-LD 的語言、語言切換的連結，英文三頁的標題、H1
+  與內文沒有漏翻的中文；英文的批次文案與 Letter 規格不進每一頁都要下載的程式。
+
 ## [1.8.0] - 2026-10-13
 
 ### 新增

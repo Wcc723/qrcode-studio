@@ -37,7 +37,7 @@
 | `scripts/brand/logo-source.png` | 正本 A，512×512 透明 PNG |
 | `scripts/brand/favicon-source.png` | 分頁圖示用的 C，512×512 透明 PNG |
 | `scripts/brand/clean-logo.mjs` | 把生成的原圖整理成正本：清掉去背殘留的洋紅雜點與邊緣色偏、裁掉空白、置中縮成 512 |
-| `scripts/brand/render.mjs` | 從兩張正本產生全部圖示與三張分享圖 |
+| `scripts/brand/render.mjs` | 從兩張正本產生全部圖示與分享圖（繁中三張、英文三張） |
 | `scripts/brand/cards.mjs` | 分享圖上的文字（站名從 `src/config/site.ts` 讀） |
 | `docs/brand/logo-compare.png` | 上面那張三案對照表 |
 | `docs/brand/candidate-b.png` | 未採用的 B 案 |
@@ -53,6 +53,7 @@
 | `icon-192.png`、`icon-512.png` | `manifest.webmanifest` 的 any 圖示：站徽本身、透明底（跟頁首一樣），桌面安裝後的視窗與工作列照原樣顯示；量化成 8-bit 調色盤（512 約 60 KB） | A |
 | `icon-maskable-192.png`、`icon-maskable-512.png` | `manifest.webmanifest` 的 maskable 圖示：紙色滿版底，站徽縮到整個落在半徑 40% 的安全圓內，Android 裁成圓形、方圓形或水滴形都切不到 | A |
 | `og-default.png`、`og-scan.png`、`og-barcode.png` | 1200×630 分享圖，文字由 HTML 排版（不用生圖模型產字），掃描器與條碼那兩張裡的碼是真的、掃得出來 | A |
+| `og-en.png`、`og-en-batch.png`、`og-en-barcode.png` | 英文版三頁的分享圖（`cards.mjs` 的 `lang: 'en'`）：站名用 `siteNameEn`，字全是英文，只用內嵌的 Fredoka，不必連網載 Noto Sans TC | A |
 
 JSON-LD 的 `Organization.logo` 是出品方口袋工具的品牌圖，網址在 hub（`src/config/site.ts` 的 `publisher.logo`，
 站群每個站同一個網址），不是本產品的站徽，改站徽時不動它。
