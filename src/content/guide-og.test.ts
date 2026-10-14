@@ -10,7 +10,10 @@ import { join } from 'node:path'
 import { guides } from './guides'
 import { guideOgAlt, guideOgImage } from './guide-og'
 
-interface Card { out: string; guide?: string; lines: { text: string }[]; banner: string; chips: string[] }
+interface Card {
+  out: string; guide?: string; lines: { text: string }[]; banner: string; chips: string[]
+  tag?: { text: string }; sheet?: { head: string[]; rows: string[] }
+}
 
 const root = fileURLToPath(new URL('../..', import.meta.url))
 // cards.mjs 是產圖腳本用的純資料（沒有型別宣告），用動態 import 讀進來
@@ -47,10 +50,24 @@ describe('教學的分享圖', () => {
     }
   })
 
+  it('替代文字也寫著圖角標籤的字，Excel 那篇再加試算表上的欄名與每個財產編號', () => {
+    for (const g of guides) {
+      const card = cardOf(g.slug)!
+      const alt = squash(guideOgImage(g.slug).alt)
+      if (card.tag) expect(alt, g.slug).toContain(squash(`「${card.tag.text}」`))
+      for (const text of [...(card.sheet?.head ?? []), ...(card.sheet?.rows ?? [])]) expect(alt, g.slug).toContain(squash(text))
+    }
+    // 有試算表的那張真的有檢查到：欄名與財產編號都不是空的
+    const sheet = CARDS.find((c) => c.sheet)?.sheet
+    expect(sheet?.head.length).toBeGreaterThan(0)
+    expect(sheet?.rows.length).toBeGreaterThan(0)
+  })
+
   it('替代文字與圖上的字不用破折號「——」', () => {
     for (const g of guides) {
       const card = cardOf(g.slug)!
-      for (const text of [guideOgImage(g.slug).alt, ...card.lines.map((l) => l.text), card.banner, ...card.chips]) {
+      const art = [card.tag?.text ?? '', ...(card.sheet?.head ?? []), ...(card.sheet?.rows ?? [])]
+      for (const text of [guideOgImage(g.slug).alt, ...card.lines.map((l) => l.text), card.banner, ...card.chips, ...art]) {
         expect(text, g.slug).not.toContain('——')
       }
     }
