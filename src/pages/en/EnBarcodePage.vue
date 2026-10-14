@@ -36,7 +36,11 @@ useSeoHead({
   appName: 'Barcode Generator',
   appType: 'WebApplication',
   locale: 'en',
-  ogImage: { path: '/og-en-barcode.png', width: 1200, height: 630, alt: 'Barcode Generator: Code 128, EAN-13, ITF-14 online, check digit included' },
+  // 圖上的字在 scripts/brand/cards.mjs（og-en-barcode.png）：替代文字以大標開頭，寫著橫幅、每個小標籤、圖角標籤與條碼底下的數字，只用 ASCII
+  ogImage: {
+    path: '/og-en-barcode.png', width: 1200, height: 630,
+    alt: 'Barcode Generator: Code 128, EAN-13, ITF-14 online. Check digit included, true-size SVG, free. On the right is a barcode labeled EAN-13 with the digits 4710088331236 below it',
+  },
   breadcrumbs: [
     { name: site.nameEn, url: `${site.url}/en/` },
     { name: 'Barcode Generator', url: `${site.url}/en/barcode/` },

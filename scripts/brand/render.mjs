@@ -16,7 +16,7 @@
 // 其他字 700），截圖時要連網；英文與數字用 node_modules 裡的 Fredoka。
 // 每張產完會自己檢查三件事，不過就停、不寫檔：圖上每個字重的漢字都用 Noto Sans TC 那個字重畫（沒載到就會換成後備字型），
 // 字有沒有超出左半邊撞到右邊的圖（換字或換字級後最常出事），以及圖裡的每個碼（QR Code、Code 128、EAN-13）
-// 用站上同一版解碼器（zxing-wasm 的 reader）讀得出來，碼制與內容都對。
+// 用站上同一版解碼器（zxing-wasm 的 reader）讀得出來，碼制與內容都對：整張開 tryHarder 讀一次，每個碼單獨框出來、不開 tryHarder 再讀一次。
 // 找 Playwright 的順序：import('playwright')，或環境變數 PLAYWRIGHT_MODULE（某個 playwright 套件目錄的絕對路徑，
 // 例如 npx 快取裡那份），必要時再用 PLAYWRIGHT_CHROMIUM 指定瀏覽器執行檔。
 //
@@ -169,17 +169,17 @@ async function barcodeSvg(text, format, options = '') {
   })
   const res = await writeBarcode(text, { format, withQuietZones: false, ...(options ? { options } : {}) })
   if (res.error) throw new Error(`${format}：${res.error}`)
-  // zint 的 SVG 只有固定的 width／height，改成 viewBox 才會跟著外框縮放；一維條碼可以只拉高不拉寬
+  // zint 的 SVG 只有固定的 width／height，改成 viewBox 才會跟著外框縮放；一維條碼可以只拉高不拉寬。
+  // data-code 標出圖裡的每個碼：verifyCodes 的第二輪照它的位置把碼單獨框出來讀
   const fit = format === 'QRCode' ? 'xMidYMid meet' : 'none'
   return res.svg
     .replace(/<\?xml[^>]*>|<!DOCTYPE[^>]*>/g, '')
-    .replace(/<svg width="(\d+)" height="(\d+)"/, `<svg viewBox="0 0 $1 $2" preserveAspectRatio="${fit}" shape-rendering="crispEdges"`)
+    .replace(/<svg width="(\d+)" height="(\d+)"/, `<svg data-code viewBox="0 0 $1 $2" preserveAspectRatio="${fit}" shape-rendering="crispEdges"`)
 }
 
-// 卡片右上（或左上）的小標籤。舊的兩種圖沿用原本的字與位置：掃描器「截圖」在左、條碼「EAN-13」在右
-const DEFAULT_TAGS = { scan: { text: '截圖', color: 'sky' }, barcode: { text: 'EAN-13', color: 'sun', side: 'right' } }
+// 卡片右上（或左上）的小標籤（cards.mjs 的 tag，替代文字要寫著它的字，seo:audit 拿 cards.mjs 對帳，所以字只寫在那裡）
 function tagHtml(card) {
-  const tag = card.tag ?? DEFAULT_TAGS[card.art]
+  const { tag } = card
   if (!tag) return ''
   return `<span class="tag tag-${tag.side ?? 'left'} c-${tag.color ?? 'sky'}">${esc(tag.text)}</span>`
 }
@@ -242,12 +242,12 @@ async function artHtml(card) {
   }
   if (art === 'figure') {
     // 文章裡同一張示意圖（public/guides/ 的 SVG，gen-guide-figures.mjs 產生）
-    return `<div class="art-card">${tagHtml(card)}<div class="fig"><img src="${publicSvg(card.figure)}" alt=""></div></div>`
+    return `<div class="art-card">${tagHtml(card)}<div class="fig"><img data-code src="${publicSvg(card.figure)}" alt=""></div></div>`
   }
   if (art === 'ec') {
     // 容錯等級那篇的四張對照圖（同一個網址的 L/M/Q/H），跟文章裡的一樣
     const cells = [['L', 'sun'], ['M', 'mint'], ['Q', 'sky'], ['H', 'pink']]
-      .map(([lv, color]) => `<div class="ec-cell"><img src="${publicSvg(`guides/ec-${lv.toLowerCase()}.svg`)}" alt=""><span class="ec-badge c-${color}">${lv}</span></div>`)
+      .map(([lv, color]) => `<div class="ec-cell"><img data-code src="${publicSvg(`guides/ec-${lv.toLowerCase()}.svg`)}" alt=""><span class="ec-badge c-${color}">${lv}</span></div>`)
       .join('')
     return `<div class="art-card">${tagHtml(card)}<div class="ec-grid">${cells}</div></div>`
   }
@@ -391,12 +391,24 @@ for (const [rel, make] of Object.entries(ICONS)) {
 const TEXT_RIGHT_LIMIT = { card: 700, logo: 730 }
 
 /**
- * 圖裡的碼是真的：用站上同一版解碼器（zxing-wasm/reader，讀 node_modules 那一份 WASM，不連網）讀產好的 PNG，
- * expectedCodes 列的每一筆都要各對到一個讀出來的碼，碼制與內容都一樣（一個讀到的碼只能抵一筆）。
- * 讀不到、碼制不對或內容不對就停，不寫檔。
+ * 第二輪每個碼單獨框出來時，四周多留的寬度（px，1200×630 的座標）：標籤紙的 Code 128 約 6 個模組的留白，
+ * 又不會框進隔壁那格的碼（標籤紙每格左右約 25 px 白、試算表的條碼兩邊約 14 px 白）。
+ */
+const CROP_MARGIN = 12
+
+/**
+ * 圖裡的碼是真的：用站上同一版解碼器（zxing-wasm/reader，讀 node_modules 那一份 WASM，不連網）讀產好的 PNG，讀兩輪：
+ *   1. 整張圖、開 tryHarder：expectedCodes 列的每一筆都要各對到一個讀出來的碼，碼制與內容都一樣（一個讀到的碼只能抵一筆）。
+ *   2. 每個碼單獨框出來（boxes：頁面上標了 data-code 的元素，轉了角度就取外接框，四周加 CROP_MARGIN），貼在跟分享圖一樣大的白底正中間，
+ *      不開 tryHarder 讀：像拿手機把其中一個碼對在畫面中間掃，不靠解碼器多花力氣也要讀得到。
+ *      不拿整張圖做這一輪：不開 tryHarder 時解碼器每一列只認第一個一維條碼，而且只掃畫面中間那一段的十幾列，
+ *      同一列有兩格標籤（批次頁）或左邊有 QR Code（Excel 那張）時，右邊那個讀不讀得到只看卡片轉 4 度後掃描線剛好落在哪，整張上下差 10 px 結果就會變。
+ *      貼在原尺寸的白底上而不是直接讀小圖：寬過 500 px 的圖解碼器會另外縮小再找一次，整張圖本來就有這一步
+ *      （加 LOGO 那篇的 QR Code 原尺寸讀不到、縮小才讀得到），框出來的小圖直接讀就少了這一步。
+ * 任何一輪讀不到、碼制不對或內容不對就停，不寫檔。
  */
 let readerReady = null
-async function verifyCodes(card, png) {
+async function verifyCodes(card, png, boxes) {
   const expected = expectedCodes(card)
   if (!expected.length) return
   const { readBarcodes, prepareZXingModule } = await import('zxing-wasm/reader')
@@ -405,23 +417,44 @@ async function verifyCodes(card, png) {
     fireImmediately: true,
   })
   await readerReady
-  const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-  const image = { data: new Uint8ClampedArray(data.buffer, data.byteOffset, data.length), width: info.width, height: info.height, colorSpace: 'srgb' }
-  const found = (await readBarcodes(image, { tryHarder: true, maxNumberOfSymbols: 8 }))
-    .filter((r) => r.isValid)
-    .map((r) => ({ format: r.format, text: r.text }))
   const label = ({ format, text }) => `${format} ${text}`
-  const left = [...found]
-  const missing = expected.filter((want) => {
-    const at = left.findIndex((got) => got.format === want.format && got.text === want.text)
-    if (at === -1) return true
-    left.splice(at, 1)
-    return false
-  })
-  if (missing.length) {
-    throw new Error(`${card.out}：圖裡的碼讀不到 ${missing.map(label).join('、')}（讀到：${found.map(label).join('、') || '沒有'}）`)
+  const read = async (img, tryHarder) => {
+    const { data, info } = await img.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+    const image = { data: new Uint8ClampedArray(data.buffer, data.byteOffset, data.length), width: info.width, height: info.height, colorSpace: 'srgb' }
+    return (await readBarcodes(image, { tryHarder, maxNumberOfSymbols: 8 }))
+      .filter((r) => r.isValid)
+      .map((r) => ({ format: r.format, text: r.text }))
   }
-  console.log(`[brand] ${card.out} 的碼讀得出來：${expected.map(label).join('、')}`)
+  const check = (found, pass) => {
+    const left = [...found]
+    const missing = expected.filter((want) => {
+      const at = left.findIndex((got) => got.format === want.format && got.text === want.text)
+      if (at === -1) return true
+      left.splice(at, 1)
+      return false
+    })
+    if (missing.length) {
+      throw new Error(`${card.out}：${pass}讀不到 ${missing.map(label).join('、')}（讀到：${found.map(label).join('、') || '沒有'}）`)
+    }
+  }
+  check(await read(sharp(png), true), '整張圖開 tryHarder ')
+  if (boxes.length !== expected.length) {
+    throw new Error(`${card.out}：圖上標了 ${boxes.length} 個 data-code，cards.mjs 算出來要讀 ${expected.length} 個碼`)
+  }
+  const { width, height } = await sharp(png).metadata()
+  const alone = []
+  for (const b of boxes) {
+    const left = Math.max(0, Math.floor(b.left - CROP_MARGIN))
+    const top = Math.max(0, Math.floor(b.top - CROP_MARGIN))
+    const w = Math.min(width, Math.ceil(b.right + CROP_MARGIN)) - left
+    const h = Math.min(height, Math.ceil(b.bottom + CROP_MARGIN)) - top
+    const crop = await sharp(png).extract({ left, top, width: w, height: h }).png().toBuffer()
+    const centred = sharp({ create: { width, height, channels: 3, background: '#ffffff' } })
+      .composite([{ input: crop, left: Math.floor((width - w) / 2), top: Math.floor((height - h) / 2) }])
+    alone.push(...(await read(sharp(await centred.png().toBuffer()), false)))
+  }
+  check(alone, '每個碼單獨框出來、不開 tryHarder 時')
+  console.log(`[brand] ${card.out} 的碼讀得出來（整張開 tryHarder、單獨框出來不開 tryHarder 都讀到）：${expected.map(label).join('、')}`)
 }
 
 /**
@@ -466,9 +499,12 @@ if (cards.length) {
       Math.max(...[...document.querySelectorAll('.title span, .banner, .chips span')].map((el) => el.getBoundingClientRect().right)))
     const limit = TEXT_RIGHT_LIMIT[card.art === 'logo' ? 'logo' : 'card']
     if (right > limit) throw new Error(`${card.out}：字寬到 x = ${Math.round(right)}，超過 ${limit}（縮短字或調小 titleSize）`)
+    // 圖裡每個碼的外接框（轉了角度的取外接矩形），verifyCodes 第二輪用
+    const boxes = await page.evaluate(() => [...document.querySelectorAll('[data-code]')]
+      .map((el) => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, right: r.right, bottom: r.bottom } }))
     const png = await page.screenshot({ type: 'png', clip: { x: 0, y: 0, width: 1200, height: 630 } })
     const out = await sharp(png).resize(1200, 630, { kernel: 'lanczos3' }).png({ palette: true, colours: 256, effort: 10 }).toBuffer()
-    await verifyCodes(card, out)
+    await verifyCodes(card, out, boxes)
     write(card.out, out)
   }
   await browser.close()

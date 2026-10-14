@@ -53,7 +53,11 @@ useSeoHead({
   appName: 'Bulk QR Code and Barcode Generator',
   appType: 'WebApplication',
   locale: 'en',
-  ogImage: { path: '/og-en-batch.png', width: 1200, height: 630, alt: 'Bulk QR Code Generator: Barcodes and labels from Excel or CSV' },
+  // 圖上的字在 scripts/brand/cards.mjs（og-en-batch.png）：替代文字以大標開頭，寫著橫幅、每個小標籤，最後一句講右邊的圖，只用 ASCII
+  ogImage: {
+    path: '/og-en-batch.png', width: 1200, height: 630,
+    alt: 'Bulk QR Code Generator: Barcodes and labels from Excel or CSV. Get a ZIP of PNG or SVG files or print Letter labels, with no upload. On the right is a QR code card tucked into an orange pocket',
+  },
   breadcrumbs: [
     { name: site.nameEn, url: `${site.url}/en/` },
     { name: 'Bulk QR Code and Barcode Generator', url: `${site.url}/en/batch/` },

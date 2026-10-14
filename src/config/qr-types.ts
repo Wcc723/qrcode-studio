@@ -94,7 +94,7 @@ export const qrTypes: QrTypeMeta[] = [
       { q: '文字 QR Code 和網址 QR Code 差在哪？', a: '文字 QR Code 掃描後只顯示文字，不會連到任何地方，適合序號、提示卡與闖關暗號。內容很長或之後可能修改時，建議把內容放在網頁上改用網址 QR Code，圖案會簡單很多，也能隨時更新內容。' },
     ],
     guides: ['what-is-qr-code', 'error-correction', 'scan-qr-code'],
-    ogAlt: '文字 QR Code：任意文字，掃描直接顯示，適合產品序號、闖關暗號，不會開網頁。右邊是標著「文字」、中間有文字圖示的 QR Code，掃了就打開這一頁',
+    ogAlt: '文字 QR Code：任意文字，掃描直接顯示，適合產品序號、闖關暗號，文字不上傳。右邊是標著「文字」、中間有文字圖示的 QR Code，掃了就打開這一頁',
   },
   {
     type: 'email', path: '/email', routeName: 'email', label: 'Email', icon: 'i-lucide-mail',

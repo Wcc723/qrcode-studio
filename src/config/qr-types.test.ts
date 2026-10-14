@@ -106,9 +106,13 @@ describe('類型頁的分享圖', () => {
     }
   })
 
-  it('圖檔已經產生在 public/：1200×630 的 PNG，200 KB 以內', () => {
-    for (const t of qrTypes) {
-      const file = join(root, 'public', `og-${t.type}.png`)
+  // 類型頁以外，批次頁與教學總覽的卡片也用 page 對到頁面，一起驗（教學每篇的在 guide-og.test.ts）
+  it('有 page 的卡片（類型頁、批次頁與教學總覽）圖檔都已經產生在 public/：1200×630 的 PNG，200 KB 以內', () => {
+    const cards = CARDS.filter((c) => c.page)
+    for (const t of qrTypes) expect(cards.map((c) => c.out), t.type).toContain(`og-${t.type}.png`)
+    expect(cards.map((c) => c.page)).toEqual(expect.arrayContaining(['/batch/', '/guide/']))
+    for (const card of cards) {
+      const file = join(root, 'public', card.out)
       expect(existsSync(file), file).toBe(true)
       const buf = readFileSync(file)
       expect(buf.toString('latin1', 1, 4), file).toBe('PNG')

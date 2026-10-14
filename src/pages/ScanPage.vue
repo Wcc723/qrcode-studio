@@ -53,7 +53,11 @@ useSeoHead({
   path: '/scan',
   appName: 'QR Code 掃描器',
   appType: 'WebApplication',
-  ogImage: { path: '/og-scan.png', width: 1200, height: 630, alt: 'QR Code 掃描器：上傳圖片或截圖就能讀取，圖片不上傳' },
+  // 圖上的字在 scripts/brand/cards.mjs（og-scan.png）：替代文字以大標開頭，寫著橫幅、每個小標籤與圖角標籤的字
+  ogImage: {
+    path: '/og-scan.png', width: 1200, height: 630,
+    alt: 'QR Code 掃描器：上傳圖片或截圖就能讀取，圖片不上傳，QR Code 與條碼都讀得出來。右邊是標著「截圖」、正在掃描的 QR Code，掃了就打開本站首頁',
+  },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: 'QR Code 掃描器', url: `${site.url}/scan/` },

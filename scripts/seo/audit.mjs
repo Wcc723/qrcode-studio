@@ -7,7 +7,7 @@ import { readdirSync, statSync, readFileSync, existsSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
 import { createHash } from 'node:crypto'
 import { inflateSync } from 'node:zlib'
-import { CARDS } from '../brand/cards.mjs'
+import { CARDS, BARCODE_EAN13 } from '../brand/cards.mjs'
 
 const argv = process.argv.slice(2)
 const distDir = (() => {
@@ -194,7 +194,7 @@ for (const f of pages) {
     ['og:image:width', 'og:image:height', 'og:image:type', 'og:image:alt'].every((p) => !!metaContent(html, p)))
   // 分享圖上的字要跟頁面對得上。2026-09-30 /barcode/ 與 /scan/ 的 title 改成白話之後，分享圖還寫著
   // 「一維條碼產生器」「就能解碼」，當時沒有一條檢查擋得住。圖上的字的正本是 scripts/brand/cards.mjs（render.mjs 用它產圖）：
-  // 替代文字要寫著圖上的大標；專屬分享圖（不是 og-default）的替代文字以大標開頭、也有橫幅那句，大標還要出現在 title 裡。
+  // 替代文字要寫著圖上的大標；專屬分享圖（站台預設圖 fallback 以外）的替代文字以大標開頭、也有橫幅那句，大標還要出現在 title 裡。
   // 這裡只對得到 cards.mjs：改了字卻沒重跑 render.mjs，public/ 的 PNG 還是舊的，要自己重產、目視確認。
   const ogPath = siteBase && ogImage?.startsWith(`${siteBase}/`) ? ogImage.slice(siteBase.length + 1) : null
   const card = ogPath ? CARDS.find((c) => c.out === ogPath) : null
@@ -224,22 +224,32 @@ for (const f of pages) {
     const alt = squashText(metaContent(html, 'og:image:alt'))
     const headline = squashText(card.lines.map((l) => l.text).join(''))
     add(`[${name}] 分享圖的替代文字寫著圖上的大標「${headline}」`, alt.includes(headline), metaContent(html, 'og:image:alt') ?? '')
-    if (card.out !== 'og-default.png') {
+    if (!card.fallback) {
       add(`[${name}] 專屬分享圖的替代文字以大標開頭、有橫幅那句，大標也在 title 裡`,
         alt.startsWith(headline) && alt.includes(squashText(card.banner)) && squashText(title).includes(headline),
         `${card.out}：${card.banner}`)
     }
-    // 教學、批次頁、類型頁與教學總覽的卡片：替代文字還要寫著每個小標籤、圖角標籤的字（含括號）與標籤紙每格的字，跟圖上的字一致。
-    // 首頁、掃描器、條碼與英文頁那幾張是更早的寫法（只有大標與橫幅），不在此限。
-    if (card.guide || card.page) {
-      const words = [...card.chips, ...(card.tag ? [`「${card.tag.text}」`] : []), ...(card.labels ?? []), ...(card.sheet ? [...card.sheet.head, ...card.sheet.rows] : [])]
-      const missing = words.filter((w) => !alt.includes(squashText(w)))
-      add(`[${name}] 分享圖的替代文字寫著每個小標籤、圖角標籤與圖裡的字`, missing.length === 0, missing.join(' '))
-    }
+    // 每張卡片（含站台預設圖）的替代文字還要寫著每個小標籤、圖角標籤的字（繁中含「」括號，英文只有字）、標籤紙每格的字、
+    // 試算表的欄名與財產編號、條碼底下的數字，跟圖上的字一致。到 1.9.4 為止只驗教學、批次頁、類型頁與教學總覽，
+    // 掃描器、條碼與英文三頁的替代文字只有大標與橫幅，漏了「條碼」「下載 SVG」與圖角的「EAN-13」都沒擋到。
+    // 英文的小標籤是字首大寫的短語，替代文字寫成句子時不必照抄大小寫，所以不分大小寫比對。
+    const words = [
+      ...card.chips,
+      ...(card.tag ? [card.lang === 'en' ? card.tag.text : `「${card.tag.text}」`] : []),
+      ...(card.labels ?? []),
+      ...(card.sheet ? [...card.sheet.head, ...card.sheet.rows] : []),
+      ...(card.art === 'barcode' ? [BARCODE_EAN13] : []),
+    ]
+    const missing = words.filter((w) => !alt.toLowerCase().includes(squashText(w).toLowerCase()))
+    add(`[${name}] 分享圖的替代文字寫著每個小標籤、圖角標籤與圖裡的字`, missing.length === 0, missing.join(' '))
   }
   if (title) titles.set(name, title)
   if (desc) descs.set(name, desc)
 }
+
+// 站台預設圖恰好一張（cards.mjs 的 fallback），只有它的替代文字可以不以大標開頭
+const fallbackCards = CARDS.filter((c) => c.fallback).map((c) => c.out)
+add('cards.mjs 恰好一張站台預設圖（fallback）', fallbackCards.length === 1, fallbackCards.join(' '))
 
 // cards.mjs 的每張卡片都要有頁面用：換了檔名或拿掉頁面卻留著卡片，表示 public/ 多了一張沒人用的圖、或某頁退回了預設圖
 const unusedCards = CARDS.map((c) => c.out).filter((out) => !cardsInUse.has(out))
@@ -860,6 +870,9 @@ if (siteBase) {
     add(`[${page}] 只有一個 h1`, (html.match(/<h1[\s>]/g) ?? []).length === 1)
     const desc = metaContent(html, 'description') ?? ''
     add(`[${page}] description 在 160 字元以內`, desc.length > 0 && desc.length <= 160, `${desc.length} 字元`)
+    // 分享圖的替代文字只用 ASCII 的英文：沒翻到的中文、全形標點或彎引號都會在英文的分享卡上露出來
+    const ogAlt = metaContent(html, 'og:image:alt') ?? ''
+    add(`[${page}] og:image:alt 只用 ASCII`, ogAlt.length > 0 && /^[\x20-\x7E]+$/.test(ogAlt), ogAlt.replace(/[\x20-\x7E]/g, '') || ogAlt)
     const main = (pick(html, /<main\b[^>]*>([\s\S]*?)<\/main>/i) ?? '').replace(/<script[\s\S]*?<\/script>/gi, '')
     const mainText = main.replace(/<[^>]+>/g, ' ')
     const attrText = [...main.matchAll(/\s(?:placeholder|aria-label|title|alt)="([^"]*)"/g)].map((m) => m[1]).join(' ')

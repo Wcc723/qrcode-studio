@@ -1,20 +1,26 @@
 // 分享圖（1200×630）的文字正本。版面在 render.mjs，站名不寫在這裡：render.mjs 從 src/config/site.ts 讀 siteName（英文卡讀 siteNameEn）。
-// 分享圖的 alt 寫在頁面的 useSeoHead（首頁用 site.ts 的 ogImage.alt，/scan/、/barcode/、/batch/ 與教學總覽在各自的頁面，
+// 分享圖的 alt 寫在頁面的 useSeoHead（站台預設圖用 site.ts 的 ogImage.alt，/scan/、/barcode/、/batch/、教學總覽與英文三頁在各自的頁面，
 // 七個類型頁在 src/config/qr-types.ts 的 ogAlt，教學在 src/content/guide-og.ts），
 // 改了圖上的字記得一起看 alt 還對不對。seo:audit 會拿這份對帳：根目錄的 og:image 要是這裡的某個 out，alt 要寫著大標（lines），
-// 專屬分享圖（og-default 以外）的大標要在 title 裡、alt 以大標開頭並有 banner；每一張都要有頁面用到，教學每篇都要用自己那張。
-// 所以頁面的 title 改了說法，這裡跟著改再重跑 render.mjs。
+// 專屬分享圖（站台預設圖以外）的大標要在 title 裡、alt 以大標開頭並有 banner；每一張的 alt 都要寫著每個小標籤（chips）、
+// 圖角標籤（tag）與圖裡的字（標籤紙每格的字、試算表的欄名與財產編號、條碼底下的數字）。每一張都要有頁面用到，教學每篇都要用自己那張。
+// 所以頁面的 title 改了說法，這裡跟著改再重跑 render.mjs。小標籤與橫幅不寫數量（例如「幾種類型」），以後加東西才不會過時。
+// 換了已經分享出去的圖要給新檔名（out 與頁面的 ogImage.path 一起改，舊檔留在 public/），理由見 docs/brand/README.md「已經分享出去的連結」。
 export const CARDS = [
+  // 站台預設圖（fallback）：首頁、關於、隱私權、常見問題與 404 用它（site.ts 的 ogImage），只有它不必以大標開頭、大標也不必在 title 裡。
+  // 1.9.5 把小標籤的「7 種類型」換成不帶數字的說法，首頁的連結分享過很多次，所以換新檔名 -2（舊的 og-default.png 留在 public/）。
   {
-    out: 'og-default.png',
+    out: 'og-default-2.png',
+    fallback: true,
     art: 'logo',
     lines: [{ text: '免費 QR Code', color: 'sun' }, { text: '產生器', color: 'pink' }],
     banner: '線上製作・不上傳・可加 LOGO',
-    chips: ['7 種類型', '下載 PNG／SVG', '永久有效'],
+    chips: ['網址、WiFi、名片', '下載 PNG／SVG', '永久有效'],
   },
   {
     out: 'og-scan.png',
     art: 'scan',
+    tag: { text: '截圖', color: 'sky' },
     lines: [{ text: 'QR Code', color: 'sun' }, { text: '掃描器', color: 'pink' }],
     banner: '上傳圖片或截圖就能讀取',
     chips: ['圖片不上傳', 'QR Code', '條碼'],
@@ -22,6 +28,7 @@ export const CARDS = [
   {
     out: 'og-barcode.png',
     art: 'barcode',
+    tag: { text: 'EAN-13', color: 'sun', side: 'right' },
     lines: [{ text: '條碼', color: 'sun' }, { text: '產生器', color: 'pink' }],
     banner: 'EAN-13、Code 128 線上製作',
     chips: ['自動算檢查碼', '下載 SVG', '免費'],
@@ -82,7 +89,7 @@ export const CARDS = [
     tag: { text: '文字', color: 'pink' },
     lines: [{ text: '文字', color: 'sun' }, { text: 'QR Code', color: 'pink' }],
     banner: '任意文字，掃描直接顯示',
-    chips: ['產品序號', '闖關暗號', '不會開網頁'],
+    chips: ['產品序號', '闖關暗號', '文字不上傳'],
   },
   {
     out: 'og-email.png',
@@ -124,7 +131,8 @@ export const CARDS = [
     banner: '從原理到印刷，一次看懂',
     chips: ['原理與掃描', '容錯與 LOGO', '印刷與 Excel'],
   },
-  // 英文版（/en/ 三頁）：站名用 site.ts 的 siteNameEn，標題全是英文字，用 Fredoka、字級小一點才放得下
+  // 英文版（/en/ 三頁）：站名用 site.ts 的 siteNameEn，標題全是英文字，用 Fredoka、字級小一點才放得下。
+  // 替代文字只用 ASCII（引號也不用：meta 的 content 用引號包著），圖角標籤直接寫字、不加「」
   {
     out: 'og-en.png',
     lang: 'en',
@@ -147,6 +155,7 @@ export const CARDS = [
     out: 'og-en-barcode.png',
     lang: 'en',
     art: 'barcode',
+    tag: { text: 'EAN-13', color: 'sun', side: 'right' },
     titleSize: 96,
     lines: [{ text: 'Barcode', color: 'sun' }, { text: 'Generator', color: 'pink' }],
     banner: 'Code 128, EAN-13, ITF-14 online',

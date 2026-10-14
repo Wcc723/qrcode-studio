@@ -41,7 +41,12 @@ useSeoHead({
   path: '/en/',
   appName: site.nameEn,
   locale: 'en',
-  ogImage: { path: '/og-en.png', width: 1200, height: 630, alt: 'Free QR Code Generator: Online, no sign-up, add a logo' },
+  // 圖上的字在 scripts/brand/cards.mjs（og-en.png）：替代文字以大標開頭，寫著橫幅、每個小標籤，最後一句講右邊的圖。
+  // 只用 ASCII（seo:audit 驗），也不用引號
+  ogImage: {
+    path: '/og-en.png', width: 1200, height: 630,
+    alt: 'Free QR Code Generator: Online, no sign-up, add a logo. PNG and SVG downloads, no watermark, never expires. On the right is a QR code card tucked into an orange pocket',
+  },
 })
 </script>
 <template>

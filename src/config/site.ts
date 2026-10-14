@@ -22,12 +22,14 @@ export const site = {
   // 舊子網域 qrcode-studio.pocketool.app 由 Cloudflare Bulk Redirect 301 過來。
   url: 'https://www.pocketool.app/qrcode-studio',
   defaultLocale: 'zh-TW',
-  // 預設社群分享圖（1200×630）。個別頁面可用 useSeoHead 的 ogImage 覆寫。
+  // 預設社群分享圖（1200×630）：首頁、關於、隱私權、常見問題與 404 用它，個別頁面可用 useSeoHead 的 ogImage 覆寫。
+  // 圖上的字在 scripts/brand/cards.mjs（fallback 那張）：替代文字寫著大標、每個小標籤，最後一句講右邊的圖。
+  // 檔名帶 -2：1.9.5 拿掉圖上的「7 種類型」時換了新檔名，已經分享出去的首頁連結才會抓新圖（舊的 og-default.png 留在 public/）。
   ogImage: {
-    path: '/og-default.png',
+    path: '/og-default-2.png',
     width: 1200,
     height: 630,
-    alt: 'QR Code 製造機：免費 QR Code 產生器，線上製作、可加 LOGO',
+    alt: 'QR Code 製造機：免費 QR Code 產生器，線上製作、不上傳、可加 LOGO，網址、WiFi、名片都能做，可下載 PNG／SVG、永久有效。右邊是口袋裡插著一張 QR Code 卡片的站徽',
   } satisfies OgImage,
   description: '免費線上 QR Code 產生器，3 步驟製作 QRCode：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。',
   // 產品名含「QR Code」，頁尾與關於頁都要附這一句註冊商標聲明（DENSO WAVE 官方要求的寫法）。

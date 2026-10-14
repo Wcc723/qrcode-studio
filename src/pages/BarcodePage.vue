@@ -26,7 +26,11 @@ useSeoHead({
   path: '/barcode',
   appName: '條碼產生器',
   appType: 'WebApplication',
-  ogImage: { path: '/og-barcode.png', width: 1200, height: 630, alt: '條碼產生器：EAN-13、Code 128 線上製作，自動算檢查碼' },
+  // 圖上的字在 scripts/brand/cards.mjs（og-barcode.png）：替代文字以大標開頭，寫著橫幅、每個小標籤、圖角標籤與條碼底下的數字
+  ogImage: {
+    path: '/og-barcode.png', width: 1200, height: 630,
+    alt: '條碼產生器：EAN-13、Code 128 線上製作，自動算檢查碼、可下載 SVG、免費。右邊是標著「EAN-13」的條碼，底下的數字是 4710088331236',
+  },
   breadcrumbs: [
     { name: '首頁', url: `${site.url}/` },
     { name: '條碼產生器', url: `${site.url}/barcode/` },
