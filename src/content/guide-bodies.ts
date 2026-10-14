@@ -405,14 +405,14 @@ export const guideBodies: Record<string, string> = {
 
 <h2>做法一：IMAGE 函數，向線上服務要 QR Code 圖片</h2>
 <p>IMAGE 函數會把網路上的一張圖片放進儲存格。依 Microsoft 的說明，它可以用在 Microsoft 365 的 Excel（Windows 與 Mac）、Excel 2024（Windows 與 Mac），以及 iPhone、Android 的 Excel；Microsoft 的函數清單把它標成 Excel 2024 才加入的函數，Excel 2021 以前的版本沒有。</p>
-<p>做法是把儲存格的內容接在網址後面，向一個「給它文字、傳回 QR Code 圖片」的線上服務（API）要圖。以 goQR.me 提供的服務為例，在 C2 輸入：</p>
+<p>做法是把儲存格的內容接在網址後面，向一個「給它文字、傳回 QR Code 圖片」的線上服務（API）要圖。以 goQR.me 提供的服務為例，在 C2 輸入（這行用到 ENCODEURL，只有 Windows 版 Excel 能用，Mac 與手機的寫法在下面）：</p>
 <p><code>=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data="&amp;ENCODEURL(A2), A2)</code></p>
 <ol>
 <li>把公式往下拉到最後一列，每一列會各出現一張 QR Code。第二個參數 A2 是圖片的替代文字，報讀軟體會念出來。</li>
 <li>把列高與欄寬拉大，圖片就會跟著變大：IMAGE 預設把圖片等比例縮放到儲存格裡。</li>
 <li>出現 #CONNECT! 是連不上提供圖片的網站；出現 #BLOCKED! 是安全性設定擋下了外部圖片，要檢查 Excel 的安全性設定。</li>
 </ol>
-<p>公式裡的 ENCODEURL 會把空白、&amp;、中文這類字元換成網址可以用的寫法。依 Microsoft 的說明，ENCODEURL 在 Mac 版與網頁版 Excel 不能用；內容只有英文、數字與 -（例如 A-0001）的話，可以拿掉它，改成 <code>=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data="&amp;A2, A2)</code>。</p>
+<p>公式裡的 ENCODEURL 會把空白、&amp;、中文這類字元換成網址可以用的寫法。依 Microsoft 的說明，ENCODEURL 只有 Windows 版 Excel 能用：它的適用版本只列 Windows 版，並寫明 Mac 版與網頁版不能用，iPhone、Android 的 Excel 也不在清單上。在 Mac 或手機上，內容只有英文、數字與 -（例如 A-0001）的話，拿掉 ENCODEURL，改成 <code>=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data="&amp;A2, A2)</code>；內容有空白、&amp; 或中文，就改用下一段的 Google 試算表，或做法四的批次頁。</p>
 <p><strong>Google 試算表</strong>也有 IMAGE 與 ENCODEURL，公式幾乎一樣。差別是 Google 試算表的第二個參數是顯示方式，不是替代文字，所以拿掉：<code>=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data="&amp;ENCODEURL(A2))</code>。</p>
 <p><strong>這個做法的資料會離開電腦</strong>：每一格的內容都寫在網址裡，送到提供圖片的網站；用 Google 試算表的話，整份清單本來就存在 Google 的雲端。goQR.me 的說明寫，它會記錄每個請求從哪裡來（IP 位址與來源網頁），但不記錄 QR Code 的內容。能不能接受由你判斷；公司內部的財產編號或客戶資料，先問過資訊單位比較保險。圖片也是從網站即時抓回來的，連不上網或網站停止服務時，儲存格就會變成 #CONNECT! 錯誤。</p>
 <p>網路上很多舊教學用的是 Google 的圖表網址（chart.googleapis.com，網址裡有 cht=qr），現在已經不能用了。那是 Google 早期的 Chart API：把資料寫在網址裡，由 Google 的伺服器傳回圖片。Google 的說明頁寫，這類圖片圖表（Image Charts）在 2012 年 4 月 20 日就宣布停用，QR Code 原本的說明頁也已經撤下，現在會轉到 Google Charts 首頁。我們在 2026 年 10 月 15 日實際打開這種網址，得到的是 404（找不到網頁），公式照抄只會出錯。</p>
@@ -433,7 +433,7 @@ export const guideBodies: Record<string, string> = {
 <p>只要做幾張條碼，用<a href="/barcode/">條碼產生器</a>下載 SVG 比較快，Code 128、EAN-13 的檢查碼都會自動算好。網路上也有教學用 Excel 的條碼控制項（ActiveX），我們找不到 Microsoft 對它的正式說明文件，這裡不介紹。</p>
 
 <h2>做法三：Word 合併列印的條碼功能變數（Windows 版）</h2>
-<p>Word 沒有條碼按鈕，但有兩個條碼功能變數（Microsoft 的中文說明叫「欄位代碼」）：DISPLAYBARCODE 畫固定內容的條碼，MERGEBARCODE 在合併列印時，把 Excel 每一列的內容畫成條碼。Microsoft 的說明寫明，DisplayBarcode 支援的是 Windows 桌面版 Word（Microsoft 365 與 Word 2016 到 2024），Mac 版與網頁版 Word 的步驟與選項可能不同。支援的種類有 QR、CODE128、CODE39、EAN13、EAN8（JAN13、JAN8 是同一種）、UPCA、UPCE、ITF14、NW7（Codabar）與日本郵政的客戶條碼 JPPOST。</p>
+<p>Word 沒有條碼按鈕，但有兩個條碼功能變數（Microsoft 的中文說明叫「欄位代碼」）：DISPLAYBARCODE 畫固定內容的條碼，MERGEBARCODE 在合併列印時，把 Excel 每一列的內容畫成條碼。Microsoft 只寫 DisplayBarcode 支援 Windows 桌面版 Word（Microsoft 365 與 Word 2016 到 2024）。主要的種類有 QR、CODE128、CODE39、EAN13、EAN8（JAN13、JAN8 是同一種）、UPCA、UPCE、ITF14、NW7（Codabar）與日本郵政的客戶條碼 JPPOST。</p>
 <ol>
 <li>Excel 的第一列放欄名，例如「財產編號」「品名」，存檔後關閉。</li>
 <li>在 Word 選「郵件」>「啟動合併列印」>「標籤」，選標籤紙的廠商與型號；清單裡沒有的，選「新的標籤」自己填尺寸。</li>
@@ -446,7 +446,7 @@ export const guideBodies: Record<string, string> = {
 <li>Code 128，條碼下面印出編號：<code>{ MERGEBARCODE 財產編號 CODE128 \\t }</code></li>
 <li>QR Code：<code>{ MERGEBARCODE 網址 QR }</code>（「網址」換成你放網址的那一欄的欄名）</li>
 </ul>
-<p>大括號是 Ctrl + F9 產生的，不用自己打。\\t 會在條碼下方印出內容，\\h 可以設定條碼高度（單位是 1/1440 英吋），\\s 可以縮放（10 到 1000 的百分比）。條碼與 QR Code 都是 Word 自己畫的，功能變數裡沒有任何外部網址，資料不會送到別的網站。缺點是 Mac 版不能用，每一格的大小要自己慢慢調，標籤紙的型號也要 Word 裡找得到，或自己量尺寸。</p>
+<p>大括號是 Ctrl + F9 產生的，不用自己打。\\t 會在條碼下方印出內容，\\h 可以設定條碼高度（單位是 1/1440 英吋），\\s 可以縮放（10 到 1000 的百分比）。條碼與 QR Code 都是 Word 自己畫的，功能變數裡沒有任何外部網址，資料不會送到別的網站。缺點是 Microsoft 只寫支援 Windows 桌面版，每一格的大小要自己慢慢調，標籤紙的型號也要 Word 裡找得到，或自己量尺寸。</p>
 
 <h2>做法四：貼到本站的批次頁</h2>
 <p>本站的<a href="/batch/">批次產生 QR Code 與條碼</a>不用安裝軟體或字型，清單只在你的瀏覽器裡處理，不會上傳。下面用一份合成的財產清冊示範：財產編號 A-0001 到 A-0024，品名與保管單位都是假資料。</p>
@@ -488,7 +488,7 @@ export const guideBodies: Record<string, string> = {
 <ul>
 <li>Microsoft 支援：<a href="https://support.microsoft.com/zh-tw/office/image-function-7e112975-5e52-4f2a-b9da-1d913d51f5d5" target="_blank" rel="noopener">IMAGE 函數</a>（可用的 Excel 版本、替代文字、#CONNECT! 與 #BLOCKED! 錯誤）</li>
 <li>Microsoft 支援：<a href="https://support.microsoft.com/en-us/excel/excel-functions-by-category" target="_blank" rel="noopener">Excel functions (by category)</a>（IMAGE 標示為 Excel 2024 加入）</li>
-<li>Microsoft 支援：<a href="https://support.microsoft.com/zh-tw/office/encodeurl-function-07c7fb90-7c60-4bff-8687-fac50fe33d0e" target="_blank" rel="noopener">ENCODEURL 函數</a>（Mac 版與網頁版 Excel 不能用）</li>
+<li>Microsoft 支援：<a href="https://support.microsoft.com/zh-tw/office/encodeurl-function-07c7fb90-7c60-4bff-8687-fac50fe33d0e" target="_blank" rel="noopener">ENCODEURL 函數</a>（適用版本只列 Windows 版 Excel，Mac 版與網頁版不能用）</li>
 <li>Google 文件編輯器說明：<a href="https://support.google.com/docs/answer/3093333?hl=zh-Hant" target="_blank" rel="noopener">IMAGE</a>、<a href="https://support.google.com/docs/answer/9199778?hl=zh-Hant" target="_blank" rel="noopener">ENCODEURL 函式</a></li>
 <li>goQR.me：<a href="https://goqr.me/api/doc/create-qr-code/" target="_blank" rel="noopener">QR code API 說明</a>（網址格式，記錄請求來源但不記錄內容）、<a href="https://goqr.me/privacy-safety-security/" target="_blank" rel="noopener">隱私說明</a></li>
 <li>Google for Developers：<a href="https://developers.google.com/chart/interactive/docs/gallery/genericimagechart" target="_blank" rel="noopener">Generic Image Chart</a>（Image Charts 在 2012 年 4 月 20 日宣布停用）、<a href="https://developers.google.com/chart/interactive/faq" target="_blank" rel="noopener">Google Charts FAQ</a>（Chart API 用網址產生圖片）</li>
