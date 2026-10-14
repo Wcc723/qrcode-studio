@@ -30,14 +30,14 @@
   解碼結果一律以文字節點渲染，**不得用 `v-html` 或 `innerHTML`**：那是別人做的 QR，
   內容完全不可信。`src/scan-gates.test.ts` 會掃原始碼擋下這些出口。
 
-## 黃金解碼測試
+### 黃金解碼測試
 
 黃金解碼測試（`src/utils/zxing-reader.test.ts`）用的圖固定在 `test/fixtures/scan/`，
 由 `scripts/fixtures/gen-scan-fixtures.mjs` 以同版 zxing-wasm writer 離線產生，
 **不得從網路抓來路不明的測試圖**。測試期間會把 `fetch` 換成會拋錯的版本，
 確保解碼真的沒有連網。
 
-## 授權（`NOTICE.md`）
+### 授權（`NOTICE.md`）
 
 新增 `zxing-wasm` 版本時要一起更新 repo 根目錄的 `NOTICE.md`：那份記的是上游四份授權
 （zxing-cpp 與 ZXingWasm.cpp 的 Apache-2.0、zint 的 BSD-3-Clause、zxing-wasm 自有碼的 MIT）

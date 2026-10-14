@@ -71,7 +71,8 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 - **`html_handling` 用 `force-trailing-slash`**。
 - **第一條 route 必須是尾萬用 `www.pocketool.app/qrcode-studio*`**。精確寫法會讓
   `/qrcode-studio?utm_source=x` 落到 hub 回 404。
-- **舊子網域 `qrcode-studio.pocketool.app` 的 Custom Domain 刻意不寫進 `routes` 陣列。**
+
+**舊子網域 `qrcode-studio.pocketool.app` 的 Custom Domain 刻意不寫進 `routes` 陣列。**
 
 ## 資產根目錄（`./dist`）要放的東西
 
@@ -103,14 +104,14 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
   測試與稽核對帳 WASM 雜湊，混版就會紅。
 - **只用 `zxing-wasm/reader`，而且只能動態 import。** `/scan` 這條 route 本身也必須是 `() => import(...)`。稽核會驗 entry chunk 裡
   沒有 `zxing`。
-- **一律先解成 `ImageData` 再交給解碼器。** zxing-wasm **讀不懂 WebP**，所以走 `createImageBitmap` → canvas → `ImageData`。
+- **一律先解成 `ImageData` 再交給解碼器。** zxing-wasm 內建的影像解碼器**讀不懂 WebP**，所以走 `createImageBitmap` → canvas → `ImageData`。
 - **圖片與解碼內容只能留在記憶體。** 不得寫入網址（query／hash）、Cookie、
   localStorage、sessionStorage、IndexedDB、Cache Storage，也不得進 GA 事件。
   「用這個內容再做一張」用 `src/utils/scan-handoff.ts` 的模組層級變數交棒，取用一次就清掉。
   解碼結果一律以文字節點渲染，**不得用 `v-html` 或 `innerHTML`**：那是別人做的 QR，
   內容完全不可信。`src/scan-gates.test.ts` 會掃原始碼擋下這些出口。
 
-黃金解碼測試的圖**不得從網路抓來路不明的測試圖**（`test/fixtures/scan/`，離線產生）。
+黃金解碼測試的圖（`test/fixtures/scan/`）離線產生，**不得從網路抓來路不明的測試圖**。
 新增 `zxing-wasm` 版本時要一起更新 repo 根目錄的 `NOTICE.md`（記哪些見 `docs/scan.md`「授權」）。
 
 ## 下載檔的四周留白（靜區）
@@ -160,6 +161,7 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 - `main.css` 開頭的框線 reset 不要拿掉；`html`、`body` 的 `overflow-x` 用 `clip`，**不要改回 `hidden`**（`src/styles/main-css.test.ts` 鎖著）。
 - **收進欄名旁的「?」**（`src/components/HelpTip.vue`）：只收「長、而且不看也能把欄位填完」的說明；
   錯誤、條件式提醒、填寫規則、列印尺寸、掃描的警告與指引**一律看得到**。`src/helpNotes.test.ts` 兩個方向都鎖。
+  欄位用 `aria-describedby` 指到說明框，「?」不放進 legend 或 `<label>`，只有圖示的按鈕補 sr-only 文字（細節見 `docs/ui.md`）。
 - **掃描結果的警告只給認不出類型的內容**：認得出類型的改成一句中性說明，認不出的照舊警告，不要放寬（`ScanResultView.test.ts` 兩邊都鎖）。
 - **隱私只說一次**：工具卡頂部一行（`PrivacyNote.vue`），預覽框與標題上不要再加「不傳雲端」貼紙（頁尾那行保留）。
 - **圖示：不用 emoji**：圖示一律用 Lucide 的 `i-lucide-<名稱>`，`presetIcons` **不得設 `cdn`、不得開 `autoInstall`**；
@@ -173,7 +175,7 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 - **使用者在別處真的會看到的名稱照寫，每頁第一次出現就白話解釋**。
 - **只有工程師懂的詞，工具區不用**。台灣用語：「半角」一律寫「半形」。
 - **欄名改了，提到它的地方一起改**。
-- **不跟著文案改的**：網址、下拉選單與勾選框的 `value`、meta description 與 `seo:audit` 對帳的首段。
+- **不跟著文案改的**：網址、下拉選單與勾選框的 `value`、類型頁、首頁、`/scan/`、`/barcode/` 的 meta description 與 `seo:audit` 對帳的首段。
   title 與 H1 要改時另外處理：改之前把改前的 title 與 28 天基線記進 `docs/seo-checklist.md` 的「標題改動紀錄」。
 - **關於頁的授權段落與隱私權頁準確性優先**：原詞保留，只在前面補白話。
 - 教學只調整用字時 `updated` 不動（sitemap 的 `<lastmod>` 不跟著變），示意圖、圖說與替代文字不重產。
