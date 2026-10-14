@@ -396,7 +396,7 @@ export const guideBodies: Record<string, string> = {
 <div class="table-wrap"><table>
 <thead><tr><th>做法</th><th>要什麼軟體</th><th>做得出來的碼</th><th>資料會不會離開電腦</th></tr></thead>
 <tbody>
-<tr><td>IMAGE 函數加線上服務</td><td>Microsoft 365 的 Excel、Excel 2024（Windows 與 Mac），以及 iPhone、Android 的 Excel</td><td>QR Code（看你用哪個線上服務）</td><td>會，每一格的內容都送到提供圖片的網站</td></tr>
+<tr><td>IMAGE 函數加線上服務</td><td>Microsoft 365 的 Excel、Excel 2024（Windows 與 Mac），以及 iPhone、Android 的 Excel。內容有中文或空白時要搭配 ENCODEURL，它只有 Windows 版能用</td><td>QR Code（看你用哪個線上服務）</td><td>會，每一格的內容都送到提供圖片的網站</td></tr>
 <tr><td>條碼字型</td><td>電腦版 Excel（各版本都可以），加上自己安裝字型</td><td>Code 39 最簡單；Code 128、EAN-13 要先轉換</td><td>不會</td></tr>
 <tr><td>Word 合併列印的條碼功能變數</td><td>Windows 版 Word（Microsoft 365 與 Word 2016 到 2024）</td><td>QR Code、Code 128、Code 39、EAN-13、EAN-8、ITF-14 等</td><td>不會，條碼由 Word 自己畫</td></tr>
 <tr><td>本站的批次頁</td><td>瀏覽器</td><td>QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14</td><td>不會，清單只在瀏覽器裡處理</td></tr>
