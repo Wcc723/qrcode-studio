@@ -447,7 +447,7 @@ const EXPECTED_PATHS = [
   '/',
   '/about/', '/barcode/', '/batch/', '/email/', '/faq/', '/phone/', '/privacy/', '/scan/',
   '/sms/', '/text/', '/url/', '/vcard/', '/wifi/',
-  '/guide/', '/guide/error-correction/', '/guide/line-qr-code/', '/guide/qr-code-svg/',
+  '/guide/', '/guide/error-correction/', '/guide/excel-qr-code-barcode/', '/guide/line-qr-code/', '/guide/qr-code-svg/',
   '/guide/qr-with-logo/', '/guide/scan-qr-code/', '/guide/what-is-qr-code/',
   // 英文版（2026-10）：先做首頁、批次與條碼三頁，跟繁中的同一頁成對（見下方 EXPECTED_PAIRS）
   '/en/', '/en/barcode/', '/en/batch/',
@@ -530,6 +530,20 @@ if (existsSync(guideScanPath) && basePath) {
   const html = readFileSync(guideScanPath, 'utf8')
   add('[guide/scan-qr-code] 互鏈到 /scan/', html.includes(`${basePath}scan/`))
   add('[guide/scan-qr-code] 仍然以手機操作為主，沒被改成圖片解碼頁', /iPhone/.test(html) && /Android/.test(html))
+}
+
+// 〈Excel 怎麼做 QR Code 與條碼〉跟批次頁、條碼產生器雙向連結；文章不拿工具頁的主字當 title、H1、description
+// （「批次產生 QR Code」給 /batch/，「條碼產生器」給 /barcode/），只在內文用它們當連到工具的錨文字。
+const guideExcelPath = join(distDir, 'guide', 'excel-qr-code-barcode', 'index.html')
+if (existsSync(guideExcelPath) && basePath) {
+  const html = readFileSync(guideExcelPath, 'utf8')
+  const head = [pick(html, /<title[^>]*>([\s\S]*?)<\/title>/i), metaContent(html, 'description'), squashText(pick(html, /<h1[^>]*>([\s\S]*?)<\/h1>/i))].join(' ')
+  add('[guide/excel-qr-code-barcode] 連到 /batch/ 與 /barcode/', html.includes(`href="${basePath}batch/"`) && html.includes(`href="${basePath}barcode/"`))
+  add('[guide/excel-qr-code-barcode] title、description、H1 不用工具頁的主字', !/批次產生\s*QR\s*Code|條碼產生器/i.test(head), head)
+  for (const page of ['batch', 'barcode']) {
+    const file = join(distDir, page, 'index.html')
+    add(`[${page}/index.html] 連回〈Excel 怎麼做 QR Code 與條碼〉`, existsSync(file) && readFileSync(file, 'utf8').includes(`href="${basePath}guide/excel-qr-code-barcode/"`))
+  }
 }
 
 for (const [page, needles] of [

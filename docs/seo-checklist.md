@@ -7,7 +7,7 @@
 ## A. 技術基礎（程式可驗：`npm run seo:audit`，2026-09-30 共 711 項，由 `postbuild` 綁在每次 `npm run build` 之後自動跑）
 
 - [x] ✅ robots.txt 由 hub 的 `https://www.pocketool.app/robots.txt` 統一提供（子路徑下的 robots.txt 爬蟲不會讀），本 repo 不再放 `public/robots.txt`
-- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（2026-10 起 24 條，含英文三頁 `/en/`、`/en/batch/`、`/en/barcode/`；loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
+- [x] ✅ sitemap.xml 存在，涵蓋所有公開路由（2026-10-15 起 25 條，含英文三頁 `/en/`、`/en/batch/`、`/en/barcode/` 與教學 `/guide/excel-qr-code-barcode/`；loc 全為 `https://www.pocketool.app/qrcode-studio/...`，build 時自動產生並排除 404）
 - [x] ✅ hreflang：中英成對的三頁（`/` 與 `/en/`、`/batch/` 與 `/en/batch/`、`/barcode/` 與 `/en/barcode/`）放 zh-Hant-TW、en、x-default（指繁中）三條、兩邊互指；其他繁中頁只有指向自己的一條（audit 逐頁斷言，規則見 AGENTS.md「中英文版」）
 - [x] ✅ 每頁 canonical 值帶正確子路徑前綴（audit 逐頁斷言，非只檢查標籤存在）
 - [x] ✅ 每頁內鏈皆帶 `/qrcode-studio/` 前綴（audit 逐頁斷言，擋住 v-html 富文字繞過 Vite base 的漏網之魚）

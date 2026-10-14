@@ -17,7 +17,7 @@ describe('教學中繼資料', () => {
   })
 
   it('首次發布日期與 git 歷史一致（不得改成「看起來比較新」的日期）', () => {
-    // e9a4038（2026-05-29）新增前三篇；e00ad53（2026-05-30）新增後三篇。
+    // e9a4038（2026-05-29）新增前三篇；e00ad53（2026-05-30）新增後三篇；Excel 那篇 2026-10-15 上線。
     expect(Object.fromEntries(guides.map(g => [g.slug, g.published]))).toEqual({
       'what-is-qr-code': '2026-05-29',
       'error-correction': '2026-05-29',
@@ -25,6 +25,7 @@ describe('教學中繼資料', () => {
       'scan-qr-code': '2026-05-30',
       'line-qr-code': '2026-05-30',
       'qr-code-svg': '2026-05-30',
+      'excel-qr-code-barcode': '2026-10-15',
     })
   })
 
@@ -103,6 +104,19 @@ describe('教學本文', () => {
         expect(tag).toContain('rel="noopener"')
       }
     }
+  })
+
+  it('〈Excel 怎麼做 QR Code 與條碼〉連到批次頁與條碼產生器，不拿工具頁的主字當標題', () => {
+    const g = guideBySlug['excel-qr-code-barcode']
+    const body = guideBodies['excel-qr-code-barcode']
+    expect(body).toContain('href="/batch/"')
+    expect(body).toContain('href="/barcode/"')
+    for (const text of [g.title, g.description]) expect(text).not.toMatch(/批次產生\s*QR\s*Code|條碼產生器/i)
+    // 功能變數的參數是反斜線加字母；template literal 少寫一條反斜線就會變成 Tab
+    expect(body).toContain('CODE128 \\t }')
+    expect(body).not.toContain('\t')
+    // 頁面上要看得到查核日
+    expect(body).toMatch(/以上於 \d{4} 年 \d{1,2} 月 \d{1,2} 日查證/)
   })
 
   it('「如何掃描」教學維持手機操作為主，並連到圖片掃描器', () => {

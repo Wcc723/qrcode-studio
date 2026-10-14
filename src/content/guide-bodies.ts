@@ -378,4 +378,123 @@ export const guideBodies: Record<string, string> = {
 <li>DENSO WAVE：<a href="https://www.qrcode.com/en/howto/code.html" target="_blank" rel="noopener">QR Code area</a>（四周需要 4 個模組寬的空白）</li>
 </ul>
 `,
+
+  // 範例圖是本站批次頁實際做出來的畫面（合成的假資料，財產編號 A-0001 起）。
+  // 功能變數的 \t、\h、\s 在 template literal 裡要寫成 \\t，否則會變成 Tab。
+  'excel-qr-code-barcode': `
+<p>想把 Excel 清單的每一列做成 QR Code 或條碼，常見的做法有四種，差在要哪個版本的軟體，以及資料會不會離開你的電腦：</p>
+<ul>
+<li><strong>只要 QR Code、用 Excel 365 或 2024</strong>：IMAGE 函數一個公式就好，但內容會送到提供圖片的網站。</li>
+<li><strong>只要條碼、內容是大寫英文與數字</strong>：Code 39 條碼字型加一個公式，資料不離開電腦。</li>
+<li><strong>要印標籤、用 Windows 版 Word</strong>：合併列印的條碼功能變數，QR Code 與常見條碼都能做。</li>
+<li><strong>不想裝東西，也不想把清單送出去</strong>：貼到網頁工具，在瀏覽器裡做成 ZIP 或直接印 A4 標籤紙。</li>
+</ul>
+<p>想直接動手：<a href="/batch/">批次產生 QR Code 與條碼</a>，在 Excel 複製儲存格貼上就能用，不用裝增益集或字型。</p>
+
+<h2>四種做法比一比</h2>
+<p>下面都以一份財產清冊為例：A 欄是財產編號（A-0001、A-0002…），B 欄是品名，第一列是欄名，內容從第 2 列開始。</p>
+<div class="table-wrap"><table>
+<thead><tr><th>做法</th><th>要什麼軟體</th><th>做得出來的碼</th><th>資料會不會離開電腦</th></tr></thead>
+<tbody>
+<tr><td>IMAGE 函數加線上服務</td><td>Microsoft 365 的 Excel、Excel 2024（Windows 與 Mac），以及 iPhone、Android 的 Excel</td><td>QR Code（看你用哪個線上服務）</td><td>會，每一格的內容都送到提供圖片的網站</td></tr>
+<tr><td>條碼字型</td><td>電腦版 Excel（各版本都可以），加上自己安裝字型</td><td>Code 39 最簡單；Code 128、EAN-13 要先轉換</td><td>不會</td></tr>
+<tr><td>Word 合併列印的條碼功能變數</td><td>Windows 版 Word（Microsoft 365 與 Word 2016 到 2024）</td><td>QR Code、Code 128、Code 39、EAN-13、EAN-8、ITF-14 等</td><td>不會，條碼由 Word 自己畫</td></tr>
+<tr><td>本站的批次頁</td><td>瀏覽器</td><td>QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14</td><td>不會，清單只在瀏覽器裡處理</td></tr>
+</tbody>
+</table></div>
+
+<h2>做法一：IMAGE 函數，向線上服務要 QR Code 圖片</h2>
+<p>IMAGE 函數會把網路上的一張圖片放進儲存格。依 Microsoft 的說明，它可以用在 Microsoft 365 的 Excel（Windows 與 Mac）、Excel 2024（Windows 與 Mac），以及 iPhone、Android 的 Excel；Microsoft 的函數清單把它標成 Excel 2024 才加入的函數，Excel 2021 以前的版本沒有。</p>
+<p>做法是把儲存格的內容接在網址後面，向一個「給它文字、傳回 QR Code 圖片」的線上服務（API）要圖。以 goQR.me 提供的服務為例，在 C2 輸入：</p>
+<p><code>=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data="&amp;ENCODEURL(A2), A2)</code></p>
+<ol>
+<li>把公式往下拉到最後一列，每一列會各出現一張 QR Code。第二個參數 A2 是圖片的替代文字，報讀軟體會念出來。</li>
+<li>把列高與欄寬拉大，圖片就會跟著變大：IMAGE 預設把圖片等比例縮放到儲存格裡。</li>
+<li>出現 #CONNECT! 是連不上提供圖片的網站；出現 #BLOCKED! 是安全性設定擋下了外部圖片，要檢查 Excel 的安全性設定。</li>
+</ol>
+<p>公式裡的 ENCODEURL 會把空白、&amp;、中文這類字元換成網址可以用的寫法。依 Microsoft 的說明，ENCODEURL 在 Mac 版與網頁版 Excel 不能用；內容只有英文、數字與 -（例如 A-0001）的話，可以拿掉它，改成 <code>=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data="&amp;A2, A2)</code>。</p>
+<p><strong>Google 試算表</strong>也有 IMAGE 與 ENCODEURL，公式幾乎一樣。差別是 Google 試算表的第二個參數是顯示方式，不是替代文字，所以拿掉：<code>=IMAGE("https://api.qrserver.com/v1/create-qr-code/?size=300x300&amp;data="&amp;ENCODEURL(A2))</code>。</p>
+<p><strong>這個做法的資料會離開電腦</strong>：每一格的內容都寫在網址裡，送到提供圖片的網站；用 Google 試算表的話，整份清單本來就存在 Google 的雲端。goQR.me 的說明寫，它會記錄每個請求從哪裡來（IP 位址與來源網頁），但不記錄 QR Code 的內容。能不能接受由你判斷；公司內部的財產編號或客戶資料，先問過資訊單位比較保險。圖片也是從網站即時抓回來的，連不上網或網站停止服務時，儲存格就會變成 #CONNECT! 錯誤。</p>
+<p>網路上很多舊教學用的是 Google 的圖表網址（chart.googleapis.com，網址裡有 cht=qr），現在已經不能用了。那是 Google 早期的 Chart API：把資料寫在網址裡，由 Google 的伺服器傳回圖片。Google 的說明頁寫，這類圖片圖表（Image Charts）在 2012 年 4 月 20 日就宣布停用，QR Code 原本的說明頁也已經撤下，現在會轉到 Google Charts 首頁。我們在 2026 年 10 月 15 日實際打開這種網址，得到的是 404（找不到網頁），公式照抄只會出錯。</p>
+
+<h2>做法二：條碼字型，Code 39 加一個公式</h2>
+<p>條碼字型把每個字畫成一組粗細不同的直條，儲存格套上字型，文字就變成條碼。資料完全在你的電腦裡，電腦版 Excel 各版本都能用；缺點是只有 Code 39 能直接套用，其他種類要先轉換。</p>
+<ol>
+<li>下載免費的條碼字型，例如 Google Fonts 上的 <a href="https://fonts.google.com/specimen/Libre+Barcode+39+Text" target="_blank" rel="noopener">Libre Barcode 39 Text</a>（條碼下方附文字的版本，採 SIL Open Font License 授權）。</li>
+<li>安裝字型：Windows 在字型檔上按右鍵選「安裝」，Mac 點兩下字型檔，用「字體簿」安裝。裝好後重新開啟 Excel。</li>
+<li>在 C2 輸入 <code>="*"&amp;A2&amp;"*"</code>，往下拉到最後一列。前後的星號是 Code 39 的開頭與結尾記號，掃描器靠它認出條碼從哪裡開始、到哪裡結束，少了就掃不出來。</li>
+<li>選取 C 欄，字型改成 Libre Barcode 39 Text，字級調大（例如 28），列高跟著拉高，條碼的上下才不會被切掉。</li>
+</ol>
+<ul>
+<li><strong>只收這些字</strong>：數字、大寫英文、空白與 - . $ / + %。有小寫字母就先轉大寫：<code>="*"&amp;UPPER(A2)&amp;"*"</code>。其中 $ / + % 有些掃描器會跟下一個字合起來讀成別的字，編號用大寫英文、數字與 - 最保險。</li>
+<li><strong>Code 128 與 EAN-13 不能直接套字型</strong>：Code 128 最後要多一個由內容算出來的檢查字元，EAN-13 左半邊每一位的畫法要看第一位數字決定。Libre Barcode 的說明寫，Code 128 字型要先用它提供的轉換工具把內容換成字型專用的字；EAN-13 字型需要的字型功能在 Excel 裡用不了，要改用另外的輸入方式。清單一長，這一步很容易出錯。</li>
+<li><strong>檔案給別人，對方也要裝字型</strong>：字型不會跟著檔案走，對方的電腦沒有這個字型，只會看到 *A-0001* 這樣的文字。</li>
+</ul>
+<p>只要做幾張條碼，用<a href="/barcode/">條碼產生器</a>下載 SVG 比較快，Code 128、EAN-13 的檢查碼都會自動算好。網路上也有教學用 Excel 的條碼控制項（ActiveX），我們找不到 Microsoft 對它的正式說明文件，這裡不介紹。</p>
+
+<h2>做法三：Word 合併列印的條碼功能變數（Windows 版）</h2>
+<p>Word 沒有條碼按鈕，但有兩個條碼功能變數（Microsoft 的中文說明叫「欄位代碼」）：DISPLAYBARCODE 畫固定內容的條碼，MERGEBARCODE 在合併列印時，把 Excel 每一列的內容畫成條碼。Microsoft 的說明寫明，DisplayBarcode 支援的是 Windows 桌面版 Word（Microsoft 365 與 Word 2016 到 2024），Mac 版與網頁版 Word 的步驟與選項可能不同。支援的種類有 QR、CODE128、CODE39、EAN13、EAN8（JAN13、JAN8 是同一種）、UPCA、UPCE、ITF14、NW7（Codabar）與日本郵政的客戶條碼 JPPOST。</p>
+<ol>
+<li>Excel 的第一列放欄名，例如「財產編號」「品名」，存檔後關閉。</li>
+<li>在 Word 選「郵件」>「啟動合併列印」>「標籤」，選標籤紙的廠商與型號；清單裡沒有的，選「新的標籤」自己填尺寸。</li>
+<li>「郵件」>「選取收件者」>「使用現有清單」，選剛才的 Excel 檔與工作表，確認勾選了第一列是欄名。</li>
+<li>在第一格標籤裡按 Ctrl + F9，插入一對功能變數的大括號（直接打 { } 沒有用），在括號裡輸入下面其中一行。</li>
+<li>按「郵件」>「更新標籤」，其他格會照第一格填好，再按「預覽結果」檢查。只看到大括號裡的字時，在上面按右鍵選「切換功能變數代碼」（Microsoft 的中文說明寫成「切換欄位代碼」）。</li>
+<li>確認沒問題，再用「完成與合併」印出來。</li>
+</ol>
+<ul>
+<li>Code 128，條碼下面印出編號：<code>{ MERGEBARCODE 財產編號 CODE128 \\t }</code></li>
+<li>QR Code：<code>{ MERGEBARCODE 網址 QR }</code>（「網址」換成你放網址的那一欄的欄名）</li>
+</ul>
+<p>大括號是 Ctrl + F9 產生的，不用自己打。\\t 會在條碼下方印出內容，\\h 可以設定條碼高度（單位是 1/1440 英吋），\\s 可以縮放（10 到 1000 的百分比）。條碼與 QR Code 都是 Word 自己畫的，功能變數裡沒有任何外部網址，資料不會送到別的網站。缺點是 Mac 版不能用，每一格的大小要自己慢慢調，標籤紙的型號也要 Word 裡找得到，或自己量尺寸。</p>
+
+<h2>做法四：貼到本站的批次頁</h2>
+<p>本站的<a href="/batch/">批次產生 QR Code 與條碼</a>不用安裝軟體或字型，清單只在你的瀏覽器裡處理，不會上傳。下面用一份合成的財產清冊示範：財產編號 A-0001 到 A-0024，品名與保管單位都是假資料。</p>
+<ol>
+<li>在 Excel 選取整塊儲存格，連第一列的欄名一起複製。</li>
+<li>打開批次頁，「輸入方式」選「從 Excel 貼上」，貼進輸入框。工具會認出第一列是欄名，「內容欄」與「檔名欄」選財產編號。</li>
+<li>要讓手機一掃就打開這台設備的資料頁，碼的種類選 QR Code，「內容範本」填 <code>https://example.com/asset/{編號}</code>（換成你自己的網址），每一張會代入自己的編號，第一張就是 https://example.com/asset/A-0001。要給掃描槍讀編號，就選 Code 128，範本留空。</li>
+<li>看「檢查結果」有沒有標紅的列，沒有就按「下載 ZIP」，每一張是一個用財產編號命名的 PNG 或 SVG 檔。</li>
+</ol>
+<figure>
+<img src="/guides/excel-batch-qr.webp" width="720" height="713" alt="批次頁的畫面：貼上 24 列財產清冊，內容欄選財產編號，碼的種類選 QR Code，內容範本填 https://example.com/asset/{編號}，檢查結果顯示 24 筆可以產生，下方是 QR Code 的預覽" loading="lazy" decoding="async" class="fig-smooth">
+<figcaption>貼上合成的財產清冊、套用網址範本，24 筆都可以產生（本站批次頁的實際畫面）。</figcaption>
+</figure>
+<p>要直接印成貼紙，「輸出方式」選「印成 A4 標籤紙」，再選包裝上寫的型號，每一格是一個碼加一到三行字。下面是同一份清單改成 Code 128、排在鶴屋 L3464（一張 24 格）上的預覽，條碼下面依序是財產編號、品名與保管單位：</p>
+<figure>
+<img src="/guides/excel-batch-labels.webp" width="480" height="678" alt="A4 標籤紙預覽：3 欄 8 列共 24 格，每格上方是 Code 128 條碼，下面依序是財產編號 A-0001 到 A-0024、品名與保管單位" loading="lazy" decoding="async" class="fig-smooth">
+<figcaption>同一份清單改成 Code 128，排在鶴屋 L3464 上的列印預覽。虛線是每一格標籤的位置，只在螢幕上顯示，印出來不會有。</figcaption>
+</figure>
+<p>第一次印之前，先用白紙印「對位測試頁」，確認印表機沒有縮放、格子對得上標籤，步驟寫在批次頁的說明裡。從第幾格開始印、每筆印幾份也都能設定，用掉一半的標籤紙可以接著印。</p>
+
+<h2>印出來掃不到？先檢查這幾件事</h2>
+<ul>
+<li><strong>印太小</strong>：內容越長，QR Code 的小方塊越多、條碼越寬，就要印得越大。QR Code 的尺寸換算見<a href="/guide/qr-code-svg/">印刷尺寸教學</a>。</li>
+<li><strong>四周的留白不夠（靜區）</strong>：條碼左右、QR Code 四周都要留一圈空白，貼著框線、文字或裁切線就容易掃不到。用 IMAGE 函數或字型做的碼，儲存格的框線也不要壓到碼。</li>
+<li><strong>列印時被縮放</strong>：列印設定選了「符合頁面大小」，整頁會被縮小，條碼變細，位置也對不上標籤。請選「實際大小（100%）」。</li>
+<li><strong>用了彩色</strong>：掃描槍多半用紅光照，紅、橘、黃色的條在紅光下跟白紙差不多。條碼請用黑色印在白底上。</li>
+<li><strong>字型做的 Code 39 少了星號，或有小寫字母</strong>：前後一定要有星號，小寫先轉大寫。</li>
+</ul>
+<p>印好先用手機或掃描槍試掃幾張；PNG 檔也可以丟進<a href="/scan/">QR Code 掃描器</a>，確認讀出來的內容對不對。掃描的方法與排除步驟見<a href="/guide/scan-qr-code/">如何掃描 QR Code</a>。</p>
+
+<h2>用得到的工具</h2>
+<ul>
+<li><a href="/batch/">批次產生 QR Code 與條碼</a>：貼上 Excel 清單或設定連號，下載 ZIP 或印在 A4 標籤紙上。</li>
+<li><a href="/barcode/">條碼產生器</a>：一次做一張 Code 128、EAN-13 等條碼，下載 PNG 或附毫米尺寸的 SVG。</li>
+<li><a href="/">免費 QR Code 產生器</a>：一次做一張，可以調顏色、加 LOGO。</li>
+</ul>
+
+<h2>參考資料</h2>
+<ul>
+<li>Microsoft 支援：<a href="https://support.microsoft.com/zh-tw/office/image-function-7e112975-5e52-4f2a-b9da-1d913d51f5d5" target="_blank" rel="noopener">IMAGE 函數</a>（可用的 Excel 版本、替代文字、#CONNECT! 與 #BLOCKED! 錯誤）</li>
+<li>Microsoft 支援：<a href="https://support.microsoft.com/en-us/excel/excel-functions-by-category" target="_blank" rel="noopener">Excel functions (by category)</a>（IMAGE 標示為 Excel 2024 加入）</li>
+<li>Microsoft 支援：<a href="https://support.microsoft.com/zh-tw/office/encodeurl-function-07c7fb90-7c60-4bff-8687-fac50fe33d0e" target="_blank" rel="noopener">ENCODEURL 函數</a>（Mac 版與網頁版 Excel 不能用）</li>
+<li>Google 文件編輯器說明：<a href="https://support.google.com/docs/answer/3093333?hl=zh-Hant" target="_blank" rel="noopener">IMAGE</a>、<a href="https://support.google.com/docs/answer/9199778?hl=zh-Hant" target="_blank" rel="noopener">ENCODEURL 函式</a></li>
+<li>goQR.me：<a href="https://goqr.me/api/doc/create-qr-code/" target="_blank" rel="noopener">QR code API 說明</a>（網址格式，記錄請求來源但不記錄內容）、<a href="https://goqr.me/privacy-safety-security/" target="_blank" rel="noopener">隱私說明</a></li>
+<li>Google for Developers：<a href="https://developers.google.com/chart/interactive/docs/gallery/genericimagechart" target="_blank" rel="noopener">Generic Image Chart</a>（Image Charts 在 2012 年 4 月 20 日宣布停用）、<a href="https://developers.google.com/chart/interactive/faq" target="_blank" rel="noopener">Google Charts FAQ</a>（Chart API 用網址產生圖片）</li>
+<li>Libre Barcode Project：<a href="https://graphicore.github.io/librebarcode/documentation/code39.html" target="_blank" rel="noopener">Code 39</a>、<a href="https://graphicore.github.io/librebarcode/documentation/code128.html" target="_blank" rel="noopener">Code 128</a>、<a href="https://graphicore.github.io/librebarcode/documentation/ean13.html" target="_blank" rel="noopener">EAN 13</a> 的使用說明</li>
+<li>Microsoft 支援：<a href="https://support.microsoft.com/zh-tw/word/field-codes-displaybarcode" target="_blank" rel="noopener">欄位代碼：DisplayBarcode</a>、<a href="https://support.microsoft.com/zh-tw/word/field-codes-mergebarcode" target="_blank" rel="noopener">欄位代碼：MergeBarcode</a>、<a href="https://support.microsoft.com/zh-tw/word/add-barcodes-to-labels" target="_blank" rel="noopener">新增條碼至標籤</a></li>
+</ul>
+<p>以上於 2026 年 10 月 15 日查證，Google 圖表網址回 404 也是同一天實測。軟體的版本與畫面會更新，以各家的官方說明為準。</p>
+`,
 }

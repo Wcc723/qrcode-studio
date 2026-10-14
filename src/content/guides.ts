@@ -87,6 +87,16 @@ export const guides: Guide[] = [
     category: 'design',
     related: ['qr-with-logo', 'error-correction', 'what-is-qr-code'],
   },
+  {
+    slug: 'excel-qr-code-barcode',
+    shortTitle: 'Excel 做 QR Code 與條碼',
+    published: '2026-10-15',
+    updated: '2026-10-15',
+    title: 'Excel 怎麼做 QR Code 與條碼？從公式到合併列印',
+    description: 'Excel 清單怎麼變成 QR Code 與條碼？比較 IMAGE 函數搭線上服務、Code 39 條碼字型、Word 合併列印與網頁工具，附可複製的公式、可用的版本，以及資料會不會離開電腦。',
+    category: 'use',
+    related: ['qr-code-svg', 'scan-qr-code', 'what-is-qr-code'],
+  },
 ]
 export const guideBySlug: Record<string, Guide> = Object.fromEntries(guides.map(g => [g.slug, g]))
 

@@ -16,7 +16,7 @@ const code128MinMm = BARCODE_MIN_X_MM.code128
 // link：答案後面接一段文字與站內連結（模板裡用 RouterLink，不走 v-html），最後補句號
 interface BatchFaq { q: string; a: string; link?: { lead: string; to: string; text: string } }
 const faqs: BatchFaq[] = [
-  { q: 'Excel 的清單怎麼一次轉成 QR Code 或條碼？', a: '在 Excel 或 Google 試算表選取整塊儲存格（可以連欄名那一列）複製，回到這頁選「從 Excel 貼上」並貼進輸入框，再選內容欄、檔名欄與碼的種類，按「下載 ZIP」就好，不用裝增益集、條碼字型或寫公式。' },
+  { q: 'Excel 的清單怎麼一次轉成 QR Code 或條碼？', a: '在 Excel 或 Google 試算表選取整塊儲存格（可以連欄名那一列）複製，回到這頁選「從 Excel 貼上」並貼進輸入框，再選內容欄、檔名欄與碼的種類，按「下載 ZIP」就好，不用裝增益集、條碼字型或寫公式。', link: { lead: '想在 Excel、Google 試算表或 Word 裡自己做，公式、條碼字型與合併列印的做法見', to: '/guide/excel-qr-code-barcode/', text: 'Excel 怎麼做 QR Code 與條碼' } },
   { q: '一次可以做幾張？', a: `一次最多 ${max} 筆，PNG、SVG 都一樣。全部在你的瀏覽器裡產生，張數越多、圖片越大，需要的時間越久，畫面上會顯示進度，隨時可以取消。更多的話請分成幾批產生。` },
   { q: '我貼上的清單會上傳嗎？', a: '不會。清單、連號與做好的圖片只在這個分頁的記憶體裡，ZIP 也是在你的瀏覽器裡打包好直接下載，不會上傳到任何伺服器，也不會存進網址、Cookie 或瀏覽器的儲存空間。網站的流量統計只記大概幾筆（例如 51 到 200 筆）、哪一種碼、下載 PNG 還是 SVG，不含清單內容與檔名。', link: { lead: '詳見', to: '/privacy/', text: '隱私權政策' } },
   { q: '為什麼有些列被標成紅色？', a: `那一列做不成碼，紅字會寫出原因，常見的有：QR Code 的內容太長，超過能放的上限；EAN-13、EAN-8、ITF-14 混了數字以外的字（空白與 - 會自動去掉）、位數不對或檢查碼不符；Code 128 超過 ${CODE128_MAX_LENGTH} 個字元、Code 39 超過 ${CODE39_MAX_LENGTH} 個字元，或是有不支援的字元，例如中文，Code 39 也不收 # @ & 這類符號；或是內容空白。可以選「略過有問題的列」先產生其他的，或回到 Excel 修好再重新貼上。內容重複只會提醒，照樣產生。` },

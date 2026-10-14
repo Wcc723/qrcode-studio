@@ -66,7 +66,7 @@ useSeoHead({
       </p>
       <p class="text-ink/80 font-600 mt-3 leading-relaxed">
         一次要做很多張，例如整份財產清冊或一整批店內碼，請用<RouterLink to="/batch/" class="text-link underline font-700">批次產生條碼</RouterLink>：
-        從 Excel 貼上編號或設定連號，EAN-13 的檢查碼每一筆都會自動算好，打包成 ZIP 下載。
+        從 Excel 貼上編號或設定連號，EAN-13 的檢查碼每一筆都會自動算好，打包成 ZIP 下載。想在 Excel 或 Word 裡自己做，條碼字型與合併列印的做法整理在<RouterLink to="/guide/excel-qr-code-barcode/" class="text-link underline font-700">Excel 怎麼做 QR Code 與條碼</RouterLink>。
       </p>
 
       <h3 class="text-xl font-700 text-ink mt-8">五種格式怎麼選</h3>
