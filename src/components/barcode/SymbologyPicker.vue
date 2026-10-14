@@ -37,7 +37,7 @@ const selected = computed({
   <HelpTip :name="t.typeName" id="bc-sym-help">
     <template #head><span class="text-sm text-muted" aria-hidden="true">{{ t.type }}</span></template>
     <ul>
-      <li v-for="s in symbologies" :key="s.id"><strong>{{ s.label }}</strong>：{{ s.about }}</li>
+      <li v-for="s in symbologies" :key="s.id"><strong>{{ s.label }}</strong>{{ locale === 'en' ? ': ' : '：' }}{{ s.about }}</li>
     </ul>
     <p>{{ t.typeHelpEnd }}</p>
   </HelpTip>

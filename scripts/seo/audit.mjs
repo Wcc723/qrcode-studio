@@ -793,8 +793,11 @@ if (siteBase) {
     }
   }
 
-  // 英文頁：title、H1 與分享圖的標題刻意再寫一次；<main> 裡不該有沒翻到的中文（頁首的語言切換在 <main> 外面）
-  const hasHan = (text) => /\p{Script=Han}/u.test(text)
+  // 英文頁：title、H1 與分享圖的標題刻意再寫一次；<main> 裡不該有沒翻到的中文（頁首的語言切換在 <main> 外面）。
+  // 全形標點（U+3000 到 U+303F、U+FF00 到 U+FFEF）也算：模板裡寫死的「：」「，」不是漢字，只比對漢字會漏掉「Code 128：…」
+  const CJK = /[\p{Script=Han}\u3000-\u303F\uFF00-\uFFEF]/u
+  const CJK_WORDS = /[^\s]*[\p{Script=Han}\u3000-\u303F\uFF00-\uFFEF][^\s]*/gu
+  const hasCjk = (text) => CJK.test(text)
   for (const [page, expectedTitle, expectedH1] of [
     ['en/index.html', 'Free QR Code Generator: Add a Logo, Download SVG or PNG', 'Free QR Code Generator'],
     ['en/batch/index.html', 'Bulk QR Code Generator and Barcode Maker from Excel or CSV', 'Bulk QR Code and Barcode Generator'],
@@ -814,8 +817,8 @@ if (siteBase) {
     const main = (pick(html, /<main\b[^>]*>([\s\S]*?)<\/main>/i) ?? '').replace(/<script[\s\S]*?<\/script>/gi, '')
     const mainText = main.replace(/<[^>]+>/g, ' ')
     const attrText = [...main.matchAll(/\s(?:placeholder|aria-label|title|alt)="([^"]*)"/g)].map((m) => m[1]).join(' ')
-    add(`[${page}] <main> 的文字與 placeholder、aria-label 沒有中文（都翻成英文了）`, !hasHan(mainText) && !hasHan(attrText),
-      [...`${mainText} ${attrText}`.matchAll(/[^\s]*\p{Script=Han}[^\s]*/gu)].slice(0, 5).map((m) => m[0]).join(' '))
+    add(`[${page}] <main> 的文字與 placeholder、aria-label 沒有中文與全形標點（都翻成英文了）`, !hasCjk(mainText) && !hasCjk(attrText),
+      [...`${mainText} ${attrText}`.matchAll(CJK_WORDS)].slice(0, 5).map((m) => m[0]).join(' '))
     const app = jsonLd(html).find((ld) => ld?.['@type'] === 'SoftwareApplication' || ld?.['@type'] === 'WebApplication')
     add(`[${page}] 工具的 JSON-LD 價格是 0 美元`, app?.offers?.price === '0' && app?.offers?.priceCurrency === 'USD', JSON.stringify(app?.offers ?? null))
   }

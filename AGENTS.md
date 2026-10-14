@@ -176,7 +176,7 @@ wrangler 只在陣列裡有 `custom_domain` 條目時才會呼叫 `publishCustom
   （每筆事件都帶網址）。批次的 `batch_download` 仍然只有三個字面值。
 - **英文頁沒有的東西連到繁中**：英文頁尾「In Chinese only」連掃描器、WiFi、電子名片與教學；英文首頁只開網址一種（`GeneratorTool` 的 `only`）。
 - `seo:audit` 驗：每頁的 hreflang 集合、`<html lang>`、`og:locale`、`inLanguage`、語言切換的連結；英文三頁的 title、H1、
-  description 長度、`<main>` 裡沒有中文、批次頁的目標字與錨文字；英文的批次文案、Letter 的 `@page` 與 Avery 同規格的型號不進 entry chunk。
+  description 長度、`<main>` 裡沒有中文與全形標點、批次頁的目標字與錨文字；英文的批次文案、Letter 的 `@page` 與 Avery 同規格的型號不進 entry chunk。
 
 ## v-html 的富文字連結要自己補前綴
 

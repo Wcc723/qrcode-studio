@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
           </span>
           <!-- 360px 以下只留縮圖，字仍然是按鈕的名稱 -->
           <span class="leading-tight max-[359px]:sr-only">
-            <span class="block font-display font-700 text-sm text-ink">{{ t.dockExpand }}</span><span class="sr-only">，</span>
+            <span class="block font-display font-700 text-sm text-ink">{{ t.dockExpand }}</span><span class="sr-only">{{ t.dockSep }}</span>
             <span class="block text-xs font-700 text-muted">{{ t.dockFormats }}</span>
           </span>
         </button>

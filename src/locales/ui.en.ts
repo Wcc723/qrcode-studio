@@ -66,6 +66,7 @@ const previewCopyEn: PreviewCopy = {
   copyFailed: 'Copying did not work. Please download the PNG instead.',
   dockExpand: 'Full preview',
   dockFormats: 'More formats',
+  dockSep: ', ',
   capacity: 'Too long for a QR code. Shorten the content or lower the error correction level.',
   size: 'The image is too small for this content and its quiet zone. Make the image larger or shorten the content.',
 }

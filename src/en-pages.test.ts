@@ -36,8 +36,15 @@ function mountEn(component: Component, props: Record<string, unknown> = {}) {
 }
 const $ = (w: VueWrapper, t: string) => w.find(`[data-test="${t}"]`)
 const $$ = (w: VueWrapper, t: string) => w.findAll(`[data-test="${t}"]`)
-/** 畫面上的字與屬性有沒有中文（開發版的 Vue 會把模板裡的中文註解留在 DOM，不算） */
-const hasHan = (s: string) => /\p{Script=Han}/u.test(s.replace(/<!--[\s\S]*?-->/g, ''))
+/**
+ * 畫面上的字與屬性有沒有中文（開發版的 Vue 會把模板裡的中文註解留在 DOM，不算）。
+ * 全形標點也算：模板裡寫死的「：」「，」不是漢字，只比對漢字會漏掉「Code 128：…」這種中英混排。
+ */
+const CJK = /[\p{Script=Han}\u3000-\u303F\uFF00-\uFFEF]/u
+const withoutComments = (s: string) => s.replace(/<!--[\s\S]*?-->/g, '')
+const hasCjk = (s: string) => CJK.test(withoutComments(s))
+/** 失敗時指出是哪一段字 */
+const firstCjk = (s: string) => withoutComments(s).match(/[^<>]*[\p{Script=Han}\u3000-\u303F\uFF00-\uFFEF][^<>]*/u)?.[0]
 const styleOf = (el: { attributes: (k: string) => string | undefined }) => el.attributes('style') ?? ''
 const pageRuleInHead = () => document.head.querySelector('style[data-label-page]')?.textContent
 
@@ -59,7 +66,7 @@ describe('英文首頁的產生器', () => {
     expect(w.findAll('button.help-tip-btn').map(b => b.attributes('aria-label'))).toContain('More about logo')
     // 類型切換的按鈕（WiFi、電子名片…）不在英文頁上
     expect(w.text()).not.toContain('WiFi')
-    expect(hasHan(w.html()), w.html().match(/[^<>]*\p{Script=Han}[^<>]*/u)?.[0]).toBe(false)
+    expect(hasCjk(w.html()), firstCjk(w.html())).toBe(false)
   })
 
   it('隱私說明連到 hub 的英文隱私權政策', () => {
@@ -76,7 +83,7 @@ describe('英文的條碼產生器', () => {
     await flushPromises()
     expect($(w, 'bc-hint').text()).toContain('Type 12 digits and it is added for you')
     expect($(w, 'bc-error').text()).toBe('EAN-13 needs 12 digits (the check digit is added for you) or all 13 digits. This has 3.')
-    expect(hasHan(w.html())).toBe(false)
+    expect(hasCjk(w.html()), firstCjk(w.html())).toBe(false)
   })
 
   it('補上檢查碼時用英文說明，列印資訊附英寸與 mil', async () => {
@@ -111,7 +118,7 @@ describe('英文的批次頁', () => {
     await $(w, 'batch-template').setValue('https://x.example/asset/')
     await flushPromises()
     expect($(w, 'batch-template-error').text()).toContain('Add {id} to the template')
-    expect(hasHan(w.html())).toBe(false)
+    expect(hasCjk(w.html()), firstCjk(w.html())).toBe(false)
   })
 
   it('貼上清單：欄名、檢查結果與下載鈕是英文', async () => {
@@ -121,7 +128,7 @@ describe('英文的批次頁', () => {
     expect(($(w, 'batch-content-col').element as HTMLSelectElement).selectedOptions[0]!.text).toBe('Column A: Asset tag')
     expect($(w, 'batch-summary').text()).toBe('3 rows: 3 ready')
     expect($(w, 'batch-download').text()).toContain('Download ZIP (3 PNG files)')
-    expect(hasHan(w.html())).toBe(false)
+    expect(hasCjk(w.html()), firstCjk(w.html())).toBe(false)
   })
 
   it('印標籤：預設跟 Avery 5160 同規格的 Letter，尺寸用英寸寫，每張紙 215.9 mm 寬、@page 是 letter', async () => {
@@ -134,7 +141,7 @@ describe('英文的批次頁', () => {
     expect(pageRuleInHead()).toBe('@page { size: letter; margin: 0; }')
     expect($(w, 'label-blocker').text()).toBe('Paste your list first.')
     expect($(w, 'label-print-tips').text()).toContain('set the paper size to Letter')
-    expect(hasHan(w.html())).toBe(false)
+    expect(hasCjk(w.html()), firstCjk(w.html())).toBe(false)
   })
 
   it('格子照 Avery 範本的位置：第 1 格 0.188 in、0.5 in，第 5 格在第 2 列第 2 欄', async () => {

@@ -126,6 +126,8 @@ export interface PreviewCopy {
   copyFailed: string
   dockExpand: string
   dockFormats: string
+  /** 預覽列按鈕兩行字之間給報讀器的停頓（看不到）：繁中是全形逗號 */
+  dockSep: string
   capacity: string
   size: string
 }
@@ -140,6 +142,7 @@ export const previewCopy: PreviewCopy = {
   copyFailed: '複製沒有成功，請改用下載 PNG。',
   dockExpand: '看大圖',
   dockFormats: '其他下載格式',
+  dockSep: '，',
   capacity: '內容過長，超出 QR Code 容量。請縮短內容，或把耐髒程度調低。',
   size: '圖片太小，放不下這些內容和四周的留白。請把圖片大小調大，或縮短內容。',
 }
