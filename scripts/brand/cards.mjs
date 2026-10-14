@@ -54,10 +54,11 @@ export const CARDS = [
     chips: ['Check digit included', 'True-size SVG', 'Free'],
   },
   // 教學（/guide/<slug>/）每篇一張，檔名固定 og-guide-<slug>.png，guide 對到 src/content/guides.ts 的 slug。
-  // 大標要是文章 title 的一段（seo:audit 驗），替代文字在 src/content/guide-og.ts，以大標開頭、寫著橫幅那句。
+  // 大標要是文章 title 的一段（seo:audit 驗），替代文字在 src/content/guide-og.ts，以大標開頭、寫著橫幅那句、每個小標籤（chips）
+  // 與圖角標籤（tag）的字，Excel 那張再加試算表上的字（sheet）；guide-og.test.ts 逐字對帳。
   // qr 是圖裡 QR Code 的內容（站內路徑，render.mjs 接上 site.ts 的 url），掃了就到這篇；ec 是它的容錯等級。
-// figure、ec 兩種圖直接用文章裡的示意圖（public/guides/，gen-guide-figures.mjs 產生），qr 寫的是那張圖本來編的內容，只拿來驗。
-// render.mjs 產圖後會用站上的解碼器讀一次，qr 的內容讀不出來就停。
+  // figure、ec 兩種圖直接用文章裡的示意圖（public/guides/，gen-guide-figures.mjs 產生），qr 寫的是那張圖本來編的內容，只拿來驗。
+  // render.mjs 產圖後會用站上的解碼器讀一次，每個碼都要以對的碼制（QR Code、Code 128、EAN-13）讀出對的內容，不然就停。
   {
     out: 'og-guide-what-is-qr-code.png',
     guide: 'what-is-qr-code',
@@ -129,6 +130,8 @@ export const CARDS = [
     guide: 'excel-qr-code-barcode',
     art: 'sheet',
     tag: { text: 'Excel', color: 'sun', side: 'right' },
+    // 右邊試算表上的字：跟文章同一份合成財產清冊的欄名與前三列，每列的 QR Code 與 Code 128 內容就是財產編號
+    sheet: { head: ['財產編號', 'QR Code', '條碼'], rows: ['A-0001', 'A-0002', 'A-0003'] },
     // 第二行最長，字級要小才放得下；兩行變矮了，往下移一點讓大標在橫幅上方的空間裡置中
     titleSize: 74,
     titleTop: 188,

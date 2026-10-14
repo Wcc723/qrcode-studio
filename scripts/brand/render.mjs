@@ -8,13 +8,15 @@
 // 站徽正本（512×512 透明 PNG，Codex 生成，選案與理由見 docs/brand/README.md）：
 //   scripts/brand/logo-source.png     頁首、apple-touch-icon、manifest 圖示（any 與 maskable）、分享圖
 //   scripts/brand/favicon-source.png  分頁圖示（favicon.svg、favicon.ico）：正本縮到 16px 會糊成一團，改用同一批生成的簡化版
-// 圖示一律用 sharp 從正本縮（lanczos3，小尺寸比瀏覽器縮得清楚）。sharp 不是本 repo 的直接相依，是 wrangler 帶進來的。
+// 圖示一律用 sharp 從正本縮（lanczos3，小尺寸比瀏覽器縮得清楚）。sharp 列在 package.json 的 devDependencies（精確鎖版），
+// 測試與 scripts/ 底下的產圖腳本都直接 import 它；wrangler 底下的 miniflare 也用同一版，npm 只裝一份。
 //
 // 分享圖：HTML 模板加 headless Chromium 截圖，字才會精準（不用生圖模型產字）。文字正本在 cards.mjs，
-// 站名與網址從 src/config/site.ts 讀，不另外寫一份。標題的中文字型是 Google Fonts 的 Noto Sans TC 900，
-// 截圖時要連網；英文與數字用 node_modules 裡的 Fredoka。
-// 每張產完會自己檢查兩件事，不過就停：字有沒有超出左半邊撞到右邊的圖（換字或換字級後最常出事），
-// 以及圖裡的碼用站上同一版解碼器（zxing-wasm 的 reader）讀不讀得出來、內容對不對。
+// 站名與網址從 src/config/site.ts 讀，不另外寫一份。中文字型是 Google Fonts 的 Noto Sans TC（大標與橫幅 900，
+// 其他字 700），截圖時要連網；英文與數字用 node_modules 裡的 Fredoka。
+// 每張產完會自己檢查三件事，不過就停、不寫檔：圖上每個字重的漢字都用 Noto Sans TC 那個字重畫（沒載到就會換成後備字型），
+// 字有沒有超出左半邊撞到右邊的圖（換字或換字級後最常出事），以及圖裡的每個碼（QR Code、Code 128、EAN-13）
+// 用站上同一版解碼器（zxing-wasm 的 reader）讀得出來，碼制與內容都對。
 // 找 Playwright 的順序：import('playwright')，或環境變數 PLAYWRIGHT_MODULE（某個 playwright 套件目錄的絕對路徑，
 // 例如 npx 快取裡那份），必要時再用 PLAYWRIGHT_CHROMIUM 指定瀏覽器執行檔。
 //
@@ -185,14 +187,16 @@ function tagHtml(card) {
 /** 圖裡 QR Code 的內容：教學卡寫在 cards.mjs 的 qr（站內路徑），掃描器那張沿用 SCAN_QR_TEXT */
 const qrText = (card) => (card.qr ? `${SITE_URL}${card.qr}` : SCAN_QR_TEXT)
 
-// 〈Excel 怎麼做 QR Code 與條碼〉那張的試算表：跟文章同一份合成財產清冊的前三列，碼的內容就是財產編號
-const SHEET_ROWS = ['A-0001', 'A-0002', 'A-0003']
-
-/** 產圖後必須讀得出來的碼（內容）。教學示意圖（figure、ec）裡的碼由 gen-guide-figures.mjs 編，卡片的 qr 只用來驗它 */
+/**
+ * 產圖後必須讀得出來的碼：碼制（zxing 的格式名）加內容，一個碼一筆。同樣的內容可以出現好幾次（Excel 那張每列的 QR Code
+ * 與 Code 128 都是財產編號、容錯等級那張的四個 QR Code 是同一個網址），verifyCodes 要每一筆各對到一個讀出來的碼，
+ * 不能讓 QR Code 替條碼過關。教學示意圖（figure、ec）裡的碼由 gen-guide-figures.mjs 編，卡片的 qr 只用來驗它。
+ */
 function expectedCodes(card) {
-  if (card.art === 'barcode') return [BARCODE_EAN13]
-  if (card.art === 'sheet') return SHEET_ROWS
-  if (card.art === 'scan' || card.art === 'qr' || card.qr) return [qrText(card)]
+  if (card.art === 'barcode') return [{ format: 'EAN13', text: BARCODE_EAN13 }]
+  if (card.art === 'sheet') return card.sheet.rows.flatMap((text) => [{ format: 'QRCode', text }, { format: 'Code128', text }])
+  if (card.art === 'ec') return ['L', 'M', 'Q', 'H'].map(() => ({ format: 'QRCode', text: qrText(card) }))
+  if (card.art === 'scan' || card.art === 'qr' || card.qr) return [{ format: 'QRCode', text: qrText(card) }]
   return []
 }
 
@@ -230,14 +234,16 @@ async function artHtml(card) {
     return `<div class="art-card">${tagHtml(card)}<div class="ec-grid">${cells}</div></div>`
   }
   if (art === 'sheet') {
-    const rows = await Promise.all(SHEET_ROWS.map(async (id, i) =>
+    // 〈Excel 怎麼做 QR Code 與條碼〉那張的試算表，字在 cards.mjs 的 sheet（欄名與財產編號，碼的內容就是財產編號）
+    const { head, rows } = card.sheet
+    const cells = await Promise.all(rows.map(async (id, i) =>
       `<div class="rn">${i + 2}</div><div class="id">${esc(id)}</div>` +
       `<div class="qr-s">${await barcodeSvg(id, 'QRCode', 'ecLevel=M')}</div>` +
       `<div class="bc">${await barcodeSvg(id, 'Code128')}</div>`))
     return `<div class="art-card">${tagHtml(card)}<div class="sheet">` +
       '<div class="hd"></div><div class="hd">A</div><div class="hd">B</div><div class="hd">C</div>' +
-      '<div class="rn">1</div><div class="th">財產編號</div><div class="th">QR Code</div><div class="th">條碼</div>' +
-      `${rows.join('')}</div></div>`
+      `<div class="rn">1</div>${head.map((h) => `<div class="th">${esc(h)}</div>`).join('')}` +
+      `${cells.join('')}</div></div>`
   }
   throw new Error(`cards.mjs：不認得的 art「${art}」（${card.out}）`)
 }
@@ -305,15 +311,19 @@ async function cardHtml(card) {
   /* 等級的字放右下角：QR Code 的三個定位方塊在左上、右上、左下，右下角蓋到一點點只算資料受損，容錯救得回來 */
   .ec-badge { position: absolute; right: -12px; bottom: -12px; width: 40px; height: 40px; border-radius: 50%; border: 3px solid #16130f;
     display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 3px 3px 0 #16130f; }
-  .sheet { display: grid; grid-template-columns: 34px 106px 100px 124px; grid-template-rows: 34px 46px repeat(3, 92px);
+  /* 條碼欄要寬：A-0001 的 Code 128 有 90 個模組，畫成 174 px 寬是每個模組約 1.9 px，左右各留約 14 px 白（約 7 個模組的靜區）。
+     淺灰的格線離條碼太近，解碼器也會把它當成一條、等於沒有靜區（v1.9.2 畫成 104 px，每個模組約 1.2 px，三條都讀不到；
+     176 px 但兩邊只留 9 px 時也有兩條讀不到）。
+     其他欄縮到剛好放得下字與 QR Code，整張表仍在白底卡片裡 */
+  .sheet { display: grid; grid-template-columns: 24px 84px 76px 202px; grid-template-rows: 34px 46px repeat(3, 92px);
     border: 2px solid #16130f; background: #fff; }
   .sheet > div { border-right: 1px solid #C9C4BA; border-bottom: 1px solid #C9C4BA; display: flex; align-items: center;
     justify-content: center; overflow: hidden; }
   .sheet .hd, .sheet .rn { background: #EFEBE3; color: #6B655C; font-size: 18px; }
-  .sheet .th { font-size: 19px; }
-  .sheet .id { font-family: ui-monospace, Menlo, monospace; font-size: 19px; font-weight: 700; }
-  .sheet .qr-s svg { width: 72px; height: 72px; display: block; }
-  .sheet .bc svg { width: 104px; height: 58px; display: block; }
+  .sheet .th { font-size: 17px; }
+  .sheet .id { font-family: ui-monospace, Menlo, monospace; font-size: 18px; font-weight: 700; }
+  .sheet .qr-s svg { width: 64px; height: 64px; display: block; }
+  .sheet .bc svg { width: 174px; height: 58px; display: block; }
 </style></head><body>
   <div class="dot" style="left:640px;top:36px;width:62px;height:62px;background:#FFD12E"></div>
   <div class="dot" style="left:-70px;top:520px;width:170px;height:170px;background:#FF5DA2"></div>
@@ -347,7 +357,8 @@ const TEXT_RIGHT_LIMIT = { card: 700, logo: 730 }
 
 /**
  * 圖裡的碼是真的：用站上同一版解碼器（zxing-wasm/reader，讀 node_modules 那一份 WASM，不連網）讀產好的 PNG，
- * expectedCodes 列的內容都要讀得出來。讀不到或內容不對就停，不寫檔。
+ * expectedCodes 列的每一筆都要各對到一個讀出來的碼，碼制與內容都一樣（一個讀到的碼只能抵一筆）。
+ * 讀不到、碼制不對或內容不對就停，不寫檔。
  */
 let readerReady = null
 async function verifyCodes(card, png) {
@@ -361,10 +372,48 @@ async function verifyCodes(card, png) {
   await readerReady
   const { data, info } = await sharp(png).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   const image = { data: new Uint8ClampedArray(data.buffer, data.byteOffset, data.length), width: info.width, height: info.height, colorSpace: 'srgb' }
-  const found = (await readBarcodes(image, { tryHarder: true, maxNumberOfSymbols: 8 })).filter((r) => r.isValid).map((r) => r.text)
-  const missing = expected.filter((t) => !found.includes(t))
-  if (missing.length) throw new Error(`${card.out}：圖裡的碼讀不到 ${missing.join('、')}（讀到：${found.join('、') || '沒有'}）`)
-  console.log(`[brand] ${card.out} 的碼讀得出來：${expected.join('、')}`)
+  const found = (await readBarcodes(image, { tryHarder: true, maxNumberOfSymbols: 8 }))
+    .filter((r) => r.isValid)
+    .map((r) => ({ format: r.format, text: r.text }))
+  const label = ({ format, text }) => `${format} ${text}`
+  const left = [...found]
+  const missing = expected.filter((want) => {
+    const at = left.findIndex((got) => got.format === want.format && got.text === want.text)
+    if (at === -1) return true
+    left.splice(at, 1)
+    return false
+  })
+  if (missing.length) {
+    throw new Error(`${card.out}：圖裡的碼讀不到 ${missing.map(label).join('、')}（讀到：${found.map(label).join('、') || '沒有'}）`)
+  }
+  console.log(`[brand] ${card.out} 的碼讀得出來：${expected.map(label).join('、')}`)
+}
+
+/**
+ * 圖上的漢字有兩種字重（大標與橫幅 900，其他 700，例如小標籤與 Excel 試算表的欄名），Noto Sans TC 依 unicode-range 分片、
+ * 每個字重各自載入，所以照每段字實際的字重分別檢查：那個字重要有已載入的 Noto Sans TC，而且這段字用到的分片都載到了。
+ * 沒載到就停（要連網），不要用後備字型產圖。英數字先用內嵌的 Fredoka，Noto 那幾片不會載，所以只檢查漢字；英文卡沒有漢字，不必檢查。
+ */
+async function checkNotoLoaded(page, card) {
+  const byWeight = await page.evaluate(() => {
+    const out = {}
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const han = node.data.replace(/[^\p{Script=Han}]/gu, '')
+      if (han) {
+        const weight = getComputedStyle(node.parentElement).fontWeight
+        out[weight] = (out[weight] ?? '') + han
+      }
+    }
+    return out
+  })
+  for (const [weight, text] of Object.entries(byWeight)) {
+    const ok = await page.evaluate(([w, t]) => {
+      const loaded = [...document.fonts].some((f) => f.family.replace(/["']/g, '') === 'Noto Sans TC' && String(f.weight) === w && f.status === 'loaded')
+      return loaded && document.fonts.check(`${w} 16px "Noto Sans TC"`, t)
+    }, [weight, text])
+    if (!ok) throw new Error(`${card.out}：Noto Sans TC ${weight} 沒載到（要連網），不要用後備字型產圖（${text}）`)
+  }
 }
 
 const cards = CARDS.filter((c) => wanted(c.out))
@@ -376,11 +425,7 @@ if (cards.length) {
   for (const card of cards) {
     await page.setContent(await cardHtml(card), { waitUntil: 'networkidle' })
     await page.evaluate(() => document.fonts.ready)
-    // 字型依 unicode-range 分片載入，只檢查這張圖上真的有的漢字（含右邊圖裡的標籤與表頭；英數字先用 Fredoka，Noto 那幾片不會載）
-    const text = (await page.evaluate(() => document.body.innerText)).replace(/[^\p{Script=Han}]/gu, '')
-    // 英文卡沒有漢字，不必等 Noto Sans TC；英數字一律用內嵌的 Fredoka
-    const ok = !text || await page.evaluate((t) => document.fonts.check('900 104px "Noto Sans TC"', t), text)
-    if (!ok) throw new Error('Noto Sans TC 沒載到（要連網），不要用後備字型產圖')
+    await checkNotoLoaded(page, card)
     // 左半邊的字（大標、橫幅、小標籤）不能伸進右邊的圖
     const right = await page.evaluate(() =>
       Math.max(...[...document.querySelectorAll('.title span, .banner, .chips span')].map((el) => el.getBoundingClientRect().right)))
