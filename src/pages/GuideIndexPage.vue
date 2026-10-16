@@ -12,7 +12,9 @@ function zhDate(iso: string) {
 
 useSeoHead({
   title: `QR Code 教學總覽｜${site.name}`,
-  description: `${guides.length} 篇 QR Code 教學一次看：原理與容量、手機與電腦怎麼掃、容錯等級怎麼選、加 LOGO 不影響掃描、印刷用 SVG 與尺寸、LINE QR Code，以及從 Excel 清單做 QR Code 與條碼。`,
+  // 不寫篇數（站長 2026-10-07 的站群規則：介紹文案不寫數量）。原本是 `${guides.length} 篇 …`，
+  // 數字雖然是算出來的不會過時，但那條規則要的是文案裡根本不出現數量。
+  description: 'QR Code 教學一次看：原理與容量、手機與電腦怎麼掃、容錯等級怎麼選、加 LOGO 不影響掃描、印刷用 SVG 與尺寸、LINE QR Code，以及從 Excel 清單做 QR Code 與條碼。',
   path: '/guide',
   kind: 'page',
   pageType: 'CollectionPage',
