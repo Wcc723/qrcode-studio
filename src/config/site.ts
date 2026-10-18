@@ -52,6 +52,9 @@ export const publisher = {
   // 出品方的品牌圖由 hub 提供，站群每個站用同一個網址（Google 要求 logo 至少 112×112）。
   logo: 'https://www.pocketool.app/brand/pocketool-icon.png',
   aboutUrl: 'https://www.pocketool.app/about',
+  // 頁尾最後一行的經營者署名，連到口袋工具的關於頁（aboutUrl，同分頁開）。字是兩個半形空格隔開的原句，
+  // 英文頁也用這一句、不翻譯（連結標 lang 與 hreflang="zh-Hant"），所以不放進語系字典。
+  ownerLine: '六角學院 卡斯伯 經營',
   contactUrl: 'https://www.pocketool.app/contact',
   privacyUrl: 'https://www.pocketool.app/privacy',
   toolsUrl: 'https://www.pocketool.app/tools/',

@@ -121,6 +121,7 @@ const navLabel = computed(() => (isEn.value ? 'Main menu' : '主選單'))
           © {{ site.nameEn }} · Made by <a :href="publisher.urlEn" class="hover:text-link underline underline-offset-2">{{ publisher.nameEn }}</a> · <span class="i-lucide-lock" aria-hidden="true" /> Made in your browser, nothing is uploaded
         </p>
         <p class="max-w-screen-lg mx-auto px-4 pb-4 -mt-2 text-xs text-muted" data-test="trademark">{{ site.trademarkEn }}</p>
+        <p class="max-w-screen-lg mx-auto px-4 pb-4 text-base"><a data-owner-line :href="publisher.aboutUrl" lang="zh-Hant" hreflang="zh-Hant" class="font-700 text-ink underline underline-offset-4 hover:text-link transition">{{ publisher.ownerLine }}</a></p>
       </div>
     </footer>
     <footer v-else class="border-t-3 border-ink mt-16 bg-white">
@@ -173,6 +174,7 @@ const navLabel = computed(() => (isEn.value ? 'Main menu' : '主選單'))
           © {{ site.name }} · <a :href="publisher.url" class="hover:text-link underline underline-offset-2">口袋工具 Pocketool</a> 出品 · <span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端
         </p>
         <p class="max-w-screen-lg mx-auto px-4 pb-4 -mt-2 text-xs text-muted" data-test="trademark">{{ site.trademark }}</p>
+        <p class="max-w-screen-lg mx-auto px-4 pb-4 text-base"><a data-owner-line :href="publisher.aboutUrl" lang="zh-Hant" hreflang="zh-Hant" class="font-700 text-ink underline underline-offset-4 hover:text-link transition">{{ publisher.ownerLine }}</a></p>
       </div>
     </footer>
   </div>

@@ -937,6 +937,41 @@ if (siteBase) {
   }
 }
 
+// 頁尾最後一行的經營者署名：連到口袋工具的關於頁，同分頁開，英文頁也是同一句、不翻譯。
+// 逐頁驗（含 404.html），再加上資產根的 404.html（scripts/gen-sitemap.mjs 從 404 複製過去，/qrcode-studio-foo 這類網址拿到的是那一份）。
+// 字與網址刻意再寫一次、不從 site.ts 推導。
+const OWNER = { text: '六角學院 卡斯伯 經營', href: 'https://www.pocketool.app/about', lang: 'zh-Hant' }
+function ownerLineProblems(html) {
+  const clean = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<script\b[\s\S]*?<\/script>/gi, '')
+  const hits = [...clean.matchAll(/<a\b([^>]*\bdata-owner-line\b[^>]*)>([\s\S]*?)<\/a>/gi)]
+  if (hits.length !== 1) return [`署名要剛好一條，實際 ${hits.length} 條`]
+  const [whole, attrs, inner] = hits[0]
+  const attr = (name) => attrs.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1]
+  const problems = []
+  const text = inner.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+  if (text !== OWNER.text) problems.push(`字不對：${text}`)
+  if (attr('href') !== OWNER.href) problems.push(`href 不對：${attr('href')}`)
+  if (attr('lang') !== OWNER.lang || attr('hreflang') !== OWNER.lang) problems.push('lang 與 hreflang 都要是 zh-Hant')
+  if (attr('target') !== undefined || attr('rel') !== undefined) problems.push('同分頁開，不加 target、rel')
+  const end = hits[0].index + whole.length
+  const close = clean.lastIndexOf('</footer>')
+  const open = clean.lastIndexOf('<footer', hits[0].index)
+  if (open === -1 || close < end || clean.indexOf('<footer', end) !== -1) problems.push('署名要在最後一個 <footer> 裡')
+  else if (clean.slice(end, close).replace(/<[^>]+>/g, '').trim()) problems.push('署名後面還有字，它要是頁尾最後一行')
+  return problems
+}
+{
+  const rootNotFound = join(distDir, '..', '404.html')
+  add('資產根有 404.html（頁尾署名一起驗）', existsSync(rootNotFound), rootNotFound)
+  const targets = [...htmlFiles.map((f) => [rel(f), f]), ...(existsSync(rootNotFound) ? [['../404.html', rootNotFound]] : [])]
+  for (const [name, f] of targets) {
+    const html = readFileSync(f, 'utf8')
+    // 每一頁都套 DefaultLayout，都有頁尾；沒有 <footer> 就是版面掉了
+    const problems = /<footer\b/i.test(html) ? ownerLineProblems(html) : ['沒有 <footer>']
+    add(`[${name}] 頁尾最後一行是經營者署名，連到口袋工具的關於頁`, problems.length === 0, problems.join('；'))
+  }
+}
+
 // 輸出
 let failed = 0
 for (const r of results) {
