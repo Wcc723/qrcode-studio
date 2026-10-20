@@ -231,6 +231,8 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 所以本 repo 不放這兩個檔，統一由 hub（`../pocket-tool-blog/public/`）提供。
 新增路由後要記得去 hub 確認 sitemap 那行還在。
 
+本站目前暫時不載入廣告程式（`adsbygoogle.js`），頁面也沒有 `google-adsense-account` meta；要加其中任何一個之前先問站長。
+
 ## 改動 base 相關設定後的本機驗證
 
 重新 build 後檢查 `dist` 結構與站內連結前綴，再用 `wrangler dev` 打四種網址；指令與預期回應見 `docs/deploy.md`。
