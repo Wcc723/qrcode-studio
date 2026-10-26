@@ -58,6 +58,14 @@ describe('類型頁的 FAQ 與延伸閱讀', () => {
       expect(t.lead, t.type).not.toBe(t.description)
     }
   })
+  it('網址頁的 description：動詞開頭、90 到 130 字，網址與連結兩種說法都寫到，全形標點、中英之間有空格', () => {
+    const d = qrTypeByPath['/url']!.description
+    expect(d.startsWith('貼上')).toBe(true)
+    expect([...d].length).toBeGreaterThanOrEqual(90)
+    expect([...d].length).toBeLessThanOrEqual(130)
+    for (const word of ['網址', '連結', 'QR Code', '永久有效', '無浮水印']) expect(d).toContain(word)
+    expect(d).not.toMatch(/[一-鿿][,.;:]|[一-鿿][A-Za-z0-9]|[A-Za-z0-9][一-鿿]/)
+  })
   it('每種類型都有建置時打包的 Lucide 圖示', () => {
     for (const t of qrTypes) expect(t.icon, t.type).toMatch(/^i-lucide-[a-z0-9-]+$/)
     expect(new Set(qrTypes.map(t => t.icon)).size).toBe(qrTypes.length)
