@@ -65,6 +65,19 @@ Facebook 與 LINE 都沒有能保證換圖的重抓工具（原因與換檔名�
 `seo:audit` 從這次起拿 `scripts/brand/cards.mjs` 對帳：站台根目錄的 og:image 要是其中一張，替代文字要寫著圖上的大標，
 這兩頁的替代文字以大標開頭、有橫幅那句，大標也要在 title 裡。
 
+### description 改動
+
+`docs/ui.md` 寫的「類型頁的 meta description 不跟著文案改」管的是用字白話化時不要順手動；為了搜尋結果刻意改 description 時，
+照 title 的做法記在這裡，四週後回顧。
+
+| 改動日 | 網址 | 改前 description | 改後 description | 四週後比的東西 |
+|---|---|---|---|---|
+| 2026-10-26 | `/url/` | 免費線上把網址轉成 QR Code，瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不會過期。（74 字） | 貼上官網、表單或活動頁的連結，馬上轉成手機一掃就開的 QR Code：網址直接存在圖裡、不經過轉址，永久有效不會過期。免費、無浮水印，可自訂顏色、加入 LOGO，下載 PNG、JPG 或 SVG 向量檔；瀏覽器內即時生成、不傳雲端。（116 字） | Bing 上 `/url/` 的點擊率 |
+
+title 與 H1 沒有改。這句同時是說明文章的第一段，og:description、twitter:description 與 JSON-LD 的 description 一起變（#25）。
+改前基線是 Bing 10-02、10-09、10-16 三個週桶的曝光與點擊，數字記在 workspace 的研究筆記。
+改後窗口從上線隔天起算滿 28 天，用同樣的週桶比；曝光一樣要累積到至少 100 次才談點閱率。
+
 ---
 
 ### 觀念提醒
