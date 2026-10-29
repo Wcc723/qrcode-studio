@@ -141,6 +141,15 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 - **GA 不分 property、不加參數**：兩種語言都是 `content_group: 'qrcode-studio'`。批次的 `batch_download` 仍然只有三個字面值。
 - **英文頁沒有的東西連到繁中**（英文頁尾「In Chinese only」）；英文首頁只開網址一種。
 
+## 頁尾（站群共用）
+
+- 頁尾是口袋工具站群共用的 `src/shared/pocketool-footer/`（互連列、字標與網站資訊、版權句、最後一行的經營者署名），
+  從口袋工具的正本同步過來，**不要在這裡改**：檔頭寫著版本，改了會跟其他站對不上。
+- 本站自己的東西（站內連結、In Chinese only、回報問題、隱私那一行、DENSO WAVE 商標聲明）放在它的預設 slot，
+  `DefaultLayout.vue` 依語系傳 `locale`（`FOOTER_LOCALE`）。連回口袋工具、版權句與署名只由共用部分畫，slot 裡不要再放第二份。
+- 顏色與字型在 `src/styles/pocketool-footer.css`（`--ptf-*` 對到本站色票）；頁尾的字一律 16px 以上，任何寬度每個連結都至少 44px 高。
+- `seo:audit` 對每一個有 `<footer>` 的 HTML 跑同步來的 `pocketoolFooterProblems`；`src/pocketool-footer.test.ts` 鎖互連列、`aria-current` 與英文頁的字。
+
 ## v-html 的富文字連結要自己補前綴
 
 教學本文（`src/content/guide-bodies.ts`）與 `src/config/qr-types.ts` 的 `body` 用 `v-html` 塞進 DOM，**既不經 Vite base 也不經 vue-router**。

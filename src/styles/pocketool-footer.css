@@ -1,0 +1,21 @@
+/*
+ * 口袋工具站群共用頁尾（src/shared/pocketool-footer/PocketoolFooter.vue，同步來的拷貝，不要改那邊）的顏色與字型。
+ * 元件只管版面，顏色與字型全部走 --ptf-* 變數，這裡把它們對到本站的色票（uno.config.ts 的 theme.colors 與 main.css）：
+ * 白底、近黑的字 ink、暖灰棕的次要字 muted、暖米的細分隔線 line、滑過用深一階的橘 link，目前這站與署名的底線用品牌橘。
+ * 字型跟頁面一樣是 Nunito，字標的 Pocketool 用標題的 Fredoka；內容寬與左右留白跟頁首一樣（max-w-screen-lg、px-4）。
+ * 頁尾頂端跟頁首底端一樣是 3px 的近黑粗線（本站的貼紙風格）。
+ */
+[data-pocketool-footer] {
+  --ptf-bg: #fff;
+  --ptf-ink: #16130f;
+  --ptf-ink-2: #7a6c57;
+  --ptf-line: #efe2cc;
+  --ptf-border-top: 3px solid #16130f;
+  --ptf-line-strong: #ff7a1a;
+  --ptf-link-hover: #c2410c;
+  --ptf-font: "Nunito", ui-rounded, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --ptf-font-brand: "Fredoka", "Baloo 2", ui-rounded, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --ptf-max-width: 1024px;
+  --ptf-gutter: 16px;
+  --ptf-gutter-wide: 16px;
+}

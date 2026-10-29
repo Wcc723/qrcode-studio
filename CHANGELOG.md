@@ -3,6 +3,34 @@
 本檔記錄使用者感知得到的改版。版本號與 `package.json` 的 `version` 一致，
 tag 在部署成功且線上驗過之後才打。
 
+## [1.10.0] - 2026-10-29
+
+### 變更
+
+- 頁尾換成口袋工具的站群共用頁尾，加上「口袋工具的站」互連列：口袋工具、口袋時間、社畜人生計算機、行政小幫手、台灣郵遞區號查詢、
+  QR Code 製造機、顏文字花園、Pixel Smith、Device Tester 九個站各一句短說明，本站標 `aria-current="true"`（站名加底線）。
+  下面是口袋工具的字標、網站資訊七個連結（關於、編輯方針、隱私權政策、服務條款、免責聲明、聯絡、卡斯伯 Blog）、版權句，
+  最後一行照舊是經營者署名。
+- 英文頁用同一個頁尾的英文版：站名與網站資訊是英文、連到口袋工具的英文頁；沒有英文版的站連繁中版並標 `hreflang="zh-Hant"`，
+  沒有英文站名的站名標 `lang="zh-Hant"`。
+- 本站自己的連結（QR Code 類型、其他工具、教學、關於；英文頁的 Free tools、In Chinese only、About）、回報問題、
+  「瀏覽器內生成，內容不傳雲端」那一行與 DENSO WAVE 的商標聲明放在頁尾最上面那一區，網址都沒有變。
+  本站的隱私權頁連結改叫「本工具隱私權政策」，跟共用部分的口袋工具隱私權政策分得出來。
+  跟共用部分重複的連結（連回口袋工具首頁、口袋工具的聯絡頁，英文頁再加口袋工具的隱私權政策）與舊的版權句拿掉，一頁只出現一次。
+- 頁尾的字一律 16px 以上，任何寬度每個連結都至少 44px 高（網站資訊的連結也至少 44px 寬）。網址、title、description、JSON-LD 與教學的更新日都沒有變。
+
+### 技術
+
+- `src/shared/pocketool-footer/` 是站群共用頁尾的元件、資料與建置稽核，從口袋工具的正本同步過來，檔頭寫著版本，不要在這裡改。
+  `src/styles/pocketool-footer.css` 把它的 `--ptf-*` 變數對到本站色票與字型，頁尾頂端用 `--ptf-border-top` 維持 3px 的近黑粗線。
+- `src/config/site.ts` 拿掉頁尾不再用到的 `publisher.ownerLine`、`publisher.contactUrlEn`（署名的字與網址改由共用頁尾的資料檔提供），
+  加上共用頁尾用的站名代號 `FOOTER_SITE`；`src/i18n/locale.ts` 加上語系對應 `FOOTER_LOCALE`。
+- SEO 稽核對每一個有 `<footer>` 的 HTML（含 `404.html` 與資產根的 `dist/404.html`）跑共用頁尾附的 `pocketoolFooterProblems`，
+  語系照 `<html lang>`；署名的檢查保留，另外驗它在共用頁尾裡。英文頁「沒有中文」的檢查照舊只看 `<main>`，
+  另外加一條英文頁的頁尾檢查：只拿掉署名與標 `lang="zh-Hant"` 的站名，剩下的字與 aria-label、title、alt 不能有中文與全形標點。
+- 新增 `src/pocketool-footer.test.ts`：中英兩種頁尾的互連列、`aria-current`、英文頁的字、本站專屬區的內容與不重複、字級與手機點擊高度；
+  `src/owner-line.test.ts` 改成新的頁尾結構。
+
 ## [1.9.6] - 2026-10-18
 
 ### 新增

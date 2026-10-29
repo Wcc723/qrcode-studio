@@ -13,6 +13,7 @@ import '@fontsource/nunito/latin-700.css'
 import '@fontsource/nunito/latin-800.css'
 import 'uno.css'
 import './styles/main.css'
+import './styles/pocketool-footer.css'
 
 export const createApp = ViteSSG(
   App,

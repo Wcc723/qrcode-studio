@@ -9,6 +9,7 @@
  * 而且要能帶型別與參數。各區的字典見 src/locales/ui.ts（全站共用的元件）與 src/pure/batch/copy.ts（批次頁）。
  */
 import { inject, readonly, ref, type InjectionKey, type Ref } from 'vue'
+import type { PocketoolFooterLocale } from '@/shared/pocketool-footer/pocketool-footer-data.mjs'
 
 export type Locale = 'zh-TW' | 'en'
 
@@ -21,6 +22,9 @@ export const LANG_TAG: Record<Locale, string> = { 'zh-TW': 'zh-Hant-TW', en: 'en
 
 /** og:locale：英文版的目標市場是美國 */
 export const OG_LOCALE: Record<Locale, string> = { 'zh-TW': 'zh_TW', en: 'en_US' }
+
+/** 口袋工具站群共用頁尾的語系：互連列與網站資訊的字、連到各站哪一個語言的版本都跟著它 */
+export const FOOTER_LOCALE: Record<Locale, PocketoolFooterLocale> = { 'zh-TW': 'zh-Hant', en: 'en' }
 
 /** 路由 meta 裡的語系；沒寫就是繁中 */
 export function localeOfMeta(meta: { locale?: unknown } | undefined): Locale {

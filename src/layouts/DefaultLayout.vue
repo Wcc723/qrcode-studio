@@ -2,8 +2,9 @@
 import { computed } from 'vue'
 import { qrTypes } from '@/config/qr-types'
 import { guides } from '@/content/guides'
-import { site, publisher } from '@/config/site'
-import { LANG_TAG, useLocale } from '@/i18n/locale'
+import { site, publisher, FOOTER_SITE } from '@/config/site'
+import { FOOTER_LOCALE, LANG_TAG, useLocale } from '@/i18n/locale'
+import PocketoolFooter from '@/shared/pocketool-footer/PocketoolFooter.vue'
 
 const props = withDefaults(defineProps<{
   /** 語言切換連到哪裡（App.vue 依目前的路由算好：另一個語系的同一頁，沒有就是那個語系的首頁） */
@@ -50,6 +51,10 @@ const hub = computed(() => (isEn.value
   ? { url: publisher.urlEn, label: publisher.nameEn }
   : { url: publisher.url, label: '口袋工具' }))
 const navLabel = computed(() => (isEn.value ? 'Main menu' : '主選單'))
+
+// 頁尾本站專屬區的連結：字跟著共用頁尾是 16px；跟共用部分一樣，任何寬度每個連結都至少 44px 高（好點）
+const footList = 'mt-2 font-600 text-muted list-none p-0'
+const footLink = 'flex items-center min-h-11 hover:text-link transition'
 </script>
 <template>
   <div class="min-h-screen flex flex-col">
@@ -81,101 +86,94 @@ const navLabel = computed(() => (isEn.value ? 'Main menu' : '主選單'))
       </nav>
     </header>
     <main class="flex-1"><slot /></main>
-    <footer v-if="isEn" class="border-t-3 border-ink mt-16 bg-white">
-      <div class="max-w-screen-lg mx-auto px-4 py-10 grid gap-8 grid-cols-2 md:grid-cols-3 text-sm">
-        <section>
-          <h2 class="font-display font-700 text-ink text-base">Free tools</h2>
-          <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><RouterLink to="/en/" class="hover:text-link transition">QR code generator</RouterLink></li>
-            <li><RouterLink to="/en/batch/" class="hover:text-link transition">Bulk QR code generator</RouterLink></li>
-            <li><RouterLink to="/en/barcode/" class="hover:text-link transition">Barcode generator</RouterLink></li>
-            <li><a :href="publisher.toolsUrlEn" class="hover:text-link transition">More free tools</a></li>
-          </ul>
-        </section>
-        <section>
-          <h2 class="font-display font-700 text-ink text-base">In Chinese only</h2>
-          <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><RouterLink to="/scan/" hreflang="zh-Hant-TW" class="hover:text-link transition">QR code scanner<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-            <li><RouterLink to="/wifi/" hreflang="zh-Hant-TW" class="hover:text-link transition">WiFi QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-            <li><RouterLink to="/vcard/" hreflang="zh-Hant-TW" class="hover:text-link transition">vCard QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-            <li><RouterLink to="/guide/" hreflang="zh-Hant-TW" class="hover:text-link transition">QR code guides<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-          </ul>
-        </section>
-        <section>
-          <h2 class="font-display font-700 text-ink text-base">About</h2>
-          <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><a :href="publisher.aboutToolUrlEn" class="hover:text-link transition">About {{ site.nameEn }}</a></li>
-            <li><a :href="publisher.privacyUrlEn" class="hover:text-link transition">Privacy policy</a></li>
-            <li><a :href="publisher.contactUrlEn" class="hover:text-link transition">Contact</a></li>
-            <li>
-              <a :href="publisher.reportUrlEn" target="_blank" rel="nofollow noopener" referrerpolicy="no-referrer" class="hover:text-link transition" data-test="report-link" @click="addReportPath"
-                >Report a problem<span class="sr-only"> (opens in a new tab)</span></a
-              >
-            </li>
-            <li><a :href="publisher.urlEn" class="hover:text-link transition">{{ publisher.nameEn }}</a></li>
-          </ul>
-        </section>
-      </div>
-      <div class="border-t-2 border-ink/10">
-        <p class="max-w-screen-lg mx-auto px-4 py-4 text-xs text-muted font-600">
-          © {{ site.nameEn }} · Made by <a :href="publisher.urlEn" class="hover:text-link underline underline-offset-2">{{ publisher.nameEn }}</a> · <span class="i-lucide-lock" aria-hidden="true" /> Made in your browser, nothing is uploaded
-        </p>
-        <p class="max-w-screen-lg mx-auto px-4 pb-4 -mt-2 text-xs text-muted" data-test="trademark">{{ site.trademarkEn }}</p>
-        <p class="max-w-screen-lg mx-auto px-4 pb-4 text-base"><a data-owner-line :href="publisher.aboutUrl" lang="zh-Hant" hreflang="zh-Hant" class="font-700 text-ink underline underline-offset-4 hover:text-link transition">{{ publisher.ownerLine }}</a></p>
-      </div>
-    </footer>
-    <footer v-else class="border-t-3 border-ink mt-16 bg-white">
-      <div class="max-w-screen-lg mx-auto px-4 py-10 grid gap-8 grid-cols-2 md:grid-cols-4 text-sm">
-        <section>
-          <h2 class="font-display font-700 text-ink text-base">QR Code 類型</h2>
-          <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li v-for="t in qrTypes" :key="t.type">
-              <RouterLink :to="`${t.path}/`" class="hover:text-link transition">{{ t.label }} QR Code</RouterLink>
-            </li>
-          </ul>
-        </section>
-        <section>
-          <h2 class="font-display font-700 text-ink text-base">其他工具</h2>
-          <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><RouterLink to="/" class="hover:text-link transition">免費 QR Code 產生器</RouterLink></li>
-            <li><RouterLink to="/scan/" class="hover:text-link transition">QR Code 掃描器</RouterLink></li>
-            <li><RouterLink to="/barcode/" class="hover:text-link transition">條碼產生器</RouterLink></li>
-            <li><RouterLink to="/batch/" class="hover:text-link transition">批次產生 QR Code 與條碼</RouterLink></li>
-            <li><a :href="publisher.toolsUrl" class="hover:text-link transition">更多免費工具</a></li>
-          </ul>
-        </section>
-        <section>
-          <h2 class="font-display font-700 text-ink text-base">教學</h2>
-          <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li v-for="g in guides" :key="g.slug">
-              <RouterLink :to="`/guide/${g.slug}/`" class="hover:text-link transition">{{ g.shortTitle }}</RouterLink>
-            </li>
-            <li><RouterLink to="/guide/" class="inline-flex items-center gap-1 hover:text-link transition">所有教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></li>
-          </ul>
-        </section>
-        <section>
-          <h2 class="font-display font-700 text-ink text-base">關於</h2>
-          <ul class="mt-3 space-y-1.5 font-600 text-muted list-none p-0">
-            <li><RouterLink to="/about/" class="hover:text-link transition">關於 {{ site.name }}</RouterLink></li>
-            <li><RouterLink to="/faq/" class="hover:text-link transition">常見問題</RouterLink></li>
-            <li><RouterLink to="/privacy/" class="hover:text-link transition">隱私權政策</RouterLink></li>
-            <li><a :href="publisher.contactUrl" class="hover:text-link transition">聯絡我們</a></li>
-            <li>
-              <a :href="publisher.reportUrl" target="_blank" rel="nofollow noopener" referrerpolicy="no-referrer" class="hover:text-link transition" data-test="report-link" @click="addReportPath"
-                >回報問題<span class="sr-only">（另開分頁）</span></a
-              >
-            </li>
-            <li><a :href="publisher.url" class="hover:text-link transition">口袋工具 Pocketool</a></li>
-          </ul>
-        </section>
-      </div>
-      <div class="border-t-2 border-ink/10">
-        <p class="max-w-screen-lg mx-auto px-4 py-4 text-xs text-muted font-600">
-          © {{ site.name }} · <a :href="publisher.url" class="hover:text-link underline underline-offset-2">口袋工具 Pocketool</a> 出品 · <span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端
-        </p>
-        <p class="max-w-screen-lg mx-auto px-4 pb-4 -mt-2 text-xs text-muted" data-test="trademark">{{ site.trademark }}</p>
-        <p class="max-w-screen-lg mx-auto px-4 pb-4 text-base"><a data-owner-line :href="publisher.aboutUrl" lang="zh-Hant" hreflang="zh-Hant" class="font-700 text-ink underline underline-offset-4 hover:text-link transition">{{ publisher.ownerLine }}</a></p>
-      </div>
-    </footer>
+    <!--
+      頁尾是口袋工具站群共用的元件（src/shared/pocketool-footer/，同步來的拷貝，不要在這裡改）：互連列、字標與網站資訊、版權句、
+      最後一行的經營者署名都由它畫，字跟著頁面語系。本站自己的東西放在它的本站專屬區（預設 slot）：站內連結、
+      英文頁的「In Chinese only」、回報問題、隱私那一行與 DENSO WAVE 的商標聲明。連回口袋工具、版權句與署名只在共用的部分出現一次。
+      顏色與字型的對應在 src/styles/pocketool-footer.css。
+    -->
+    <PocketoolFooter :site="FOOTER_SITE" :locale="FOOTER_LOCALE[locale]" class="mt-16">
+      <template v-if="isEn">
+        <div class="grid gap-x-8 gap-y-6 grid-cols-2 md:grid-cols-3">
+          <section>
+            <h2 class="font-display font-700 text-ink text-base">Free tools</h2>
+            <ul :class="footList">
+              <li><RouterLink to="/en/" :class="footLink">QR code generator</RouterLink></li>
+              <li><RouterLink to="/en/batch/" :class="footLink">Bulk QR code generator</RouterLink></li>
+              <li><RouterLink to="/en/barcode/" :class="footLink">Barcode generator</RouterLink></li>
+              <li><a :href="publisher.toolsUrlEn" :class="footLink">More free tools</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="font-display font-700 text-ink text-base">In Chinese only</h2>
+            <ul :class="footList">
+              <li><RouterLink to="/scan/" hreflang="zh-Hant-TW" :class="footLink">QR code scanner<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+              <li><RouterLink to="/wifi/" hreflang="zh-Hant-TW" :class="footLink">WiFi QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+              <li><RouterLink to="/vcard/" hreflang="zh-Hant-TW" :class="footLink">vCard QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+              <li><RouterLink to="/guide/" hreflang="zh-Hant-TW" :class="footLink">QR code guides<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="font-display font-700 text-ink text-base">About</h2>
+            <ul :class="footList">
+              <li><a :href="publisher.aboutToolUrlEn" :class="footLink">About {{ site.nameEn }}</a></li>
+              <li>
+                <a :href="publisher.reportUrlEn" target="_blank" rel="nofollow noopener" referrerpolicy="no-referrer" :class="footLink" data-test="report-link" @click="addReportPath"
+                  >Report a problem<span class="sr-only"> (opens in a new tab)</span></a
+                >
+              </li>
+            </ul>
+          </section>
+        </div>
+        <p class="mt-6 font-600 text-muted"><span class="i-lucide-lock" aria-hidden="true" /> Made in your browser, nothing is uploaded</p>
+        <p class="mt-1 text-muted" data-test="trademark">{{ site.trademarkEn }}</p>
+      </template>
+      <template v-else>
+        <div class="grid gap-x-8 gap-y-6 grid-cols-2 md:grid-cols-4">
+          <section>
+            <h2 class="font-display font-700 text-ink text-base">QR Code 類型</h2>
+            <ul :class="footList">
+              <li v-for="t in qrTypes" :key="t.type">
+                <RouterLink :to="`${t.path}/`" :class="footLink">{{ t.label }} QR Code</RouterLink>
+              </li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="font-display font-700 text-ink text-base">其他工具</h2>
+            <ul :class="footList">
+              <li><RouterLink to="/" :class="footLink">免費 QR Code 產生器</RouterLink></li>
+              <li><RouterLink to="/scan/" :class="footLink">QR Code 掃描器</RouterLink></li>
+              <li><RouterLink to="/barcode/" :class="footLink">條碼產生器</RouterLink></li>
+              <li><RouterLink to="/batch/" :class="footLink">批次產生 QR Code 與條碼</RouterLink></li>
+              <li><a :href="publisher.toolsUrl" :class="footLink">更多免費工具</a></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="font-display font-700 text-ink text-base">教學</h2>
+            <ul :class="footList">
+              <li v-for="g in guides" :key="g.slug">
+                <RouterLink :to="`/guide/${g.slug}/`" :class="footLink">{{ g.shortTitle }}</RouterLink>
+              </li>
+              <li><RouterLink to="/guide/" :class="[footLink, 'gap-1']">所有教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></li>
+            </ul>
+          </section>
+          <section>
+            <h2 class="font-display font-700 text-ink text-base">關於</h2>
+            <ul :class="footList">
+              <li><RouterLink to="/about/" :class="footLink">關於 {{ site.name }}</RouterLink></li>
+              <li><RouterLink to="/faq/" :class="footLink">常見問題</RouterLink></li>
+              <li><RouterLink to="/privacy/" :class="footLink">本工具隱私權政策</RouterLink></li>
+              <li>
+                <a :href="publisher.reportUrl" target="_blank" rel="nofollow noopener" referrerpolicy="no-referrer" :class="footLink" data-test="report-link" @click="addReportPath"
+                  >回報問題<span class="sr-only">（另開分頁）</span></a
+                >
+              </li>
+            </ul>
+          </section>
+        </div>
+        <p class="mt-6 font-600 text-muted"><span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端</p>
+        <p class="mt-1 text-muted" data-test="trademark">{{ site.trademark }}</p>
+      </template>
+    </PocketoolFooter>
   </div>
 </template>

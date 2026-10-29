@@ -8,6 +8,7 @@ import { join, relative, sep } from 'node:path'
 import { createHash } from 'node:crypto'
 import { inflateSync } from 'node:zlib'
 import { CARDS, BARCODE_EAN13 } from '../brand/cards.mjs'
+import { pocketoolFooterProblems } from '../../src/shared/pocketool-footer/pocketool-footer.audit.mjs'
 
 const argv = process.argv.slice(2)
 const distDir = (() => {
@@ -937,10 +938,33 @@ if (siteBase) {
   }
 }
 
-// 頁尾最後一行的經營者署名：連到口袋工具的關於頁，同分頁開，英文頁也是同一句、不翻譯。
+// 頁尾：口袋工具站群共用頁尾（src/shared/pocketool-footer/，同步來的拷貝），最後一行是經營者署名。
 // 逐頁驗（含 404.html），再加上資產根的 404.html（scripts/gen-sitemap.mjs 從 404 複製過去，/qrcode-studio-foo 這類網址拿到的是那一份）。
-// 字與網址刻意再寫一次、不從 site.ts 推導。
+// - 共用頁尾：每一個有 <footer> 的 HTML 都跑它附的 pocketoolFooterProblems（互連列九站與 aria-current、字標、網站資訊、版權句、
+//   署名在最後），語系照 <html lang>：zh-Hant-TW 是 zh-Hant、en 是 en，其他的值當成問題報
+// - 署名：連到口袋工具的關於頁，同分頁開，英文頁也是同一句、不翻譯，在共用頁尾（帶 data-pocketool-footer 的 <footer>）裡。
+//   字與網址刻意再寫一次、不從共用頁尾的資料檔推導，跟上面那條各自獨立
+const FOOTER_SITE = 'qrcode-studio'
+const FOOTER_LOCALES = { 'zh-Hant-TW': 'zh-Hant', en: 'en' }
 const OWNER = { text: '六角學院 卡斯伯 經營', href: 'https://www.pocketool.app/about', lang: 'zh-Hant' }
+// 英文頁的頁尾：共用頁尾裡一定是繁中的只有兩處，末端的署名 a[data-owner-line]（中英文頁同一句、不翻譯）與
+// 互連列沒有英文站名時的 span.ptf-site__name[lang="zh-Hant"]（字與 lang 由上面的 pocketoolFooterProblems 對過）。
+// 只在 <footer data-pocketool-footer> 裡、只拿掉內容沒有其他標籤的這兩種元素，剩下的字與 aria-label、title、alt
+// 不能有中文與全形標點：本站專屬區（slot）或共用部分冒出一個漢字都會紅。對不上的元素不拿掉，照樣檢查。
+// 回傳帶中文的字（空陣列就是過）。
+function englishFooterChinese(html) {
+  const clean = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<script\b[\s\S]*?<\/script>/gi, '').replace(/<style\b[\s\S]*?<\/style>/gi, '')
+  const start = clean.search(/<footer\b[^>]*\sdata-pocketool-footer\b/i)
+  const end = clean.lastIndexOf('</footer>')
+  if (start === -1 || end < start) return ['找不到 <footer data-pocketool-footer>']
+  const footer = clean.slice(start, end)
+    .replace(/<a\b([^>]*)>[^<]*<\/a>/gi, (whole, attrs) => (/\sdata-owner-line\b/i.test(attrs) ? '' : whole))
+    .replace(/<span\b([^>]*)>[^<]*<\/span>/gi, (whole, attrs) =>
+      (/\sclass="(?:[^"]*\s)?ptf-site__name(?:\s[^"]*)?"/.test(attrs) && /\slang="zh-Hant"/.test(attrs) ? '' : whole))
+  const text = footer.replace(/<[^>]+>/g, ' ')
+  const attrText = [...footer.matchAll(/\s(?:aria-label|title|alt)="([^"]*)"/g)].map((m) => m[1]).join(' ')
+  return [...`${text} ${attrText}`.matchAll(/[^\s]*[\p{Script=Han}\u3000-\u303F\uFF00-\uFFEF][^\s]*/gu)].map((m) => m[0])
+}
 function ownerLineProblems(html) {
   const clean = html.replace(/<!--[\s\S]*?-->/g, '').replace(/<script\b[\s\S]*?<\/script>/gi, '')
   const hits = [...clean.matchAll(/<a\b([^>]*\bdata-owner-line\b[^>]*)>([\s\S]*?)<\/a>/gi)]
@@ -957,7 +981,10 @@ function ownerLineProblems(html) {
   const close = clean.lastIndexOf('</footer>')
   const open = clean.lastIndexOf('<footer', hits[0].index)
   if (open === -1 || close < end || clean.indexOf('<footer', end) !== -1) problems.push('署名要在最後一個 <footer> 裡')
-  else if (clean.slice(end, close).replace(/<[^>]+>/g, '').trim()) problems.push('署名後面還有字，它要是頁尾最後一行')
+  else {
+    if (!/\sdata-pocketool-footer\b/.test(clean.slice(open, clean.indexOf('>', open) + 1))) problems.push('署名所在的 <footer> 要是共用頁尾（data-pocketool-footer）')
+    if (clean.slice(end, close).replace(/<[^>]+>/g, '').trim()) problems.push('署名後面還有字，它要是頁尾最後一行')
+  }
   return problems
 }
 {
@@ -967,8 +994,18 @@ function ownerLineProblems(html) {
   for (const [name, f] of targets) {
     const html = readFileSync(f, 'utf8')
     // 每一頁都套 DefaultLayout，都有頁尾；沒有 <footer> 就是版面掉了
-    const problems = /<footer\b/i.test(html) ? ownerLineProblems(html) : ['沒有 <footer>']
+    const hasFooter = /<footer\b/i.test(html)
+    const problems = hasFooter ? ownerLineProblems(html) : ['沒有 <footer>']
     add(`[${name}] 頁尾最後一行是經營者署名，連到口袋工具的關於頁`, problems.length === 0, problems.join('；'))
+    if (!hasFooter) continue
+    const lang = pick(html, /<html\b[^>]*\slang=["']([^"']+)["']/i)
+    const locale = FOOTER_LOCALES[lang]
+    const shared = locale ? pocketoolFooterProblems(html, { site: FOOTER_SITE, locale }) : [`<html lang> 是 ${lang ?? '（沒有）'}，對不到共用頁尾的語系`]
+    add(`[${name}] 共用頁尾照契約（互連列九站、本站 aria-current、網站資訊、版權句，語系 ${locale ?? '?'}）`, shared.length === 0, shared.slice(0, 5).join('；'))
+    if (isEnPage(name)) {
+      const chinese = englishFooterChinese(html)
+      add(`[${name}] 英文頁的頁尾除了署名與沒有英文名的站名，沒有中文與全形標點`, chinese.length === 0, chinese.slice(0, 5).join(' '))
+    }
   }
 }
 

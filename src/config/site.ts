@@ -38,9 +38,13 @@ export const site = {
   trademarkEn: 'QR Code is a registered trademark of DENSO WAVE INCORPORATED in Japan and other countries.',
 }
 
-// 營運者：口袋工具（站群 hub）。Organization JSON-LD、文章的 publisher、頁首頁尾的
-// 站群連結都從這裡取。hub 的頁面網址不帶尾斜線（/about、/contact、/privacy），
-// 只有工具總覽是 /tools/。
+// 頁尾用的口袋工具站群共用頁尾（src/shared/pocketool-footer/）認得的站名代號：互連列靠它標出「目前這站」。
+// 跟網址 slug、問題回報的 site 參數同一個字，不跟著產品名改。
+export const FOOTER_SITE = 'qrcode-studio' as const
+
+// 營運者：口袋工具（站群 hub）。Organization JSON-LD、文章的 publisher、頁首與頁尾本站專屬區的
+// 站群連結都從這裡取（頁尾共用部分的連結、版權句與署名在共用頁尾的資料檔）。hub 的頁面網址不帶尾斜線
+// （/about、/contact、/privacy），只有工具總覽是 /tools/。
 export const publisher = {
   // 站群共用的 Organization 節點 id：pocketool.app 底下每個站的 JSON-LD 都用這個 @id 指同一個出版者，
   // 完整定義在 hub 首頁。一個字都不能改，改了就變成另一個實體。
@@ -52,9 +56,6 @@ export const publisher = {
   // 出品方的品牌圖由 hub 提供，站群每個站用同一個網址（Google 要求 logo 至少 112×112）。
   logo: 'https://www.pocketool.app/brand/pocketool-icon.png',
   aboutUrl: 'https://www.pocketool.app/about',
-  // 頁尾最後一行的經營者署名，連到口袋工具的關於頁（aboutUrl，同分頁開）。字是兩個半形空格隔開的原句，
-  // 英文頁也用這一句、不翻譯（連結標 lang 與 hreflang="zh-Hant"），所以不放進語系字典。
-  ownerLine: '六角學院 卡斯伯 經營',
   contactUrl: 'https://www.pocketool.app/contact',
   privacyUrl: 'https://www.pocketool.app/privacy',
   toolsUrl: 'https://www.pocketool.app/tools/',
@@ -64,7 +65,6 @@ export const publisher = {
   /* ---------- 英文版頁首頁尾連到 hub 的英文頁 ---------- */
   nameEn: 'Pocketool',
   urlEn: 'https://www.pocketool.app/en/',
-  contactUrlEn: 'https://www.pocketool.app/en/contact',
   privacyUrlEn: 'https://www.pocketool.app/en/privacy',
   toolsUrlEn: 'https://www.pocketool.app/en/tools/',
   // hub 的英文介紹頁；英文版頁尾的「About QR Code Maker」連到這裡（本站的關於頁只有繁中）
