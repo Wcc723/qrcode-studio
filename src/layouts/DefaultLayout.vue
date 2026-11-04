@@ -3,8 +3,9 @@ import { computed } from 'vue'
 import { qrTypes } from '@/config/qr-types'
 import { guides } from '@/content/guides'
 import { site, publisher, FOOTER_SITE } from '@/config/site'
-import { FOOTER_LOCALE, LANG_TAG, useLocale } from '@/i18n/locale'
+import { FOOTER_LOCALE, LANG_TAG, LANGUAGE_NAME, LOCALES, useLocale, type Locale } from '@/i18n/locale'
 import PocketoolFooter from '@/shared/pocketool-footer/PocketoolFooter.vue'
+import type { PocketoolFooterLanguageInput } from '@/shared/pocketool-footer/pocketool-footer-data.mjs'
 
 const props = withDefaults(defineProps<{
   /** 語言切換連到哪裡（App.vue 依目前的路由算好：另一個語系的同一頁，沒有就是那個語系的首頁） */
@@ -41,10 +42,18 @@ const navEn = [
 ]
 const nav = computed(() => (isEn.value ? navEn : navZh))
 
-/** 語言切換：連到另一個語系，連結文字用那個語系寫 */
-const lang = computed(() => (isEn.value
-  ? { label: '中文', lang: LANG_TAG['zh-TW'] }
-  : { label: 'English', lang: LANG_TAG.en }))
+/** 語言切換：連到另一個語系，連結文字用那個語系寫（語名是 LANGUAGE_NAME，頁尾的語系列也用它） */
+const otherLocale = computed<Locale>(() => (isEn.value ? 'zh-TW' : 'en'))
+const lang = computed(() => ({ label: LANGUAGE_NAME[otherLocale.value], lang: LANG_TAG[otherLocale.value] }))
+
+/**
+ * 頁尾的語系列（共用頁尾的 languages）：照 LOCALES 的順序列中文、English，目前的語言畫成純文字。
+ * 本站只有兩種語言，另一個語言的去處就是頁首語言切換用的 switchTo（App.vue 用 src/i18n/pairs.ts 的 switchTarget 算），
+ * 兩邊是同一個值，不另外算。共用頁尾畫的是一般 <a>（整頁換頁，不經 vue-router），所以自己補上子路徑前綴。
+ */
+const footerLanguages = computed<PocketoolFooterLanguageInput[]>(() => LOCALES.map((l) => (l === locale.value
+  ? { lang: LANG_TAG[l], label: LANGUAGE_NAME[l], current: true }
+  : { lang: LANG_TAG[l], label: LANGUAGE_NAME[l], href: `${base}${props.switchTo.replace(/^\//, '')}` })))
 const homeTo = computed(() => (isEn.value ? '/en/' : '/'))
 const siteName = computed(() => (isEn.value ? site.nameEn : site.name))
 const hub = computed(() => (isEn.value
@@ -88,11 +97,12 @@ const footLink = 'flex items-center min-h-11 hover:text-link transition'
     <main class="flex-1"><slot /></main>
     <!--
       頁尾是口袋工具站群共用的元件（src/shared/pocketool-footer/，同步來的拷貝，不要在這裡改）：互連列、字標與網站資訊、版權句、
-      最後一行的經營者署名都由它畫，字跟著頁面語系。本站自己的東西放在它的本站專屬區（預設 slot）：站內連結、
-      英文頁的「In Chinese only」、回報問題、隱私那一行與 DENSO WAVE 的商標聲明。連回口袋工具、版權句與署名只在共用的部分出現一次。
+      最後一行的經營者署名都由它畫，字跟著頁面語系。網站資訊下面的語系列（中文、English）也由它畫，去處跟頁首的語言切換相同（footerLanguages）。
+      本站自己的東西放在它的本站專屬區（預設 slot）：站內連結、英文頁的「In Chinese only」、回報問題、隱私那一行與
+      DENSO WAVE 的商標聲明。連回口袋工具、版權句與署名只在共用的部分出現一次。
       顏色與字型的對應在 src/styles/pocketool-footer.css。
     -->
-    <PocketoolFooter :site="FOOTER_SITE" :locale="FOOTER_LOCALE[locale]" class="mt-16">
+    <PocketoolFooter :site="FOOTER_SITE" :locale="FOOTER_LOCALE[locale]" :languages="footerLanguages" class="mt-16">
       <template v-if="isEn">
         <div class="grid gap-x-8 gap-y-6 grid-cols-2 md:grid-cols-3">
           <section>

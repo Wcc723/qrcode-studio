@@ -1,4 +1,4 @@
-// 此檔由共用頁尾正本同步（版本 1.0.2），不要在這裡改。
+// 此檔由共用頁尾正本同步（版本 1.1.0），不要在這裡改。
 // pocketool-footer-data.mjs 的型別（給 TypeScript 的站；實作與註解在 .mjs）。
 
 export type PocketoolFooterLocale = 'zh-Hant' | 'zh-Hans' | 'en' | 'ja' | 'ko'
@@ -45,7 +45,7 @@ export interface PocketoolInfoLinkEntry {
 export declare const POCKETOOL_INFO_LINKS: readonly PocketoolInfoLinkEntry[]
 
 export declare const POCKETOOL_FOOTER_COPY: Readonly<
-  Record<PocketoolTextLocale, { sites: string; info: string; home: string; note: string; copyright: string }>
+  Record<PocketoolTextLocale, { sites: string; info: string; languages: string; home: string; note: string; copyright: string }>
 >
 
 export interface PocketoolFooterLink {
@@ -68,6 +68,25 @@ export interface PocketoolFooterInfoLink extends PocketoolFooterLink {
   label: string
   external: boolean
 }
+/** 語系列的一筆（站傳給元件的 languages prop）：順序就是畫面上的順序 */
+export interface PocketoolFooterLanguageInput {
+  /** 那個語言的 BCP 47 代碼，也是去處的 hreflang */
+  lang: string
+  /** 那個語言自己的名稱（「English」「한국어」） */
+  label: string
+  /** 這一頁在那個語言的去處；current 那一筆不用 */
+  href?: string
+  /** 這一頁的語言 */
+  current?: boolean
+}
+export interface PocketoolFooterLanguage {
+  lang: string
+  label: string
+  /** current 那一筆是 undefined（畫成純文字） */
+  href: string | undefined
+  hreflang: string | undefined
+  current: boolean
+}
 export interface PocketoolFooterModel {
   version: string
   site: PocketoolSiteKey
@@ -79,10 +98,18 @@ export interface PocketoolFooterModel {
   brand: PocketoolFooterLink & { label: string; zh: boolean; mark: string; srcset: string }
   infoLabel: string
   info: PocketoolFooterInfoLink[]
+  languagesLabel: string
+  /** 空陣列就不畫語系列 */
+  languages: PocketoolFooterLanguage[]
   note: string
   copyright: string
   owner: { text: string; href: string; lang: 'zh-Hant' }
 }
 
 export declare function pocketoolFooterTextLocale(locale: PocketoolFooterLocale): PocketoolTextLocale
-export declare function pocketoolFooterModel(site: PocketoolSiteKey | string, locale: PocketoolFooterLocale | string): PocketoolFooterModel
+export declare function pocketoolFooterLanguages(languages?: readonly PocketoolFooterLanguageInput[]): PocketoolFooterLanguage[]
+export declare function pocketoolFooterModel(
+  site: PocketoolSiteKey | string,
+  locale: PocketoolFooterLocale | string,
+  languages?: readonly PocketoolFooterLanguageInput[],
+): PocketoolFooterModel

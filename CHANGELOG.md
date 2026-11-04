@@ -3,6 +3,28 @@
 本檔記錄使用者感知得到的改版。版本號與 `package.json` 的 `version` 一致，
 tag 在部署成功且線上驗過之後才打。
 
+## [1.11.0] - 2026-11-04
+
+### 變更
+
+- 頁尾的共用部分升到口袋工具站群共用頁尾 1.1.0。網站資訊下面、版權句上面多一列語言切換（地球圖示加「中文」「English」）：
+  目前的語言是粗體的純文字，另一個語言連到跟頁首語言切換同一個地方（中英成對的首頁、批次、條碼連到另一個語言的同一頁，
+  其他頁連到那個語言的首頁）。繁中頁、英文頁與 404 都有，每一個至少 44 × 44px、字 16px。
+- 英文頁「Pocketool sites」裡的行政小幫手（Office Tools）改連到它的英文版 `/office-tools/en/`，不再連繁中版、不再標 `hreflang="zh-Hant"`，
+  短說明改成「Dates, time cards and time zones」。共用頁尾韓文頁的行政小幫手也改連韓文版 `/office-tools/ko/`，本站沒有韓文頁，畫面不受影響。
+  繁中頁的互連列沒有變。網址、title、description、JSON-LD 與教學的更新日都沒有變。
+
+### 技術
+
+- `src/shared/pocketool-footer/` 從正本同步到 1.1.0：元件多了選用的 `languages`（語系列），`pocketoolFooterProblems` 多了 `languages` 選項。
+- `DefaultLayout.vue` 的 `footerLanguages` 照 `LOCALES` 的順序傳中文、English 兩筆，另一個語言的去處直接用頁首語言切換的 `switchTo`
+  （`App.vue` 用 `switchTarget` 算），補上子路徑前綴；`src/i18n/locale.ts` 加上 `LOCALES` 與語名 `LANGUAGE_NAME`，頁首的語言切換也改用它（字不變）。
+- SEO 稽核把這一頁該有的語系列交給 `pocketoolFooterProblems` 逐筆對（順序、字、`lang`、`href`、`hreflang`、目前的語言是 `<span aria-current>`），
+  去處跟頁首語言切換的檢查用同一個 `switchTargetOf`。英文頁頁尾的中文檢查搬到 `scripts/seo/footer-languages.mjs`，
+  多放行語系列的「中文」：只放行在共用頁尾裡、帶 `data-ptf-lang`、沒有子標籤、`lang="zh-Hant-TW"`、字剛好是「中文」的那一筆，屬性照查。
+- `src/pocketool-footer.test.ts` 加上語系列（順序、目前的語言、去處跟頁首相同）與中文檢查例外的測試；
+  `aria-current` 的檢查改成只數連結（語系列的目前語言是 `<span aria-current>`）。
+
 ## [1.10.0] - 2026-10-29
 
 ### 變更

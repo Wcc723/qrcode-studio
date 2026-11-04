@@ -1,4 +1,4 @@
-// 此檔由共用頁尾正本同步（版本 1.0.2），不要在這裡改。
+// 此檔由共用頁尾正本同步（版本 1.1.0），不要在這裡改。
 // 口袋工具共用頁尾的建置稽核（契約見共用頁尾文件的「建置稽核」）。
 // 純 JS、零相依，只 import 同資料夾的資料檔；各站的 build 稽核逐頁呼叫。
 //
@@ -12,10 +12,12 @@
 // 3. 互連列 <nav aria-label="…">：每站一個連結、順序、href、hreflang、target、站名與短說明、站名的 lang；
 //    目前這站 aria-current="true"，共用部分的其他連結都沒有 aria-current（本站專屬區不管）
 // 4. 字標：href、hreflang、target、aria-label，站徽 img.ptf__mark 的 src 與 srcset；「網站資訊」連結列：href、hreflang、target、字
-// 5. 版權句；互連列、網站資訊、署名的先後順序
-// 6. 署名：整頁剛好一條 data-owner-line、字、href、lang 與 hreflang、沒有 target 與 rel、
+// 5. 語系列 <nav class="ptf__langs">（選用）：給了 languages（含空陣列）就逐筆對（順序、字、lang、href、hreflang、
+//    目前的語言是 span 加 aria-current），沒給只查格式；在網站資訊下面、版權句上面
+// 6. 版權句；互連列、網站資訊、署名的先後順序
+// 7. 署名：整頁剛好一條 data-owner-line、字、href、lang 與 hreflang、沒有 target 與 rel、
 //    在這個頁尾裡，而且它之後到 </footer> 沒有看得到的字（只有圖沒有字不算）
-import { POCKETOOL_FOOTER_VERSION, pocketoolFooterModel } from './pocketool-footer-data.mjs'
+import { POCKETOOL_FOOTER_VERSION, pocketoolFooterLanguages, pocketoolFooterModel } from './pocketool-footer-data.mjs'
 
 const ENTITIES = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'", '#x27': "'" }
 const decode = (s) => s.replace(/&(amp|lt|gt|quot|apos|nbsp|#39|#x27);/gi, (_, name) => ENTITIES[name.toLowerCase()])
@@ -91,14 +93,67 @@ function linkProblems(where, attrs, expected) {
   return problems
 }
 
+/** 語系列裡的每一筆：<a> 或 <span>，帶 data-ptf-lang */
+function languageItemsIn(html) {
+  return [...html.matchAll(/<(a|span)\b([^>]*)>([\s\S]*?)<\/\1>/gi)]
+    .map((m) => ({ tag: m[1].toLowerCase(), attrs: attrsOf(`<${m[1]}${m[2]}>`), inner: m[3] }))
+    .filter((item) => item.attrs.has('data-ptf-lang'))
+}
+
+/** 語系列的問題。expected 是 pocketoolFooterLanguages 的結果；null 表示站沒給期望值，只查格式 */
+function languageProblems(nav, model, expected) {
+  const problems = []
+  if (nav.attrs.get('aria-label') !== model.languagesLabel) problems.push(`語系列的 aria-label 是 ${shown(nav.attrs.get('aria-label'))}，應該是 "${model.languagesLabel}"`)
+  if (nav.attrs.get('lang') !== model.lang) problems.push(`語系列（.ptf__langs）的 lang 是 ${shown(nav.attrs.get('lang'))}，應該是 ${shown(model.lang)}`)
+  const items = languageItemsIn(nav.inner)
+  if (anchorsIn(nav.inner).some((a) => !a.attrs.has('data-ptf-lang'))) problems.push('語系列裡的連結都要帶 data-ptf-lang')
+  const where = (i, item) => `語系列第 ${i + 1} 個（${item.attrs.get('lang') ?? '沒有 lang'}）`
+  if (expected === null) {
+    if (items.length < 2) problems.push(`語系列至少要兩個語言，實際 ${items.length} 個`)
+    const langs = items.map((item) => item.attrs.get('lang'))
+    if (new Set(langs).size !== langs.length) problems.push('語系列的 lang 重複了')
+    if (items.filter((item) => item.tag === 'span').length > 1) problems.push('語系列的目前語言（span）只能有一個')
+    items.forEach((item, i) => {
+      if (!item.attrs.get('lang')) problems.push(`${where(i, item)}要有 lang`)
+      if (!textOf(item.inner)) problems.push(`${where(i, item)}沒有字`)
+      if (item.tag === 'span' && item.attrs.get('aria-current') !== 'true') problems.push(`${where(i, item)}是目前的語言，要有 aria-current="true"`)
+      if (item.tag === 'a') {
+        if (!item.attrs.get('href')) problems.push(`${where(i, item)}要有 href`)
+        if (item.attrs.get('hreflang') !== item.attrs.get('lang')) problems.push(`${where(i, item)}的 hreflang 要等於 lang`)
+        if (item.attrs.has('target') || item.attrs.has('rel') || item.attrs.has('aria-current')) problems.push(`${where(i, item)}不加 target、rel、aria-current`)
+      }
+    })
+    return problems
+  }
+  if (items.length !== expected.length) return [...problems, `語系列要有 ${expected.length} 個語言，實際 ${items.length} 個`]
+  expected.forEach((want, i) => {
+    const item = items[i]
+    const at = `語系列第 ${i + 1} 個（${want.lang}）`
+    if (item.attrs.get('lang') !== want.lang) problems.push(`${at}的 lang 是 ${shown(item.attrs.get('lang'))}，應該是 "${want.lang}"`)
+    if (textOf(item.inner) !== want.label) problems.push(`${at}的字是「${textOf(item.inner)}」，應該是「${want.label}」`)
+    if (want.current) {
+      if (item.tag !== 'span' || item.attrs.get('aria-current') !== 'true') problems.push(`${at}是目前的語言，要畫成 <span aria-current="true">，不是連結`)
+    } else if (item.tag !== 'a') {
+      problems.push(`${at}要是連結`)
+    } else {
+      problems.push(...linkProblems(at, item.attrs, { href: want.href, hreflang: want.hreflang, target: undefined }))
+      if (item.attrs.has('aria-current')) problems.push(`${at}不是目前的語言，不能有 aria-current`)
+    }
+  })
+  return problems
+}
+
 /**
  * 一個預渲染 HTML 的共用頁尾有沒有照契約。回傳問題清單，空陣列就是過。
- * site 是這一站的代號（元件的 site prop），locale 是這一頁給元件的語系（zh-Hant、zh-Hans、en、ja、ko）。
+ * site 是這一站的代號（元件的 site prop），locale 是這一頁給元件的語系（zh-Hant、zh-Hans、en、ja、ko），
+ * languages 是這一頁給元件的語系列（給了就逐筆對，空陣列表示不該有語系列；沒給只查格式）。
  */
-export function pocketoolFooterProblems(html, { site, locale }) {
+export function pocketoolFooterProblems(html, { site, locale, languages }) {
   let model
+  let expectedLanguages = null
   try {
     model = pocketoolFooterModel(site, locale)
+    if (languages !== undefined) expectedLanguages = pocketoolFooterLanguages(languages)
   } catch (error) {
     return [error.message]
   }
@@ -187,6 +242,21 @@ export function pocketoolFooterProblems(html, { site, locale }) {
     }
   }
   if (sitesNav && infoNav && sitesNav.index > infoNav.index) problems.push('互連列要在網站資訊上面')
+
+  // 語系列
+  const langsNav = findElement(shared, 'nav', (a) => hasClass(a, 'ptf__langs'))
+  if (!langsNav) {
+    if (expectedLanguages?.length) problems.push(`頁尾找不到語系列 <nav class="ptf__langs">（要有 ${expectedLanguages.length} 個語言）`)
+  } else if (expectedLanguages && expectedLanguages.length === 0) {
+    problems.push('這一頁沒有語系列，頁尾卻畫了 <nav class="ptf__langs">')
+  } else {
+    problems.push(...languageProblems(langsNav, model, expectedLanguages))
+    const copyBlock = findElement(shared, 'p', (a) => hasClass(a, 'ptf__copy'))
+    if (infoNav && langsNav.index < infoNav.index) problems.push('語系列要在網站資訊下面')
+    if (copyBlock && langsNav.index > copyBlock.index) problems.push('語系列要在版權句上面')
+  }
+  const strayLanguages = languageItemsIn(shared).length - (langsNav ? languageItemsIn(langsNav.inner).length : 0)
+  if (strayLanguages > 0) problems.push(`語系列外面有 ${strayLanguages} 個帶 data-ptf-lang 的元素`)
 
   // 版權句
   const squash = (s) => s.replace(/\s+/g, '')

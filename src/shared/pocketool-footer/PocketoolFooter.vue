@@ -1,13 +1,16 @@
-<!-- 此檔由共用頁尾正本同步（版本 1.0.2），不要在這裡改。 -->
+<!-- 此檔由共用頁尾正本同步（版本 1.1.0），不要在這裡改。 -->
 <!--
   口袋工具共用頁尾（契約見共用頁尾文件；資料：pocketool-footer-data.mjs）。
   只用 Vue 本身，不 import vue-router、vitepress、UnoCSS 或任何站的元件，丟進哪一站都能編譯、能預渲染。
   script 是 lang="ts"（各站的 vue-tsc 才看得到 props 的型別；Vite 與 VitePress 都直接編得動），型別來自資料檔旁邊的 .d.mts。
 
-  由上而下：本站專屬區（預設 slot，有內容才傳，沒傳就不出現）→「口袋工具的站」互連列 → 字標與「網站資訊」連結列 → 版權句 →
-  經營者署名（永遠是整頁最後一行，後面不能再放任何字）。
+  由上而下：本站專屬區（預設 slot，有內容才傳，沒傳就不出現）→「口袋工具的站」互連列 → 字標與「網站資訊」連結列 →
+  語系列（languages 有傳才出現）→ 版權句 → 經營者署名（永遠是整頁最後一行，後面不能再放任何字）。
 
-  props：site 是目前這站的代號（hub 是 pocket-tool-blog），locale 是 zh-Hant、zh-Hans、en、ja、ko。
+  props：site 是目前這站的代號（hub 是 pocket-tool-blog），locale 是 zh-Hant、zh-Hans、en、ja、ko，
+  languages 是這一頁在各語言的去處（選用，格式見資料檔的 pocketoolFooterLanguages）。
+  語系列每一筆標那個語言的 lang 與 data-ptf-lang（各站「外語頁不能有中文」這類檢查靠它認出語名）；
+  目前的語言是純文字加 aria-current，其他是一般 <a>（整頁換頁、同分頁開、標 hreflang）。
   簡中頁的 lang="zh-Hant" 標在共用的區塊（.ptf__sites、.ptf__row、.ptf__copy），<footer> 與本站專屬區不標。
   樣式只管版面；顏色與字型全部走 --ptf-* 變數，各站另寫一小段 CSS 對應到自己的色票（變數表在契約文件）。
   模板裡的字緊貼標籤、同一個元素的內容寫在同一行：預渲染後再壓縮 HTML 的站才不會跟瀏覽器端 render 對不上。
@@ -16,16 +19,18 @@
 -->
 <script setup lang="ts">
 import { computed, type PropType } from 'vue'
-import { pocketoolFooterModel, type PocketoolFooterLocale, type PocketoolSiteKey } from './pocketool-footer-data.mjs'
+import { pocketoolFooterModel, type PocketoolFooterLanguageInput, type PocketoolFooterLocale, type PocketoolSiteKey } from './pocketool-footer-data.mjs'
 
 const props = defineProps({
   /** 目前這站的代號 */
   site: { type: String as PropType<PocketoolSiteKey>, required: true },
   /** 頁面語系 */
   locale: { type: String as PropType<PocketoolFooterLocale>, default: 'zh-Hant' },
+  /** 這一頁在各語言的去處（選用；只有一種語言的站不傳） */
+  languages: { type: Array as PropType<readonly PocketoolFooterLanguageInput[]>, default: () => [] },
 })
 
-const m = computed(() => pocketoolFooterModel(props.site, props.locale))
+const m = computed(() => pocketoolFooterModel(props.site, props.locale, props.languages))
 </script>
 
 <template>
@@ -44,6 +49,12 @@ const m = computed(() => pocketoolFooterModel(props.site, props.locale))
           <a v-for="l in m.info" :key="l.key" class="ptf__info-link" :class="{ ptf__ext: l.external }" :href="l.href" :hreflang="l.hreflang" :target="l.target">{{ l.label }}<svg v-if="l.external" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" /></svg></a>
         </nav>
       </div>
+      <nav v-if="m.languages.length" class="ptf__langs" :aria-label="m.languagesLabel" :lang="m.lang">
+        <svg class="ptf__globe" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z" /></svg>
+        <ul class="ptf__lang-list">
+          <li v-for="l in m.languages" :key="l.lang" class="ptf__lang-item"><span v-if="l.current" class="ptf__lang ptf__lang--current" :lang="l.lang" data-ptf-lang aria-current="true">{{ l.label }}</span><a v-else class="ptf__lang" :href="l.href" :lang="l.lang" :hreflang="l.hreflang" data-ptf-lang>{{ l.label }}</a></li>
+        </ul>
+      </nav>
       <p class="ptf__copy" :lang="m.lang"><span class="ptf__note">{{ m.note }}</span>{{ m.copyright }}</p>
       <p class="ptf__owner"><a data-owner-line :href="m.owner.href" lang="zh-Hant" hreflang="zh-Hant">{{ m.owner.text }}</a></p>
     </div>
@@ -211,6 +222,60 @@ const m = computed(() => pocketoolFooterModel(props.site, props.locale))
   display: inline-flex;
   align-items: center;
   gap: 4px;
+}
+
+/* 語系列：地球圖示加各語言的名稱，手機上自動換行；每一筆至少 44×44 */
+.ptf__langs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ptf__globe {
+  flex: none;
+  display: block;
+  color: var(--ptf-ink-2, #6f6056);
+}
+
+.ptf__lang-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 20px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ptf__lang-item {
+  margin: 0;
+  padding: 0;
+}
+
+.ptf__lang {
+  display: inline-flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  color: var(--ptf-ink, #352b26);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+a.ptf__lang {
+  text-decoration: underline;
+  text-decoration-color: var(--ptf-line-strong, #9c8874);
+  text-underline-offset: 5px;
+}
+
+a.ptf__lang:hover {
+  color: var(--ptf-link-hover, #b94320);
+}
+
+/* 目前的語言：粗體、不是連結、沒有底線（不靠顏色分辨），螢幕閱讀器念 aria-current */
+.ptf__lang--current {
+  font-weight: 700;
 }
 
 .ptf__copy {

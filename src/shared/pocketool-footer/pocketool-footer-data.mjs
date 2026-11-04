@@ -1,4 +1,4 @@
-// 此檔由共用頁尾正本同步（版本 1.0.2），不要在這裡改。
+// 此檔由共用頁尾正本同步（版本 1.1.0），不要在這裡改。
 // 口袋工具共用頁尾的資料（契約見共用頁尾文件）。
 // 純資料加純函式、零相依：元件 PocketoolFooter.vue 與建置稽核 pocketool-footer.audit.mjs 都讀這一份，Node 可以直接 import。
 //
@@ -8,9 +8,11 @@
 // - 連結目標：有同語系版本就連過去，沒有就連繁中版，<a> 標 hreflang（文字不是頁面語言時另標 lang）。
 // - 站名用各站的正式名稱；某語系沒有正式名稱時先用英文名，沒有英文名才用繁中名。
 // - 網址只放可以索引的最終網址（不經轉址）。noindex 的語系版本不放，那些語系一律連繁中版。
+// - 語系列（選用）：本站有好幾種語言時，站把「這一頁在各語言的去處」傳進來（languages），版權句上面畫一列；
+//   去處由站自己算（每站的對應規則不同），這裡只檢查格式、決定 hreflang 與標記。
 
 /** 改這個資料夾的任何一個檔都要升版：minor 是加站、加語系、加欄位，patch 是改字或改樣式，major 是改結構或屬性 */
-export const POCKETOOL_FOOTER_VERSION = '1.0.2'
+export const POCKETOOL_FOOTER_VERSION = '1.1.0'
 
 export const POCKETOOL_ORIGIN = 'https://www.pocketool.app'
 
@@ -64,9 +66,9 @@ export const POCKETOOL_SITES = [
   },
   {
     key: 'office-tools',
-    name: { 'zh-Hant': '行政小幫手', en: 'Office Tools', ja: '事務ツール' },
-    href: { 'zh-Hant': '/office-tools/', ja: '/office-tools/ja/' },
-    desc: { 'zh-Hant': '行事曆、民國日期、桌牌', en: 'Admin tools for Taiwan offices', ja: '和暦変換・祝日一覧', ko: '대만 사무 도구' },
+    name: { 'zh-Hant': '行政小幫手', en: 'Office Tools', ja: '事務ツール', ko: '사무 도우미' },
+    href: { 'zh-Hant': '/office-tools/', en: '/office-tools/en/', ja: '/office-tools/ja/', ko: '/office-tools/ko/' },
+    desc: { 'zh-Hant': '行事曆、民國日期、桌牌', en: 'Dates, time cards and time zones', ja: '和暦変換・祝日一覧', ko: '날짜·만 나이·음력·시차 계산' },
   },
   {
     key: 'taiwan-zipcode',
@@ -115,14 +117,14 @@ export const POCKETOOL_INFO_LINKS = [
 ]
 
 /**
- * 各語言的固定字：兩條 nav 的 aria-label（互連列的也是畫面上的小標）、字標連結的 aria-label、版權句（手機在第一句後換行）。
+ * 各語言的固定字：三條 nav 的 aria-label（互連列的也是畫面上的小標）、字標連結的 aria-label、版權句（手機在第一句後換行）。
  * 年份是常數，跨年要改。
  */
 export const POCKETOOL_FOOTER_COPY = {
-  'zh-Hant': { sites: '口袋工具的站', info: '網站資訊', home: '口袋工具 Pocketool 首頁', note: '工具結果僅供參考。', copyright: '© 2026 口袋工具 Pocketool' },
-  en: { sites: 'Pocketool sites', info: 'Site information', home: 'Pocketool home', note: 'Tool results are for reference only.', copyright: '© 2026 Pocketool' },
-  ja: { sites: 'Pocketoolのサイト', info: 'サイト情報', home: 'Pocketool ホーム', note: 'ツールの結果は参考情報です。', copyright: '© 2026 Pocketool' },
-  ko: { sites: 'Pocketool 사이트', info: '사이트 정보', home: 'Pocketool 홈', note: '도구 결과는 참고용입니다.', copyright: '© 2026 Pocketool' },
+  'zh-Hant': { sites: '口袋工具的站', info: '網站資訊', languages: '語言', home: '口袋工具 Pocketool 首頁', note: '工具結果僅供參考。', copyright: '© 2026 口袋工具 Pocketool' },
+  en: { sites: 'Pocketool sites', info: 'Site information', languages: 'Language', home: 'Pocketool home', note: 'Tool results are for reference only.', copyright: '© 2026 Pocketool' },
+  ja: { sites: 'Pocketoolのサイト', info: 'サイト情報', languages: '言語', home: 'Pocketool ホーム', note: 'ツールの結果は参考情報です。', copyright: '© 2026 Pocketool' },
+  ko: { sites: 'Pocketool 사이트', info: '사이트 정보', languages: '언어', home: 'Pocketool 홈', note: '도구 결과는 참고용입니다.', copyright: '© 2026 Pocketool' },
 }
 
 /** 字標的站徽（放在 hub 的 /brand/，檔名上線後不改；稽核會比對 src 與 srcset） */
@@ -139,11 +141,38 @@ function pick(map, keys) {
   return null
 }
 
+const filled = (value) => typeof value === 'string' && value.trim() !== ''
+
+/**
+ * 語系列：站傳進來的每一筆是 { lang, label, href, current }，順序就是畫面上的順序。
+ * - lang 是那個語言的 BCP 47 代碼（也是去處的 hreflang），label 是那個語言自己的名稱（「English」「한국어」），字照那個語言畫。
+ * - current 是這一頁的語言：畫成純文字、標 aria-current，不需要 href；其他每一筆都要有 href（站內絕對路徑或完整網址）。
+ * - 空陣列就不畫；只有一筆沒有切換的意義，也算錯。lang 重複、current 超過一筆、少了字或網址都丟錯（預渲染在建置時失敗）。
+ */
+export function pocketoolFooterLanguages(languages = []) {
+  if (!Array.isArray(languages)) throw new Error('[pocketool-footer] languages 要是陣列')
+  if (languages.length === 0) return []
+  if (languages.length === 1) throw new Error('[pocketool-footer] languages 只有一筆：只有一種語言的站不要傳')
+  const seen = new Set()
+  let currents = 0
+  return languages.map((item, i) => {
+    const where = `[pocketool-footer] languages 第 ${i + 1} 筆`
+    if (!item || !filled(item.lang) || !filled(item.label)) throw new Error(`${where}要有 lang 與 label`)
+    if (seen.has(item.lang)) throw new Error(`${where}的 lang（${item.lang}）重複了`)
+    seen.add(item.lang)
+    const current = item.current === true
+    if (current) currents += 1
+    if (currents > 1) throw new Error(`${where}：current 只能有一筆`)
+    if (!current && !filled(item.href)) throw new Error(`${where}（${item.lang}）不是目前的語言，要有 href`)
+    return { lang: item.lang, label: item.label.trim(), href: current ? undefined : item.href, hreflang: current ? undefined : item.lang, current }
+  })
+}
+
 /**
  * 算出某一站、某一語系的頁尾要畫什麼。元件照這個畫，稽核照這個對，兩邊不會各自分歧。
- * 不認識的站或語系直接丟錯：預渲染會在建置時失敗，不會默默畫錯。
+ * 不認識的站或語系直接丟錯：預渲染會在建置時失敗，不會默默畫錯。languages 是選用的語系列（見 pocketoolFooterLanguages）。
  */
-export function pocketoolFooterModel(site, locale) {
+export function pocketoolFooterModel(site, locale, languages = []) {
   if (!POCKETOOL_SITES.some((s) => s.key === site)) {
     throw new Error(`[pocketool-footer] 不認識的站：${site}（要是 ${POCKETOOL_SITES.map((s) => s.key).join('、')}）`)
   }
@@ -208,6 +237,8 @@ export function pocketoolFooterModel(site, locale) {
     },
     infoLabel: copy.info,
     info,
+    languagesLabel: copy.languages,
+    languages: pocketoolFooterLanguages(languages),
     note: copy.note,
     copyright: copy.copyright,
     owner: {

@@ -1,11 +1,14 @@
-// 此檔由共用頁尾正本同步（版本 1.0.2），不要在這裡改。
+// 此檔由共用頁尾正本同步（版本 1.1.0），不要在這裡改。
 // pocketool-footer.audit.mjs 的型別（給 TypeScript 的站；實作與註解在 .mjs）。
-import type { PocketoolFooterLocale, PocketoolSiteKey } from './pocketool-footer-data.mjs'
+import type { PocketoolFooterLanguageInput, PocketoolFooterLocale, PocketoolSiteKey } from './pocketool-footer-data.mjs'
 
-/** 一個預渲染 HTML 的共用頁尾有沒有照契約；回傳問題清單，空陣列就是過 */
+/**
+ * 一個預渲染 HTML 的共用頁尾有沒有照契約；回傳問題清單，空陣列就是過。
+ * languages 給了（含空陣列）就逐筆對語系列；沒給只查語系列的格式。
+ */
 export declare function pocketoolFooterProblems(
   html: string,
-  options: { site: PocketoolSiteKey | string; locale: PocketoolFooterLocale | string },
+  options: { site: PocketoolSiteKey | string; locale: PocketoolFooterLocale | string; languages?: readonly PocketoolFooterLanguageInput[] },
 ): string[]
 
 /** 開標籤的屬性（名字小寫、值解開 HTML 實體） */

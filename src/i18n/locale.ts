@@ -15,6 +15,12 @@ export type Locale = 'zh-TW' | 'en'
 
 export const DEFAULT_LOCALE: Locale = 'zh-TW'
 
+/** 全部的語系，也是頁尾語系列的順序（繁中在前） */
+export const LOCALES: readonly Locale[] = ['zh-TW', 'en']
+
+/** 語名：每個語系用自己的語言寫。頁首的語言切換與頁尾的語系列用同一份 */
+export const LANGUAGE_NAME: Record<Locale, string> = { 'zh-TW': '中文', en: 'English' }
+
 export const LOCALE_KEY: InjectionKey<Readonly<Ref<Locale>>> = Symbol('qrcode-studio-locale')
 
 /** `<html lang>`、hreflang 與 JSON-LD 的 inLanguage */
