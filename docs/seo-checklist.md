@@ -67,17 +67,17 @@ Facebook 與 LINE 都沒有能保證換圖的重抓工具（原因與換檔名�
 這兩頁的替代文字以大標開頭、有橫幅那句，大標也要在 title 裡。
 
 2026-11-05 用 agy 重新檢視全站 title 與 description（Google 自動完成核對選字、重抓競品頁、對照本站事實後定稿），改了下面七頁的 title。
-改動日寫上線日，部署後補上；基線是 Google 2026-10-06 到 11-04（30 天）與 Bing 10-02、10-09、10-16 三個週桶，索引狀態是 11-05 的網址檢查。
+v1.12.0 跟全站改版一起上線：2026-11-05 部署成功（commit dacf53d，台灣時間 12:07），線上已驗過七頁的新 title。改後窗口是 11-06 到 12-03，最早 12-06 查。基線是 Google 2026-10-06 到 11-04（30 天）與 Bing 10-02、10-09、10-16 三個週桶，索引狀態是 11-05 的網址檢查。
 
 | 改動日 | 網址 | 改前 title | 改後 title | H1 | 改前基線 | 索引狀態（11-05） |
 |---|---|---|---|---|---|---|
-| 待部署 | `/` | 免費 QR Code 產生器｜可加 LOGO、下載 SVG，不傳雲端 | 免費 QR Code 產生器｜線上製作可加 LOGO、下載 SVG 向量檔 | 不變 | Google 0；Bing 見 workspace 研究筆記 | 已編入索引（最後檢索 11-04） |
-| 待部署 | `/scan/` | QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR 與條碼 | QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR Code 與條碼 | 不變 | Google 1 曝光（名次 163）；Bing 見 workspace 研究筆記 | 已編入索引（最後檢索 11-03） |
-| 待部署 | `/text/` | 文字 QR Code 產生器｜任意文字轉 QR Code（免費線上） | 純文字 QR Code 產生器｜文字轉 QR Code，掃描直接顯示文字（免費） | 不變（純文字 QR Code 產生器） | 0 | 已編入索引（最後檢索 10-26） |
-| 待部署 | `/faq/` | QR Code 產生器常見問題｜QR Code 製造機 | QR Code 產生器常見問題：會過期嗎？商用與印刷說明｜QR Code 製造機 | 不變 | 0 | 已找到，尚未建立索引（從未檢索） |
-| 待部署 | `/guide/` | QR Code 教學總覽｜QR Code 製造機 | QR Code 教學總覽：印刷尺寸、容錯與加 LOGO、電腦掃描｜QR Code 製造機 | 不變 | 0 | 已編入索引（最後檢索 10-27） |
-| 待部署 | `/en/` | Free QR Code Generator: Add a Logo, Download SVG or PNG | Free QR Code Generator with Logo: Download SVG or PNG | 不變 | 0 | 已編入索引（最後檢索 10-15） |
-| 待部署 | `/en/barcode/` | Barcode Generator: Free Code 128, EAN-13 and ITF-14 Barcodes | Free Barcode Generator: Code 128, EAN-13, Download SVG or PNG | 不變 | 0 | Google 不知道這個網址 |
+| 2026-11-05 | `/` | 免費 QR Code 產生器｜可加 LOGO、下載 SVG，不傳雲端 | 免費 QR Code 產生器｜線上製作可加 LOGO、下載 SVG 向量檔 | 不變 | Google 0；Bing 見 workspace 研究筆記 | 已編入索引（最後檢索 11-04） |
+| 2026-11-05 | `/scan/` | QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR 與條碼 | QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR Code 與條碼 | 不變 | Google 1 曝光（名次 163）；Bing 見 workspace 研究筆記 | 已編入索引（最後檢索 11-03） |
+| 2026-11-05 | `/text/` | 文字 QR Code 產生器｜任意文字轉 QR Code（免費線上） | 純文字 QR Code 產生器｜文字轉 QR Code，掃描直接顯示文字（免費） | 不變（純文字 QR Code 產生器） | 0 | 已編入索引（最後檢索 10-26） |
+| 2026-11-05 | `/faq/` | QR Code 產生器常見問題｜QR Code 製造機 | QR Code 產生器常見問題：會過期嗎？商用與印刷說明｜QR Code 製造機 | 不變 | 0 | 已找到，尚未建立索引（從未檢索） |
+| 2026-11-05 | `/guide/` | QR Code 教學總覽｜QR Code 製造機 | QR Code 教學總覽：印刷尺寸、容錯與加 LOGO、電腦掃描｜QR Code 製造機 | 不變 | 0 | 已編入索引（最後檢索 10-27） |
+| 2026-11-05 | `/en/` | Free QR Code Generator: Add a Logo, Download SVG or PNG | Free QR Code Generator with Logo: Download SVG or PNG | 不變 | 0 | 已編入索引（最後檢索 10-15） |
+| 2026-11-05 | `/en/barcode/` | Barcode Generator: Free Code 128, EAN-13 and ITF-14 Barcodes | Free Barcode Generator: Code 128, EAN-13, Download SVG or PNG | 不變 | 0 | Google 不知道這個網址 |
 
 分享圖不用重畫：七頁的大標（站台預設圖以外）都還在新 title 裡，`seo:audit` 照舊對帳。`/scan/`、`/en/`、`/en/barcode/` 的 title 鎖、
 `/faq/`、`/guide/` 的品牌後綴檢查，期望值一起改成新 title。基線幾乎都是 0，四週後比的是上面那四件事；`/scan/` 與首頁再看 Bing 曝光。
