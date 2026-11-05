@@ -148,6 +148,8 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 - 本站自己的東西（站內連結、In Chinese only、回報問題、隱私那一行、DENSO WAVE 商標聲明）放在它的預設 slot，
   `DefaultLayout.vue` 依語系傳 `locale`（`FOOTER_LOCALE`）與 `languages`。連回口袋工具、版權句與署名只由共用部分畫，slot 裡不要再放第二份。
 - 顏色與字型在 `src/styles/pocketool-footer.css`（`--ptf-*` 對到本站色票）；頁尾的字一律 16px 以上，任何寬度每個連結都至少 44px 高。
+- 本站專屬區的欄在 768px 以下收合（`FootFold.vue`，標題裡放按鈕，至少 44px 高；英文的 About 不收）：預渲染一律展開，
+  掛載後才依寬度收起；「回報問題」與隱私那一行放在收合區外面，一直看得到（細節見 `docs/ui.md`）。
 - `seo:audit` 對每一個有 `<footer>` 的 HTML 跑同步來的 `pocketoolFooterProblems`（語系列逐筆對）；`src/pocketool-footer.test.ts` 鎖互連列、`aria-current`、語系列與英文頁的字。
 
 ## v-html 的富文字連結要自己補前綴
@@ -165,7 +167,8 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 
 - **工具區**（`src/components/ToolZone.vue`）直接放在 `<main>` 底下：**不要包進有寬度上限的容器，也不要改用 `100vw`**。
 - **卡片一律細框**（2026-11 改版）：工具卡 `card`、小卡 `sticker`、文章卡 `.doc-card`，不要再加粗黑框或硬陰影；裝飾插圖 `alt=""`、不取代 Lucide 圖示。
-- **副標只留一行**（30 字以內）。SEO 內文可以移出工具區，但**一個字都不能刪**；`seo:audit` 會對帳。
+- **副標只留一行**（30 字以內）。SEO 內文可以移出工具區；**h1／h2／h3 大綱與每頁獨有的資訊不刪**，只有跨段重複的套話可以刪
+  （2026-11 刪了首頁與類型頁的開頭引言，`/url/` 照留）；`seo:audit` 對帳留下來的關鍵句。
 - 區塊標示用 `.zone-label` 段落，**不是標題**：各頁的 h1／h2／h3 大綱不因為分區而改變。
 - `main.css` 開頭的框線 reset 不要拿掉；`html`、`body` 的 `overflow-x` 用 `clip`，**不要改回 `hidden`**（`src/styles/main-css.test.ts` 鎖著）。
 - **收進欄名旁的「?」**（`src/components/HelpTip.vue`）：只收「長、而且不看也能把欄位填完」的說明；
@@ -184,7 +187,7 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 - **使用者在別處真的會看到的名稱照寫，每頁第一次出現就白話解釋**。
 - **只有工程師懂的詞，工具區不用**。台灣用語：「半角」一律寫「半形」。
 - **欄名改了，提到它的地方一起改**。
-- **不跟著文案改的**：網址、下拉選單與勾選框的 `value`、類型頁、首頁、`/scan/`、`/barcode/` 的 meta description 與 `seo:audit` 對帳的首段。
+- **不跟著文案改的**：網址、下拉選單與勾選框的 `value`、類型頁、首頁、`/scan/`、`/barcode/` 的 meta description 與 `seo:audit` 對帳的關鍵句。
   title 與 H1 要改時另外處理：改之前把改前的 title 與 28 天基線記進 `docs/seo-checklist.md` 的「標題改動紀錄」。
 - **關於頁的授權段落與隱私權頁準確性優先**：原詞保留，只在前面補白話。
 - 教學只調整用字時 `updated` 不動（sitemap 的 `<lastmod>` 不跟著變），示意圖、圖說與替代文字不重產。

@@ -8,7 +8,7 @@ export interface QrTypeMeta {
   icon: string            // Lucide 圖示的 UnoCSS class（建置時打包）；首頁連結列與產生器分頁共用
   routeName: string
   h1: string
-  lead: string            // 工具區標題下的一行副標（30 字以內）；完整的 description 放在說明文章第一段
+  lead: string            // 工具區標題下的一行副標（30 字以內）；description 只有 /url/ 還放在說明文章第一段（其他頁 2026-11 刪了重複的引言）
   title: string           // <title>
   description: string     // meta description
   intro: string           // landing 頁開頭段落

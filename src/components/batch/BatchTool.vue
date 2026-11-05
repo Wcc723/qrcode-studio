@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, useId } from 'vue'
+import { computed, nextTick, ref, useId, watch } from 'vue'
 import type { ErrorCorrectionLevel } from '@/types'
 import { useBatch, PREVIEW_COUNT, ISSUE_LIST_LIMIT, type OutputMode } from '@/composables/useBatch'
 import { useBatchLabels } from '@/composables/useBatchLabels'
@@ -30,6 +30,13 @@ const {
   templateCheck, checked, ready, failed, duplicates, appendedCount, hasStoreCodes, code39ShiftCount, fileNames, blocker,
   previewTiles, busy, progress, status, exportError, download, cancel,
 } = useBatch(locale)
+
+/**
+ * 輸出方式換了就通知頁面：批次頁的說明文章把「印成標籤紙」的型號與對位說明收在 <details> 裡，
+ * 選了「印成 A4 標籤紙」就把它打開（輸出方式是 v-model 的狀態，不讀瀏覽器狀態，hydrate 規則不受影響）。
+ */
+const emit = defineEmits<{ 'output-change': [mode: OutputMode] }>()
+watch(output, (mode) => emit('output-change', mode))
 
 // 標籤紙的設定跟著工具卡：切回「下載 ZIP」再切回來，型號、起始格、位移都還在
 const labels = useBatchLabels({ ready, mode, table, headerCells, columns, contentCol, symbology, ec, blocker, lineUnit }, { locale })

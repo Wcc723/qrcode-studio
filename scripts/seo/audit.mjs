@@ -630,16 +630,22 @@ for (const [page, needles] of [
 
 // ───────────────────────────────────────────────────────────────────
 // 工具區與說明文章：工具頁的標題下只留一行副標，原本那段完整說明移到說明文章開頭。
-// SEO 內文一個字都不能刪，只能移出工具區，所以要在產物上對帳：
+// SEO 內文只能移出工具區；2026-11 起（站長裁示）跟下面段落重複的開頭引言可以刪（首頁與 /url/ 以外的類型頁已刪），
+// h1／h2／h3 大綱與每頁獨有的資訊不刪。所以在產物上對帳留下來的關鍵句：
 //   ① 每個工具頁都有工具區（data-test="tool-zone"）與它後面的說明文章（data-test="doc"）
-//   ② 原本標題下的句子還在預渲染 HTML 的內文裡，而且落在說明文章，不在工具區
-// 比對時拿掉所有空白：模板裡的長句會跨行。
+//   ② 每頁的關鍵句還在預渲染 HTML 的內文裡，而且落在說明文章，不在工具區
+// 比對時拿掉所有空白與標籤：模板裡的長句會跨行，句中也可能有連結。
 // ───────────────────────────────────────────────────────────────────
 {
   const squash = (s) => s.replace(/\s+/g, '')
   const textOf = (html) => squash((html ?? '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ''))
   const MOVED = {
-    '': ['線上免費製作 QR Code（QRCode）：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。'],
+    // 首頁：開頭引言刪了，它講的賣點（免費、不傳雲端、LOGO、PNG 與 SVG、不過期）由下面兩段講，「QRCode」的寫法併進第一段
+    '': [
+      '這是一款免費、不傳雲端、無浮水印的線上 QR Code（QRCode、行動條碼）產生器。',
+      '可自訂方塊與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或SVG 向量檔',
+      '產生的是靜態 QR Code（內容直接存在圖裡，不經過任何網站轉址），永久有效、不會過期',
+    ],
     'scan/': [
       '把電腦或手機裡已經有的圖片丟進來就好：拖放、選檔案，或直接貼上截圖。',
       '支援 QR Code 與 Code 128、EAN-13、EAN-8、Code 39、ITF-14。',
@@ -655,8 +661,15 @@ for (const [page, needles] of [
       '也可以直接排在鶴屋、龍德的 A4 標籤紙上用瀏覽器列印：每格一個碼加一到三行字，從第幾格開始印都可以。',
     ],
   }
-  // 7 個類型頁：標題下原本就是 meta description 那一句
-  for (const t of ['url', 'wifi', 'vcard', 'text', 'email', 'phone', 'sms']) MOVED[`${t}/`] = null
+  // 7 個類型頁：開頭的引言（meta description 那一句）只有 /url/ 照留（站長裁示這頁的文章字句先不動），其他六頁驗「關於」那一段的第一句。
+  // null 代表拿 meta description 當要找的句子。句子刻意再寫一次、不從 qr-types.ts 讀：改了文案要在這裡對得上
+  MOVED['url/'] = [null, '輸入任何網址，立即在線上製作可掃描的網址 QR Code。']
+  MOVED['wifi/'] = ['輸入 WiFi 名稱（SSID）與密碼，立即產生 WiFi QR Code。']
+  MOVED['vcard/'] = ['輸入姓名、電話、Email、公司等聯絡資訊，產生電子名片 QR Code（vCard）。']
+  MOVED['text/'] = ['輸入任何文字內容，立即產生純文字 QR Code。']
+  MOVED['email/'] = ['輸入收件者、主旨與內文，產生可直接寄信的 Email QR Code。']
+  MOVED['phone/'] = ['輸入電話號碼，立即產生可一鍵撥號的電話 QR Code。']
+  MOVED['sms/'] = ['輸入收件號碼與訊息內容，產生簡訊 QR Code。']
   for (const [dir, sentences] of Object.entries(MOVED)) {
     const file = join(distDir, dir, 'index.html')
     if (!existsSync(file)) { add(`[${dir || '/'}] 工具頁存在`, false); continue }
@@ -667,7 +680,7 @@ for (const [page, needles] of [
     add(`[${dir || '/'}] 只有一個 h1`, (html.match(/<h1[\s>]/g) ?? []).length === 1)
     const zoneText = textOf(html.slice(zoneAt, docAt))
     const docText = textOf(html.slice(docAt))
-    const needles = sentences ?? [metaContent(html, 'description') ?? '(沒有 description)']
+    const needles = sentences.map((s) => s ?? metaContent(html, 'description') ?? '(沒有 description)')
     for (const s of needles) {
       const n = squash(s)
       add(`[${dir || '/'}] 內文仍有「${s.slice(0, 16)}…」且在說明文章裡`, docText.includes(n) && !zoneText.includes(n))

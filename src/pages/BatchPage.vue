@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import BatchTool from '@/components/batch/BatchTool.vue'
+import type { OutputMode } from '@/composables/useBatch'
 import ToolZone from '@/components/ToolZone.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { publisher, site } from '@/config/site'
@@ -57,13 +59,25 @@ const crumbs = [
   { label: site.name, to: '/' },
   { label: '批次產生 QR Code 與條碼' },
 ]
+
+/*
+ * 「印成 A4 標籤紙」那一段（2026-11 站長裁示：批次頁的說明太長）：h2 與第一段照常顯示，型號清單與「印之前先對位」收進 <details>，
+ * 字一個都沒刪、h3 大綱不變。預渲染時收著；在工具區選了「印成 A4 標籤紙」就打開（狀態來自輸出方式的 v-model，不讀瀏覽器狀態）。
+ */
+const labelOpen = ref(false)
+function onOutputChange(mode: OutputMode) {
+  if (mode === 'label') labelOpen.value = true
+}
+function onLabelToggle(event: Event) {
+  labelOpen.value = (event.target as HTMLDetailsElement).open
+}
 </script>
 
 <template>
   <div>
     <ToolZone lead="貼上 Excel 清單或連號，下載 ZIP 或印標籤紙" art="tool-batch-160.webp" deco="deco-stand-240.webp" :crumbs="crumbs" crumbs-label="導覽路徑">
       <template #title>批次產生 QR Code 與條碼</template>
-      <BatchTool />
+      <BatchTool @output-change="onOutputChange" />
     </ToolZone>
 
     <article class="max-w-[720px] mx-auto px-4 mt-10 text-ink/85 font-600 leading-relaxed" data-test="doc">
@@ -101,21 +115,24 @@ const crumbs = [
 
       <h2 class="text-2xl font-800 text-ink mt-10">印成 A4 標籤紙（鶴屋、龍德型號）</h2>
       <p class="mt-3">在「輸出方式」選「印成 A4 標籤紙」，清單會直接排在 A4 標籤貼紙上，用瀏覽器列印，不必再用 Word 設定合併列印。每一格是一個碼加一到三行字，例如財產編號、品名、保管單位，字依長度自動縮小，太長就截斷並列出是哪幾列。</p>
-      <ul class="list-disc pl-5 mt-3 space-y-2">
-        <li><strong class="text-ink">選型號</strong>：內建鶴屋與龍德常見的型號，從 2 × 5 的 10 格到 7 × 16 的 112 格，格子的位置照兩家官網提供的 Word 範本設定。同樣格數的型號，邊界可能差到 2 mm，請選包裝上寫的型號；清單裡沒有的，選「自訂尺寸」自己量。</li>
-        <li><strong class="text-ink">從第幾格開始</strong>：用掉一半的標籤紙，填第一張還沒用的格子號碼，前面的格子留白，接著印下去。</li>
-        <li><strong class="text-ink">每筆印幾份</strong>：同一筆連續印好幾張，例如一張貼在設備上、一張貼在財產卡上。</li>
-        <li><strong class="text-ink">全版切割</strong>：整張都是標籤、四邊沒有留白的型號，多數印表機印不到紙邊 {{ PRINTER_EDGE_RANGE }}，最外圈格子裡的碼與字會自動往內縮。</li>
-        <li><strong class="text-ink">印不出能掃的大小就擋下</strong>：條碼在小格子裡會被壓得太窄，例如 EAN-13 低於標準尺寸的 80%、Code 128 最細的線不到 {{ code128MinMm }} mm，工具會說明原因並停用列印，不會印出掃不到的標籤。</li>
-      </ul>
+      <details class="doc-fold" :open="labelOpen" data-test="label-fold" @toggle="onLabelToggle">
+        <summary>查看型號清單與印之前怎麼對位<span class="i-lucide-chevron-down doc-fold-chevron" aria-hidden="true" /></summary>
+        <ul class="list-disc pl-5 mt-3 space-y-2">
+          <li><strong class="text-ink">選型號</strong>：內建鶴屋與龍德常見的型號，從 2 × 5 的 10 格到 7 × 16 的 112 格，格子的位置照兩家官網提供的 Word 範本設定。同樣格數的型號，邊界可能差到 2 mm，請選包裝上寫的型號；清單裡沒有的，選「自訂尺寸」自己量。</li>
+          <li><strong class="text-ink">從第幾格開始</strong>：用掉一半的標籤紙，填第一張還沒用的格子號碼，前面的格子留白，接著印下去。</li>
+          <li><strong class="text-ink">每筆印幾份</strong>：同一筆連續印好幾張，例如一張貼在設備上、一張貼在財產卡上。</li>
+          <li><strong class="text-ink">全版切割</strong>：整張都是標籤、四邊沒有留白的型號，多數印表機印不到紙邊 {{ PRINTER_EDGE_RANGE }}，最外圈格子裡的碼與字會自動往內縮。</li>
+          <li><strong class="text-ink">印不出能掃的大小就擋下</strong>：條碼在小格子裡會被壓得太窄，例如 EAN-13 低於標準尺寸的 80%、Code 128 最細的線不到 {{ code128MinMm }} mm，工具會說明原因並停用列印，不會印出掃不到的標籤。</li>
+        </ul>
 
-      <h3 class="text-xl font-700 text-ink mt-6">印之前先對位</h3>
-      <ol class="list-decimal pl-5 mt-3 space-y-1">
-        <li>在「要印什麼」選「對位測試頁」，用一般白紙印一張：上面只有每一格的框線、格號與一把 {{ rulerCm }} 公分校正尺。</li>
-        <li>量校正尺：剛好 {{ rulerCm }} 公分才是實際大小。短了就是列印設定有縮放，請把縮放改成「實際大小（100%）」或「預設」，邊界選「無」，不要選「符合頁面大小」。</li>
-        <li>把印好的白紙疊在標籤紙上，對著光看，格線要落在標籤的切線上。整批往同一個方向偏，就在「位移微調」填偏了多少（mm），再印一次確認；勾選「記住這台印表機的位移」，下次不用重量。</li>
-        <li>對準了，再放標籤紙，選回「標籤」按「列印標籤」。</li>
-      </ol>
+        <h3 class="text-xl font-700 text-ink mt-6">印之前先對位</h3>
+        <ol class="list-decimal pl-5 mt-3 space-y-1">
+          <li>在「要印什麼」選「對位測試頁」，用一般白紙印一張：上面只有每一格的框線、格號與一把 {{ rulerCm }} 公分校正尺。</li>
+          <li>量校正尺：剛好 {{ rulerCm }} 公分才是實際大小。短了就是列印設定有縮放，請把縮放改成「實際大小（100%）」或「預設」，邊界選「無」，不要選「符合頁面大小」。</li>
+          <li>把印好的白紙疊在標籤紙上，對著光看，格線要落在標籤的切線上。整批往同一個方向偏，就在「位移微調」填偏了多少（mm），再印一次確認；勾選「記住這台印表機的位移」，下次不用重量。</li>
+          <li>對準了，再放標籤紙，選回「標籤」按「列印標籤」。</li>
+        </ol>
+      </details>
 
       <h2 class="text-2xl font-800 text-ink mt-10">一維條碼還是 QR Code？</h2>
       <p class="mt-3">要給掃描槍讀編號、跟收銀或庫存系統對接，用一維條碼：Code 128 最通用，零售商品用 EAN-13。要讓手機相機一掃就打開網頁、表單或說明頁，用 QR Code。兩種都要也可以，同一份清單先做一次 QR Code，再切到 Code 128 做一次。</p>

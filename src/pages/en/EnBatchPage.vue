@@ -5,8 +5,10 @@
  * （inventory、storage bins、asset tags、moving boxes），不是繁中頁的翻譯。
  * 規格數字從 paper.ts 與 validateBarcode.ts 帶，不寫死（src/batch-gates.test.ts 會掃）。
  */
+import { ref } from 'vue'
 import BatchTool from '@/components/batch/BatchTool.vue'
 import ToolZone from '@/components/ToolZone.vue'
+import type { OutputMode } from '@/composables/useBatch'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { provideUiCopy } from '@/locales/ui'
 import { uiCopyEn } from '@/locales/ui.en'
@@ -69,13 +71,23 @@ const crumbs = [
   { label: site.nameEn, to: '/en/' },
   { label: 'Bulk QR code generator' },
 ]
+
+// 標籤紙那一段跟繁中頁一樣：h2 與第一段照常顯示，尺寸清單與對位步驟收進 <details>，選了「Print labels」就打開；
+// 第一段就提到 Avery，所以 Avery 的商標說明放在收合區外面
+const labelOpen = ref(false)
+function onOutputChange(mode: OutputMode) {
+  if (mode === 'label') labelOpen.value = true
+}
+function onLabelToggle(event: Event) {
+  labelOpen.value = (event.target as HTMLDetailsElement).open
+}
 </script>
 
 <template>
   <div>
     <ToolZone lead="Paste from Excel or CSV, get a ZIP or print labels" art="tool-batch-160.webp" deco="deco-stand-240.webp" :crumbs="crumbs" crumbs-label="Breadcrumb">
       <template #title>Bulk QR Code and Barcode Generator</template>
-      <BatchTool />
+      <BatchTool @output-change="onOutputChange" />
     </ToolZone>
 
     <article class="max-w-[720px] mx-auto px-4 mt-10 text-ink/85 font-600 leading-relaxed" data-test="doc">
@@ -116,22 +128,26 @@ const crumbs = [
 
       <h2 class="text-2xl font-800 text-ink mt-10">Print QR code labels and barcode labels on Letter sheets</h2>
       <p class="mt-3">Choose "Print labels" as the output and your list is laid out on label sheets, ready to print from your browser, with no mail merge in Word. Each label gets a code plus one to three lines of text, such as an asset tag, an item name and a location; text shrinks to fit and is cut off only when it is too long, with the affected rows listed.</p>
-      <ul class="list-disc pl-5 mt-3 space-y-2">
-        <li><strong class="text-ink">Avery-compatible sizes</strong>: US Letter sheets laid out like Avery 5160 (30 per sheet, 2⅝ × 1 inch), 5163 (10 per sheet, 4 × 2 inch), 5167 (80 per sheet, 1¾ × ½ inch) and 22806 (12 square labels, 2 × 2 inch), plus an A4 sheet of 21 labels and a custom size for anything else.</li>
-        <li><strong class="text-ink">Start at any label</strong>: on a partly used sheet, enter the first unused label and the ones before it stay blank.</li>
-        <li><strong class="text-ink">Several copies of each</strong>: print two of the same label in a row, for example one for the item and one for its box.</li>
-        <li><strong class="text-ink">Safe edges</strong>: most printers cannot print the outer {{ edgeRange }} of the page, so codes and text in labels that touch the edge are pulled in automatically.</li>
-        <li><strong class="text-ink">No labels that will not scan</strong>: if a barcode would be squeezed too thin for its label, for example a Code 128 bar narrower than {{ code128MinMm }} mm, the tool explains why and turns off printing instead of wasting a sheet.</li>
-      </ul>
-      <p class="mt-3 text-sm text-muted">Avery is a trademark of Avery Products Corporation. This site is not affiliated with Avery; the product numbers only describe sheets with the same layout.</p>
+      <details class="doc-fold" :open="labelOpen" data-test="label-fold" @toggle="onLabelToggle">
+        <summary>See label sizes and how to line them up<span class="i-lucide-chevron-down doc-fold-chevron" aria-hidden="true" /></summary>
+        <ul class="list-disc pl-5 mt-3 space-y-2">
+          <li><strong class="text-ink">Avery-compatible sizes</strong>: US Letter sheets laid out like Avery 5160 (30 per sheet, 2⅝ × 1 inch), 5163 (10 per sheet, 4 × 2 inch), 5167 (80 per sheet, 1¾ × ½ inch) and 22806 (12 square labels, 2 × 2 inch), plus an A4 sheet of 21 labels and a custom size for anything else.</li>
+          <li><strong class="text-ink">Start at any label</strong>: on a partly used sheet, enter the first unused label and the ones before it stay blank.</li>
+          <li><strong class="text-ink">Several copies of each</strong>: print two of the same label in a row, for example one for the item and one for its box.</li>
+          <li><strong class="text-ink">Safe edges</strong>: most printers cannot print the outer {{ edgeRange }} of the page, so codes and text in labels that touch the edge are pulled in automatically.</li>
+          <li><strong class="text-ink">No labels that will not scan</strong>: if a barcode would be squeezed too thin for its label, for example a Code 128 bar narrower than {{ code128MinMm }} mm, the tool explains why and turns off printing instead of wasting a sheet.</li>
+        </ul>
 
-      <h3 class="text-xl font-700 text-ink mt-6">Line it up before you print</h3>
-      <ol class="list-decimal pl-5 mt-3 space-y-1">
-        <li>Under "What to print", choose "Alignment test page" and print it on plain paper. It shows only the label outlines, their numbers and a {{ CALIBRATION_IN }}-inch ruler.</li>
-        <li>Measure the ruler. If it is not exactly {{ CALIBRATION_IN }} inches, your print settings are scaling the page: set the scale to "Actual size" or 100% and the margins to "None", and avoid "Fit to page".</li>
-        <li>Hold the test page over a label sheet against the light. The lines should sit on the label edges. If everything is off in one direction, enter the difference under "Offset adjustment" and print the test page again. Tick "Remember this printer's offset" to keep it.</li>
-        <li>Once it lines up, load the label sheet, switch back to "Labels" and click Print labels.</li>
-      </ol>
+        <h3 class="text-xl font-700 text-ink mt-6">Line it up before you print</h3>
+        <ol class="list-decimal pl-5 mt-3 space-y-1">
+          <li>Under "What to print", choose "Alignment test page" and print it on plain paper. It shows only the label outlines, their numbers and a {{ CALIBRATION_IN }}-inch ruler.</li>
+          <li>Measure the ruler. If it is not exactly {{ CALIBRATION_IN }} inches, your print settings are scaling the page: set the scale to "Actual size" or 100% and the margins to "None", and avoid "Fit to page".</li>
+          <li>Hold the test page over a label sheet against the light. The lines should sit on the label edges. If everything is off in one direction, enter the difference under "Offset adjustment" and print the test page again. Tick "Remember this printer's offset" to keep it.</li>
+          <li>Once it lines up, load the label sheet, switch back to "Labels" and click Print labels.</li>
+        </ol>
+      </details>
+      <!-- 第一段就提到 Avery，商標說明放在收合區外面，一直看得到 -->
+      <p class="mt-3 text-sm text-muted">Avery is a trademark of Avery Products Corporation. This site is not affiliated with Avery; the product numbers only describe sheets with the same layout.</p>
 
       <h2 class="text-2xl font-800 text-ink mt-10">Barcode or QR code?</h2>
       <p class="mt-3">Use a barcode when a scanner reads an ID into your inventory, asset or checkout system: Code 128 is the most versatile, and EAN-13 is for retail products. Use a QR code when people should open a web page, form or manual with their phone camera. You can make both from the same list: make the QR codes once, then switch to Code 128 and make them again.</p>

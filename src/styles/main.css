@@ -173,7 +173,7 @@ kbd {
 /* h2 那一列：標題左邊、裝飾插圖靠右，下面一條虛線 */
 .doc-h2 { display: flex; align-items: flex-end; gap: 12px; padding-bottom: 10px; border-bottom: 2px dashed #ecd2a8; }
 .doc-h2 > img { margin-left: auto; height: 64px; width: auto; flex: none; }
-@media (max-width: 639.98px) { .doc-h2 > img { height: 48px; } }
+@media (max-width: 639.98px) { .doc-h2 > img { height: 40px; } }
 /* 文章裡可點的卡片（類型、教學、延伸閱讀） */
 .doc-card { display: flex; align-items: center; gap: 14px; padding: 12px 14px; background: #fff; border: 1px solid #e8dcc9; border-radius: 16px;
   transition: border-color 0.15s, box-shadow 0.15s; }
@@ -181,6 +181,30 @@ kbd {
 .doc-card-title { display: block; font-size: 17px; font-weight: 800; color: #c2410c; line-height: 1.45; }
 .doc-card:hover .doc-card-title { color: #9a3412; }
 .doc-card-sub { display: block; font-size: 15px; font-weight: 600; color: #5c5044; line-height: 1.55; }
+/*
+ * 首頁的類型卡（HomePage.vue 的 .type-card）：640px 以上插圖在左、標題與說明疊在右邊；
+ * 手機兩欄（2026-11 站長裁示），小插圖放標題左邊、說明句在下面整列。
+ */
+.type-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 14px; align-content: center; }
+.type-card > .art-bubble { grid-row: span 2; align-self: center; }
+.type-card > .doc-card-title { align-self: end; font-size: 18px; }
+.type-card > .doc-card-sub { align-self: start; font-size: 16px; }
+@media (max-width: 639.98px) {
+  .type-card { grid-template-columns: 36px minmax(0, 1fr); gap: 4px 8px; align-content: start; padding: 10px; }
+  .type-card > .art-bubble { grid-row: auto; width: 36px; height: 36px; }
+  .type-card > .art-bubble > img { width: 31px; height: 31px; }
+  .type-card > .doc-card-title { align-self: center; font-size: 15px; line-height: 1.3; }
+  .type-card > .doc-card-sub { grid-column: 1 / -1; font-size: 14px; line-height: 1.5; }
+}
+/* 首頁「展開其他幾篇教學」：整列的細框按鈕樣式，打開後下面接其餘的教學卡 */
+.more-fold { margin-top: 10px; }
+.more-fold > summary {
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 6px 12px;
+  background: #fff; border: 1px solid #cdbfa9; border-radius: 12px; font-weight: 700; color: #c2410c;
+}
+.more-fold > summary:hover { border-color: #ff7a1a; color: #9a3412; }
+.more-fold-chevron { flex: none; transition: transform 0.15s; }
+.more-fold[open] > summary .more-fold-chevron { transform: rotate(180deg); }
 /* 說明文章裡的概念圖（類型頁本文 v-html 裡的 <figure class="doc-figure">） */
 .doc-figure { margin: 8px 0 12px; max-width: 720px; }
 .doc-figure img { display: block; width: 100%; height: auto; border: 1px solid #e8dcc9; border-radius: 18px; }
@@ -203,6 +227,19 @@ kbd {
 .doc-faq > details > summary .faq-chevron { transition: transform 0.15s; }
 .doc-faq > details[open] > summary .faq-chevron { transform: rotate(180deg); }
 .doc-faq > details > p { margin: 0 2px 16px; line-height: 1.8; }
+/*
+ * 說明文章裡收起來的段落（批次頁「印成 A4 標籤紙」的型號清單與對位步驟）：細框白卡，標題列整列可點。
+ * 字都在預渲染的 HTML 裡，只是收著；開合由頁面管（選了「印成 A4 標籤紙」就打開）。
+ */
+.doc-fold { margin-top: 12px; padding: 0 14px; background: #fff; border: 1px solid #e8dcc9; border-radius: 14px; }
+.doc-fold[open] { padding-bottom: 16px; }
+.doc-fold > summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; padding: 6px 0;
+  font-weight: 700; color: #c2410c;
+}
+.doc-fold > summary:hover { color: #9a3412; }
+.doc-fold-chevron { flex: none; transition: transform 0.15s; }
+.doc-fold[open] > summary .doc-fold-chevron { transform: rotate(180deg); }
 .doc-links { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
 .doc-links a, .doc-chips a { color: #c2410c; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .doc-links a:hover, .doc-chips a:hover { color: #9a3412; }
@@ -212,6 +249,29 @@ kbd {
   border: 1px solid #e8dcc9; border-radius: 999px; text-decoration: none; transition: border-color 0.15s; }
 .doc-chips a:hover { border-color: #ff7a1a; }
 .doc-chips a > img { width: 38px; height: 38px; flex: none; }
+/*
+ * 手機（640px 以下）的類型頁說明（2026-11 站長裁示：卡片一張一行太長）：使用步驟的卡片收窄，
+ * 「其他類型與工具」排兩欄（每個連結仍至少 44px 高）。插圖大小在 SeoContent.vue 的 class。
+ */
+@media (max-width: 639.98px) {
+  .doc-steps-art { gap: 8px; }
+  .doc-steps-art > li { gap: 10px; padding: 6px 10px; }
+  .doc-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .doc-chips > li { display: block; }
+  .doc-chips a { width: 100%; min-height: 44px; gap: 6px; padding: 3px 10px 3px 4px; font-size: 15px; line-height: 1.35; }
+  .doc-chips a > img { width: 30px; height: 30px; }
+}
+
+/*
+ * 頁尾本站專屬區的欄（FootFold.vue）：手機掛載後標題換成這顆按鈕，點了展開清單；桌機與預渲染是純標題，沒有按鈕。
+ * 至少 48px 高、字跟著 h2 是 16px（頁尾規則：每個連結至少 44px、字 16px 以上）。
+ */
+.foot-toggle {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 48px; padding: 0;
+  background: transparent; border-bottom: 1px solid #e8dcc9; color: inherit; font: inherit; text-align: left;
+}
+.foot-toggle .foot-chevron { flex: none; transition: transform 0.15s; }
+.foot-toggle[aria-expanded="true"] .foot-chevron { transform: rotate(180deg); }
 
 /*
  * 預覽框連同下面的下載與複製按鈕一起跟著捲動（GeneratorTool 的 .preview-sticky）。

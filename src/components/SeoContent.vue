@@ -13,15 +13,20 @@ const base = import.meta.env.BASE_URL
 const img = (name: string) => `${base}img/${name}`
 /** 三個使用步驟依序配三張步驟插圖（每個類型都是三步：輸入、自訂外觀、下載） */
 const stepArt = ['step-input-160.webp', 'step-style-160.webp', 'step-download-160.webp']
+/**
+ * 文章開頭的引言（meta description 那一句）跟下面「關於」那段與本文講同一批賣點（免費、不傳雲端、自訂外觀、下載格式），
+ * 2026-11 站長裁示刪掉重複的引言（規則見 docs/ui.md「說明文章的字」）。/url/ 照留：站長裁示這頁的文章字句先不動。
+ * meta description 本身一律留在 <head>，不受影響。
+ */
+const keepLead = computed(() => props.meta.type === 'url')
 </script>
 <template>
   <!-- 說明文章：紙白的文件樣式。段落閱讀寬度 720px，卡片可以排到整個內容寬（2026-11 改版） -->
   <article class="max-w-screen-lg mx-auto px-4 mt-10 md:mt-12 text-[#3b3027] font-500 leading-[1.85] text-[17px]" data-test="doc">
     <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
-    <!-- 原本在標題下的整句說明（也是 meta description），移到文章開頭，一個字都不刪 -->
-    <p class="doc-p text-lg md:text-[19px] font-600 text-ink" data-test="doc-lead">{{ meta.description }}</p>
+    <p v-if="keepLead" class="doc-p text-lg md:text-[19px] font-600 text-ink" data-test="doc-lead">{{ meta.description }}</p>
 
-    <div class="doc-h2 mt-8"><h2 class="text-2xl md:text-[28px] font-800 text-ink leading-snug">關於{{ meta.label }} QR Code</h2><img :src="img('deco-plant-240.webp')" alt="" width="240" height="313" loading="lazy" decoding="async"></div>
+    <div class="doc-h2" :class="keepLead ? 'mt-8' : 'mt-4'"><h2 class="text-2xl md:text-[28px] font-800 text-ink leading-snug">關於{{ meta.label }} QR Code</h2><img :src="img('deco-plant-240.webp')" alt="" width="240" height="313" loading="lazy" decoding="async"></div>
     <p class="doc-p mt-4">{{ meta.intro }}</p>
 
     <div v-if="meta.body" class="doc-p mt-5 [&_p]:my-3 [&_h3]:(text-[21px] font-800 text-ink mt-8 mb-2) [&_ul]:(list-disc pl-5.5 my-3 space-y-1) [&_strong]:text-ink [&_code]:(bg-pop-sun px-1 rounded font-mono text-sm)" v-html="bodyHtml" />
@@ -29,7 +34,7 @@ const stepArt = ['step-input-160.webp', 'step-style-160.webp', 'step-download-16
     <h3 class="text-[21px] font-800 text-ink mt-9">使用步驟</h3>
     <ol class="doc-steps doc-steps-art max-w-[720px]">
       <li v-for="(s, i) in meta.steps" :key="i">
-        <span class="art-bubble w-14 h-14"><img :src="img(stepArt[i] ?? stepArt[0])" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-12 h-12"></span>
+        <span class="art-bubble w-10 h-10 sm:w-14 sm:h-14"><img :src="img(stepArt[i] ?? stepArt[0])" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-8.5 h-8.5 sm:w-12 sm:h-12"></span>
         <span class="leading-relaxed"><strong class="text-link text-lg">{{ i + 1 }}</strong>　{{ s }}</span>
       </li>
     </ol>
@@ -46,8 +51,8 @@ const stepArt = ['step-input-160.webp', 'step-style-160.webp', 'step-download-16
     <h3 class="text-[21px] font-800 text-ink mt-10">延伸閱讀</h3>
     <ul class="list-none m-0 mt-3 p-0 grid gap-2.5 max-w-[760px]" data-test="read-more">
       <li v-for="g in readMore" :key="g.slug">
-        <RouterLink :to="`/guide/${g.slug}/`" class="doc-card !py-2.5 !px-3">
-          <span class="art-square w-15 h-15"><img :src="img(`guide-${g.slug}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-12.5 h-12.5"></span>
+        <RouterLink :to="`/guide/${g.slug}/`" class="doc-card !py-2 !px-2.5 sm:!py-2.5 sm:!px-3">
+          <span class="art-square w-11 h-11 sm:w-15 sm:h-15"><img :src="img(`guide-${g.slug}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-9 h-9 sm:w-12.5 sm:h-12.5"></span>
           <span class="min-w-0"><span class="doc-card-title">{{ g.shortTitle }}</span><span class="doc-card-sub">{{ g.title }}</span></span>
         </RouterLink>
       </li>
@@ -56,7 +61,7 @@ const stepArt = ['step-input-160.webp', 'step-style-160.webp', 'step-download-16
     <h3 class="text-[21px] font-800 text-ink mt-10">其他類型與工具</h3>
     <nav aria-label="其他 QR Code 類型">
       <ul class="doc-chips" data-test="other-types">
-        <li v-for="t in otherTypes" :key="t.type"><RouterLink :to="`${t.path}/`"><img :src="img(`type-${t.type}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async">{{ t.label }} QR Code</RouterLink></li>
+        <li v-for="t in otherTypes" :key="t.type"><RouterLink :to="`${t.path}/`"><img :src="img(`type-${t.type}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async"><span>{{ t.label }} <span class="whitespace-nowrap">QR Code</span></span></RouterLink></li>
         <li><RouterLink to="/scan/"><img :src="img('tool-scan-160.webp')" alt="" width="160" height="160" loading="lazy" decoding="async">QR Code 掃描器</RouterLink></li>
         <li><RouterLink to="/barcode/"><img :src="img('tool-barcode-160.webp')" alt="" width="160" height="160" loading="lazy" decoding="async">條碼產生器</RouterLink></li>
       </ul>

@@ -15,6 +15,14 @@ const hero = {
   pill: '名片、海報、店家桌卡上的 QR Code，在這裡做',
   trust: ['免費、不用註冊', '沒有浮水印，商用也可以', '靜態 QR Code，永久有效'],
 }
+/*
+ * 首頁教學卡（2026-11 站長裁示：說明文章太長）：所有寬度只露前三篇，其他收進「展開其他幾篇教學」；
+ * 收著的連結仍在預渲染的 HTML 裡。
+ */
+const GUIDES_SHOWN = 3
+const guidesShown = guides.slice(0, GUIDES_SHOWN)
+const guidesMore = guides.slice(GUIDES_SHOWN)
+
 // 三步驟圖（說明文章第一個 h2 下面）
 const steps = [
   { art: 'step-input-160.webp', title: '輸入內容', text: '貼上網址，或填好 WiFi、名片' },
@@ -47,20 +55,22 @@ useSeoHead({
     <!-- 說明文章：紙白的文件樣式，跟上面的工具區分開。段落閱讀寬度 720px，卡片可以排到整個內容寬 -->
     <article class="max-w-screen-lg mx-auto px-4 mt-10 md:mt-12 text-[#3b3027] font-500 leading-[1.85] text-[17px]" data-test="doc">
       <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
-      <!-- 原本在標題下的整句說明，移到文章開頭，一個字都不刪 -->
-      <p class="doc-p text-lg md:text-[19px] font-600 text-ink" data-test="doc-lead">線上免費製作 QR Code（QRCode）：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。</p>
-
-      <div class="doc-h2 mt-8"><h2 class="text-2xl md:text-[28px] font-800 text-ink leading-snug">免費線上 QR Code 產生器，3 步驟製作完成</h2><img :src="img('deco-stand-240.webp')" alt="" width="240" height="235" loading="lazy" decoding="async"></div>
-      <ol class="list-none m-0 mt-5 mb-2 p-0 grid gap-2.5 sm:grid-cols-3 sm:gap-3.5" data-test="home-steps">
-        <li v-for="(s, i) in steps" :key="s.title" class="flex sm:flex-col items-center sm:text-center gap-3.5 sm:gap-2 px-3.5 py-3 sm:px-4 sm:pt-5 sm:pb-4.5 bg-white border border-line rounded-2xl">
-          <span class="art-bubble w-16 h-16 sm:w-24 sm:h-24"><img :src="img(s.art)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-14 h-14 sm:w-21 sm:h-21"></span>
+      <!--
+        原本開頭有一句引言（線上免費製作 QR Code…永久有效不過期），跟下面兩段講同一批賣點，2026-11 站長裁示刪掉（規則見 docs/ui.md）；
+        引言裡只有它有的「QRCode」寫法併進下面第一段。
+      -->
+      <div class="doc-h2 mt-4"><h2 class="text-2xl md:text-[28px] font-800 text-ink leading-snug">免費線上 QR Code 產生器，3 步驟製作完成</h2><img :src="img('deco-stand-240.webp')" alt="" width="240" height="235" loading="lazy" decoding="async"></div>
+      <!-- 手機也排三欄小卡（2026-11 站長裁示：一張一行太長），插圖縮小 -->
+      <ol class="list-none m-0 mt-5 mb-2 p-0 grid grid-cols-3 gap-2 sm:gap-3.5" data-test="home-steps">
+        <li v-for="(s, i) in steps" :key="s.title" class="flex flex-col items-center text-center gap-1.5 sm:gap-2 px-1.5 pt-3 pb-3 sm:px-4 sm:pt-5 sm:pb-4.5 bg-white border border-line rounded-2xl">
+          <span class="art-bubble w-13 h-13 sm:w-24 sm:h-24"><img :src="img(s.art)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-11 h-11 sm:w-21 sm:h-21"></span>
           <span class="flex flex-col gap-0.5 leading-snug">
-            <span class="text-lg font-800 text-ink"><span class="text-link">{{ i + 1 }}</span>　{{ s.title }}</span>
-            <span class="text-base font-500 text-muted">{{ s.text }}</span>
+            <span class="text-base sm:text-lg font-800 text-ink whitespace-nowrap"><span class="text-link mr-1 sm:mr-3">{{ i + 1 }}</span>{{ s.title }}</span>
+            <span class="text-sm sm:text-base font-500 text-muted">{{ s.text }}</span>
           </span>
         </li>
       </ol>
-      <p class="doc-p mt-3">這是一款<strong>免費、不傳雲端、無浮水印</strong>的線上 QR Code（行動條碼）產生器。輸入內容、自訂外觀、按下下載，整個過程都在你的瀏覽器內完成，你輸入的內容不會上傳至雲端儲存空間。支援<RouterLink to="/url/" class="text-link underline underline-offset-2 font-700">網址</RouterLink>、<RouterLink to="/wifi/" class="text-link underline underline-offset-2 font-700">WiFi</RouterLink>、<RouterLink to="/vcard/" class="text-link underline underline-offset-2 font-700">電子名片</RouterLink>、文字、Email、電話、簡訊等多種類型。</p>
+      <p class="doc-p mt-3">這是一款<strong>免費、不傳雲端、無浮水印</strong>的線上 QR Code（QRCode、行動條碼）產生器。輸入內容、自訂外觀、按下下載，整個過程都在你的瀏覽器內完成，你輸入的內容不會上傳至雲端儲存空間。支援<RouterLink to="/url/" class="text-link underline underline-offset-2 font-700">網址</RouterLink>、<RouterLink to="/wifi/" class="text-link underline underline-offset-2 font-700">WiFi</RouterLink>、<RouterLink to="/vcard/" class="text-link underline underline-offset-2 font-700">電子名片</RouterLink>、文字、Email、電話、簡訊等多種類型。</p>
       <p class="doc-p mt-3">可自訂方塊與背景顏色、漸層、加入品牌 LOGO，並免費下載高解析 PNG 或<RouterLink to="/guide/qr-code-svg/" class="text-link underline underline-offset-2 font-700">SVG 向量檔</RouterLink>（放多大都不會糊，印刷用）。產生的是<strong>靜態 QR Code</strong>（內容直接存在圖裡，不經過任何網站轉址），永久有效、不會過期，可放心印在名片、海報、產品包裝或店家招牌上。</p>
       <div class="flex gap-4 items-start max-w-[760px] mt-4">
         <span class="art-bubble w-13 h-13 md:w-16 md:h-16"><img :src="img('tool-scan-160.webp')" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-11 h-11 md:w-14 md:h-14"></span>
@@ -79,11 +89,13 @@ useSeoHead({
       <div class="doc-h2 mt-12"><h2 class="text-2xl md:text-[28px] font-800 text-ink leading-snug">挑一種，馬上做</h2><img :src="img('deco-plant-240.webp')" alt="" width="240" height="313" loading="lazy" decoding="async"></div>
       <p class="doc-p mt-4">每一種類型都有自己的專屬頁，附上使用情境、步驟與常見問題：</p>
       <nav aria-label="QR Code 類型">
-        <ul class="list-none m-0 mt-4 p-0 grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 sm:gap-3.5" data-test="type-links">
+        <!-- 手機排兩欄（2026-11 站長裁示）：小插圖放標題左邊、說明句在下面整列，版面在 main.css 的 .type-card -->
+        <ul class="list-none m-0 mt-4 p-0 grid grid-cols-2 gap-2 lg:grid-cols-3 sm:gap-3.5" data-test="type-links">
           <li v-for="t in qrTypes" :key="t.type">
-            <RouterLink :to="`${t.path}/`" class="doc-card h-full min-h-20 md:min-h-24">
+            <RouterLink :to="`${t.path}/`" class="doc-card type-card h-full sm:min-h-20 md:min-h-24">
               <span class="art-bubble w-13 h-13 md:w-15 md:h-15"><img :src="img(`type-${t.type}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-11.5 h-11.5 md:w-13.5 md:h-13.5"></span>
-              <span class="min-w-0"><span class="doc-card-title !text-lg">{{ t.label }} QR Code</span><span class="doc-card-sub !text-base">{{ t.lead }}</span></span>
+              <span class="doc-card-title">{{ t.label }} <span class="whitespace-nowrap">QR Code</span></span>
+              <span class="doc-card-sub">{{ t.lead }}</span>
             </RouterLink>
           </li>
         </ul>
@@ -92,13 +104,24 @@ useSeoHead({
       <div class="doc-h2 mt-12"><h2 class="text-2xl md:text-[28px] font-800 text-ink leading-snug">QR Code 教學</h2><img :src="img('deco-books-240.webp')" alt="" width="240" height="238" loading="lazy" decoding="async"></div>
       <p class="doc-p mt-4">不會用？這些文章帶你快速上手</p>
       <ul class="list-none m-0 mt-4 p-0 grid gap-2.5 md:grid-cols-2 md:gap-3.5" data-test="guide-links">
-        <li v-for="g in guides" :key="g.slug">
+        <li v-for="g in guidesShown" :key="g.slug">
           <RouterLink :to="`/guide/${g.slug}/`" class="doc-card h-full !items-center !p-3">
-            <span class="art-square w-16 h-16 md:w-21 md:h-21"><img :src="img(`guide-${g.slug}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-13 h-13 md:w-18 md:h-18"></span>
+            <span class="art-square w-12 h-12 md:w-21 md:h-21"><img :src="img(`guide-${g.slug}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-10 h-10 md:w-18 md:h-18"></span>
             <span class="min-w-0"><span class="doc-card-title">{{ g.title }}</span><span class="doc-card-sub mt-1">{{ g.description.slice(0, 40) }}…</span></span>
           </RouterLink>
         </li>
       </ul>
+      <details v-if="guidesMore.length" class="more-fold" data-test="guide-more">
+        <summary>展開其他 {{ guidesMore.length }} 篇教學<span class="i-lucide-chevron-down more-fold-chevron" aria-hidden="true" /></summary>
+        <ul class="list-none m-0 mt-2.5 p-0 grid gap-2.5 md:grid-cols-2 md:gap-3.5">
+          <li v-for="g in guidesMore" :key="g.slug">
+            <RouterLink :to="`/guide/${g.slug}/`" class="doc-card h-full !items-center !p-3">
+              <span class="art-square w-12 h-12 md:w-21 md:h-21"><img :src="img(`guide-${g.slug}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-10 h-10 md:w-18 md:h-18"></span>
+              <span class="min-w-0"><span class="doc-card-title">{{ g.title }}</span><span class="doc-card-sub mt-1">{{ g.description.slice(0, 40) }}…</span></span>
+            </RouterLink>
+          </li>
+        </ul>
+      </details>
       <p class="mt-4"><RouterLink to="/guide/" class="inline-flex items-center gap-1 min-h-11 text-link underline underline-offset-3 font-700">看全部 QR Code 教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></p>
 
       <div class="doc-h2 mt-10"><h2 class="text-2xl md:text-[28px] font-800 text-ink leading-snug">常見問題</h2><img :src="img('deco-bulb-240.webp')" alt="" width="240" height="252" loading="lazy" decoding="async"></div>

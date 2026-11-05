@@ -82,6 +82,10 @@ v1.12.0 跟全站改版一起上線：2026-11-05 部署成功（commit dacf53d�
 分享圖不用重畫：七頁的大標（站台預設圖以外）都還在新 title 裡，`seo:audit` 照舊對帳。`/scan/`、`/en/`、`/en/barcode/` 的 title 鎖、
 `/faq/`、`/guide/` 的品牌後綴檢查，期望值一起改成新 title。基線幾乎都是 0，四週後比的是上面那四件事；`/scan/` 與首頁再看 Bing 曝光。
 
+同一天另外上線 v1.13.0（手機版說明文章與頁尾變短）：首頁與 `/url/` 以外六個類型頁的說明文章刪了開頭重複的引言
+（類型頁的引言就是 meta description，`<head>` 照留），手機卡片改緊湊、批次頁標籤紙說明與頁尾連結欄收進 `<details>`。
+title、description、h1／h2／h3 都沒動；12-06 回顧時這幾頁的變化要把這件事一起算進去。
+
 ### description 改動
 
 `docs/ui.md` 寫的「類型頁的 meta description 不跟著文案改」管的是用字白話化時不要順手動；為了搜尋結果刻意改 description 時，

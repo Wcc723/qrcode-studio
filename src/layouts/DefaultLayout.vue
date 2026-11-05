@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { qrTypes } from '@/config/qr-types'
 import { guides } from '@/content/guides'
 import { site, publisher, FOOTER_SITE } from '@/config/site'
 import { FOOTER_LOCALE, LANG_TAG, LANGUAGE_NAME, LOCALES, useLocale, type Locale } from '@/i18n/locale'
 import PocketoolFooter from '@/shared/pocketool-footer/PocketoolFooter.vue'
+import FootFold from '@/components/FootFold.vue'
 import type { PocketoolFooterLanguageInput } from '@/shared/pocketool-footer/pocketool-footer-data.mjs'
 
 const props = withDefaults(defineProps<{
@@ -66,6 +67,23 @@ const navLabel = computed(() => (isEn.value ? 'Main menu' : '主選單'))
 // 頁尾本站專屬區的連結：字跟著共用頁尾是 16px；跟共用部分一樣，任何寬度每個連結都至少 44px 高（好點）
 const footList = 'mt-2 font-600 text-muted list-none p-0'
 const footLink = 'flex items-center min-h-11 hover:text-link transition'
+
+/*
+ * 頁尾本站專屬區的欄（FootFold.vue）在手機（768px 以下）收合成可展開的標題，桌機一律展開（2026-11 站長裁示：手機頁尾太長）。
+ * 預渲染一律展開，爬蟲與還沒跑 JS 的人看得到全部連結；掛載後才依寬度收起（hydrate 規則：瀏覽器狀態只在 onMounted 之後讀），
+ * 寬度變了跟著變。「回報問題」與隱私那一行放在收合區外面，一直看得到。
+ */
+const footWide = ref(true)
+let stopFootQuery: (() => void) | undefined
+onMounted(() => {
+  if (typeof window.matchMedia !== 'function') return
+  const mq = window.matchMedia('(min-width: 768px)')
+  const sync = () => { footWide.value = mq.matches }
+  sync()
+  mq.addEventListener?.('change', sync)
+  stopFootQuery = () => mq.removeEventListener?.('change', sync)
+})
+onBeforeUnmount(() => stopFootQuery?.())
 </script>
 <template>
   <div class="min-h-screen flex flex-col">
@@ -112,24 +130,19 @@ const footLink = 'flex items-center min-h-11 hover:text-link transition'
     <PocketoolFooter :site="FOOTER_SITE" :locale="FOOTER_LOCALE[locale]" :languages="footerLanguages" class="mt-16">
       <template v-if="isEn">
         <div class="grid gap-x-8 gap-y-6 grid-cols-2 md:grid-cols-3">
-          <section>
-            <h2 class="font-display font-700 text-ink text-base">Free tools</h2>
-            <ul :class="footList">
-              <li><RouterLink to="/en/" :class="footLink">QR code generator</RouterLink></li>
-              <li><RouterLink to="/en/batch/" :class="footLink">Bulk QR code generator</RouterLink></li>
-              <li><RouterLink to="/en/barcode/" :class="footLink">Barcode generator</RouterLink></li>
-              <li><a :href="publisher.toolsUrlEn" :class="footLink">More free tools</a></li>
-            </ul>
-          </section>
-          <section>
-            <h2 class="font-display font-700 text-ink text-base">In Chinese only</h2>
-            <ul :class="footList">
-              <li><RouterLink to="/scan/" hreflang="zh-Hant-TW" :class="footLink">QR code scanner<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-              <li><RouterLink to="/wifi/" hreflang="zh-Hant-TW" :class="footLink">WiFi QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-              <li><RouterLink to="/vcard/" hreflang="zh-Hant-TW" :class="footLink">vCard QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-              <li><RouterLink to="/guide/" hreflang="zh-Hant-TW" :class="footLink">QR code guides<span class="sr-only"> (in Chinese)</span></RouterLink></li>
-            </ul>
-          </section>
+          <FootFold title="Free tools" list-id="foot-en-tools" :wide="footWide" :list-class="footList">
+            <li><RouterLink to="/en/" :class="footLink">QR code generator</RouterLink></li>
+            <li><RouterLink to="/en/batch/" :class="footLink">Bulk QR code generator</RouterLink></li>
+            <li><RouterLink to="/en/barcode/" :class="footLink">Barcode generator</RouterLink></li>
+            <li><a :href="publisher.toolsUrlEn" :class="footLink">More free tools</a></li>
+          </FootFold>
+          <FootFold title="In Chinese only" list-id="foot-en-zh-only" :wide="footWide" :list-class="footList">
+            <li><RouterLink to="/scan/" hreflang="zh-Hant-TW" :class="footLink">QR code scanner<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+            <li><RouterLink to="/wifi/" hreflang="zh-Hant-TW" :class="footLink">WiFi QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+            <li><RouterLink to="/vcard/" hreflang="zh-Hant-TW" :class="footLink">vCard QR code<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+            <li><RouterLink to="/guide/" hreflang="zh-Hant-TW" :class="footLink">QR code guides<span class="sr-only"> (in Chinese)</span></RouterLink></li>
+          </FootFold>
+          <!-- About 只有關於頁與回報問題兩個連結，收起來省不了多少，手機也照樣展開 -->
           <section>
             <h2 class="font-display font-700 text-ink text-base">About</h2>
             <ul :class="footList">
@@ -147,46 +160,39 @@ const footLink = 'flex items-center min-h-11 hover:text-link transition'
       </template>
       <template v-else>
         <div class="grid gap-x-8 gap-y-6 grid-cols-2 md:grid-cols-4">
-          <section>
-            <h2 class="font-display font-700 text-ink text-base">QR Code 類型</h2>
-            <ul :class="footList">
-              <li v-for="t in qrTypes" :key="t.type">
-                <RouterLink :to="`${t.path}/`" :class="footLink">{{ t.label }} QR Code</RouterLink>
-              </li>
-            </ul>
-          </section>
-          <section>
-            <h2 class="font-display font-700 text-ink text-base">其他工具</h2>
-            <ul :class="footList">
-              <li><RouterLink to="/" :class="footLink">免費 QR Code 產生器</RouterLink></li>
-              <li><RouterLink to="/scan/" :class="footLink">QR Code 掃描器</RouterLink></li>
-              <li><RouterLink to="/barcode/" :class="footLink">條碼產生器</RouterLink></li>
-              <li><RouterLink to="/batch/" :class="footLink">批次產生 QR Code 與條碼</RouterLink></li>
-              <li><a :href="publisher.toolsUrl" :class="footLink">更多免費工具</a></li>
-            </ul>
-          </section>
-          <section>
-            <h2 class="font-display font-700 text-ink text-base">教學</h2>
-            <ul :class="footList">
-              <li v-for="g in guides" :key="g.slug">
-                <RouterLink :to="`/guide/${g.slug}/`" :class="footLink">{{ g.shortTitle }}</RouterLink>
-              </li>
-              <li><RouterLink to="/guide/" :class="[footLink, 'gap-1']">所有教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></li>
-            </ul>
-          </section>
-          <section>
-            <h2 class="font-display font-700 text-ink text-base">關於</h2>
-            <ul :class="footList">
-              <li><RouterLink to="/about/" :class="footLink">關於 {{ site.name }}</RouterLink></li>
-              <li><RouterLink to="/faq/" :class="footLink">常見問題</RouterLink></li>
-              <li><RouterLink to="/privacy/" :class="footLink">本工具隱私權政策</RouterLink></li>
-              <li>
-                <a :href="publisher.reportUrl" target="_blank" rel="nofollow noopener" referrerpolicy="no-referrer" :class="footLink" data-test="report-link" @click="addReportPath"
-                  >回報問題<span class="sr-only">（另開分頁）</span></a
-                >
-              </li>
-            </ul>
-          </section>
+          <FootFold title="QR Code 類型" list-id="foot-types" :wide="footWide" :list-class="footList">
+            <li v-for="t in qrTypes" :key="t.type">
+              <RouterLink :to="`${t.path}/`" :class="footLink">{{ t.label }} QR Code</RouterLink>
+            </li>
+          </FootFold>
+          <FootFold title="其他工具" list-id="foot-tools" :wide="footWide" :list-class="footList">
+            <li><RouterLink to="/" :class="footLink">免費 QR Code 產生器</RouterLink></li>
+            <li><RouterLink to="/scan/" :class="footLink">QR Code 掃描器</RouterLink></li>
+            <li><RouterLink to="/barcode/" :class="footLink">條碼產生器</RouterLink></li>
+            <li><RouterLink to="/batch/" :class="footLink">批次產生 QR Code 與條碼</RouterLink></li>
+            <li><a :href="publisher.toolsUrl" :class="footLink">更多免費工具</a></li>
+          </FootFold>
+          <FootFold title="教學" list-id="foot-guides" :wide="footWide" :list-class="footList">
+            <li v-for="g in guides" :key="g.slug">
+              <RouterLink :to="`/guide/${g.slug}/`" :class="footLink">{{ g.shortTitle }}</RouterLink>
+            </li>
+            <li><RouterLink to="/guide/" :class="[footLink, 'gap-1']">所有教學<span class="i-lucide-arrow-right" aria-hidden="true" /></RouterLink></li>
+          </FootFold>
+          <FootFold title="關於" list-id="foot-about" :wide="footWide" :list-class="footList">
+            <li><RouterLink to="/about/" :class="footLink">關於 {{ site.name }}</RouterLink></li>
+            <li><RouterLink to="/faq/" :class="footLink">常見問題</RouterLink></li>
+            <li><RouterLink to="/privacy/" :class="footLink">本工具隱私權政策</RouterLink></li>
+            <!-- 回報問題在收合區外面，手機收起來也看得到；桌機接在上面那串下面，不多空一段 -->
+            <template #after>
+              <ul :class="[footList, 'md:mt-0']">
+                <li>
+                  <a :href="publisher.reportUrl" target="_blank" rel="nofollow noopener" referrerpolicy="no-referrer" :class="footLink" data-test="report-link" @click="addReportPath"
+                    >回報問題<span class="sr-only">（另開分頁）</span></a
+                  >
+                </li>
+              </ul>
+            </template>
+          </FootFold>
         </div>
         <p class="mt-6 font-600 text-muted"><span class="i-lucide-lock" aria-hidden="true" /> 瀏覽器內生成，內容不傳雲端</p>
         <p class="mt-1 text-muted" data-test="trademark">{{ site.trademark }}</p>
