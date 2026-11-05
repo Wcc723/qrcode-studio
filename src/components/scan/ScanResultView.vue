@@ -58,7 +58,7 @@ const canRegenerate = computed(() => !!single.value && (single.value.isLinear ||
 
       <p class="text-sm text-muted font-600 mt-3">內容</p>
       <p data-test="scan-result-text"
-        class="mt-1 p-3 rounded-xl bg-white border-2 border-ink/15 font-mono text-sm text-ink break-all whitespace-pre-wrap">{{ single.text }}</p>
+        class="mt-1 p-3 rounded-xl bg-white border border-line font-mono text-sm text-ink break-all whitespace-pre-wrap">{{ single.text }}</p>
 
       <!-- 認得出類型的非網址內容：一句中性說明，不寫網址開頭、不出警告 -->
       <p v-if="kindNote" data-test="scan-kind-note" class="mt-3 text-sm font-600 text-muted leading-relaxed">{{ kindNote }}</p>
@@ -72,23 +72,23 @@ const canRegenerate = computed(() => !!single.value && (single.value.isLinear ||
           會開到的網站：<span data-test="scan-uri-host" class="text-ink break-all">{{ single.uri.host }}</span>
         </p>
         <p v-if="!single.uri.openable" data-test="scan-unsafe-scheme"
-          class="mt-2 text-ink/80 bg-pop-sun/40 border-2 border-ink/15 rounded-xl p-3 leading-relaxed">
+          class="mt-2 text-ink/80 bg-pop-sun/40 border border-line rounded-xl p-3 leading-relaxed">
           這不是一般網址（開頭是 {{ single.uri.scheme }}:），可能會在你的裝置上做別的事。
           只有 http、https 開頭的網址才有開啟按鈕，這一筆只顯示文字，請自己判斷能不能信任。
         </p>
       </div>
 
       <div class="flex flex-wrap gap-2 mt-4">
-        <button type="button" data-test="scan-copy" class="btn-primary !bg-pop-sky"
+        <button type="button" data-test="scan-copy" class="btn-secondary"
           @click="copy(single.text)">
           <span :class="copied ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />{{ copied ? '已複製' : '複製內容' }}
         </button>
         <a v-if="single.uri.openable && single.uri.href" data-test="scan-open"
-          class="btn-primary !bg-pop-mint" :href="single.uri.href" target="_blank" rel="noopener noreferrer">
+          class="btn-secondary" :href="single.uri.href" target="_blank" rel="noopener noreferrer">
           在新分頁開啟
         </a>
         <button v-if="canRegenerate" type="button" data-test="scan-regenerate"
-          class="btn-primary !bg-pop-sun" @click="emit('regenerate')">
+          class="btn-primary" @click="emit('regenerate')">
           用這個內容再做一張
         </button>
       </div>

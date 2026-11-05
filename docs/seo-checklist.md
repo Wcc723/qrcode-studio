@@ -54,6 +54,7 @@
 
 兩頁跟全站用字白話化（#7）一起上線：2026-09-30 部署成功（commit f3d8fba，台灣時間 16:39），線上已驗過新 title 與 H1。
 改後窗口是 10-01 到 10-28，最早 10-31 查。
+
 og:title、twitter:title 跟 title 一起改；meta description 沒有改。`seo:audit` 鎖著這兩頁的 title、og:title、twitter:title 與 H1。
 
 分享圖與替代文字在 v1.6.0 上線後另外重畫（2026-09-30 commit，上線日以部署成功那天為準）：`/barcode/` 的大標
@@ -64,6 +65,22 @@ Facebook 與 LINE 都沒有能保證換圖的重抓工具（原因與換檔名�
 分享圖不影響搜尋結果顯示的標題，上面的四週比較照原本的改動日算。
 `seo:audit` 從這次起拿 `scripts/brand/cards.mjs` 對帳：站台根目錄的 og:image 要是其中一張，替代文字要寫著圖上的大標，
 這兩頁的替代文字以大標開頭、有橫幅那句，大標也要在 title 裡。
+
+2026-11-05 用 agy 重新檢視全站 title 與 description（Google 自動完成核對選字、重抓競品頁、對照本站事實後定稿），改了下面七頁的 title。
+改動日寫上線日，部署後補上；基線是 Google 2026-10-06 到 11-04（30 天）與 Bing 10-02、10-09、10-16 三個週桶，索引狀態是 11-05 的網址檢查。
+
+| 改動日 | 網址 | 改前 title | 改後 title | H1 | 改前基線 | 索引狀態（11-05） |
+|---|---|---|---|---|---|---|
+| 待部署 | `/` | 免費 QR Code 產生器｜可加 LOGO、下載 SVG，不傳雲端 | 免費 QR Code 產生器｜線上製作可加 LOGO、下載 SVG 向量檔 | 不變 | Google 0；Bing 見 workspace 研究筆記 | 已編入索引（最後檢索 11-04） |
+| 待部署 | `/scan/` | QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR 與條碼 | QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR Code 與條碼 | 不變 | Google 1 曝光（名次 163）；Bing 見 workspace 研究筆記 | 已編入索引（最後檢索 11-03） |
+| 待部署 | `/text/` | 文字 QR Code 產生器｜任意文字轉 QR Code（免費線上） | 純文字 QR Code 產生器｜文字轉 QR Code，掃描直接顯示文字（免費） | 不變（純文字 QR Code 產生器） | 0 | 已編入索引（最後檢索 10-26） |
+| 待部署 | `/faq/` | QR Code 產生器常見問題｜QR Code 製造機 | QR Code 產生器常見問題：會過期嗎？商用與印刷說明｜QR Code 製造機 | 不變 | 0 | 已找到，尚未建立索引（從未檢索） |
+| 待部署 | `/guide/` | QR Code 教學總覽｜QR Code 製造機 | QR Code 教學總覽：印刷尺寸、容錯與加 LOGO、電腦掃描｜QR Code 製造機 | 不變 | 0 | 已編入索引（最後檢索 10-27） |
+| 待部署 | `/en/` | Free QR Code Generator: Add a Logo, Download SVG or PNG | Free QR Code Generator with Logo: Download SVG or PNG | 不變 | 0 | 已編入索引（最後檢索 10-15） |
+| 待部署 | `/en/barcode/` | Barcode Generator: Free Code 128, EAN-13 and ITF-14 Barcodes | Free Barcode Generator: Code 128, EAN-13, Download SVG or PNG | 不變 | 0 | Google 不知道這個網址 |
+
+分享圖不用重畫：七頁的大標（站台預設圖以外）都還在新 title 裡，`seo:audit` 照舊對帳。`/scan/`、`/en/`、`/en/barcode/` 的 title 鎖、
+`/faq/`、`/guide/` 的品牌後綴檢查，期望值一起改成新 title。基線幾乎都是 0，四週後比的是上面那四件事；`/scan/` 與首頁再看 Bing 曝光。
 
 ### description 改動
 
@@ -77,6 +94,15 @@ Facebook 與 LINE 都沒有能保證換圖的重抓工具（原因與換檔名�
 title 與 H1 沒有改。這句同時是說明文章的第一段，og:description、twitter:description 與 JSON-LD 的 description 一起變（#25）。
 改前基線是 Bing 10-02、10-09、10-16 三個週桶的曝光與點擊，數字記在 workspace 的研究筆記。
 改後窗口從上線隔天起算滿 28 天，用同樣的週桶比；曝光一樣要累積到至少 100 次才談點閱率。
+
+2026-11-05 同一輪也改了下面這些頁的 description（改前改後全文見那次 commit 的 diff）。多數原本只有 60 到 70 個全形字，補到 85 到 100 字，
+重點放在前 80 字；類型頁的 description 同時是說明文章第一段，og、twitter 與 JSON-LD 的 description 一起變。
+
+- 類型頁：`/wifi/`、`/vcard/`、`/text/`、`/email/`、`/phone/`、`/sms/`（`/url/` 不動：全站唯一有穩定點擊的頁，上面那次改動還在四週回顧中）
+- 工具頁：`/`（`site.ts` 的 `description`）、`/scan/`、`/barcode/`、`/batch/`、`/en/barcode/`、`/en/batch/`
+- 教學與其他：`/guide/` 與七篇教學、`/faq/`（拿掉題數：站群規則不寫數量，`count` 一起刪）
+
+改後窗口與比法同上；這些頁除了 `/barcode/`、`/scan/` 在 Bing 有少量曝光（數字記在 workspace 的研究筆記），都沒有基線，比的是有沒有開始出現曝光。
 
 ---
 

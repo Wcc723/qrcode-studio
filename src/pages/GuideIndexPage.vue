@@ -11,10 +11,10 @@ function zhDate(iso: string) {
 }
 
 useSeoHead({
-  title: `QR Code 教學總覽｜${site.name}`,
+  title: `QR Code 教學總覽：印刷尺寸、容錯與加 LOGO、電腦掃描｜${site.name}`,
   // 不寫篇數（站長 2026-10-07 的站群規則：介紹文案不寫數量）。原本是 `${guides.length} 篇 …`，
   // 數字雖然是算出來的不會過時，但那條規則要的是文案裡根本不出現數量。
-  description: 'QR Code 教學一次看：原理與容量、手機與電腦怎麼掃、容錯等級怎麼選、加 LOGO 不影響掃描、印刷用 SVG 與尺寸、LINE QR Code，以及從 Excel 清單做 QR Code 與條碼。',
+  description: 'QR Code 完整教學：掌握印刷尺寸與向量 SVG 完稿、容錯等級與加 LOGO 不影響辨識技巧，以及手機與電腦如何免 App 快速掃描。另附原理與容量說明、LINE 行動條碼，與 Excel 清單批次製作 QR Code 指南。',
   path: '/guide',
   kind: 'page',
   pageType: 'CollectionPage',
@@ -28,6 +28,8 @@ useSeoHead({
     { name: '教學', url: `${site.url}/guide/` },
   ],
 })
+const base = import.meta.env.BASE_URL
+const img = (name: string) => `${base}img/${name}`
 </script>
 <template>
   <div class="max-w-screen-md mx-auto px-4 py-10">
@@ -44,16 +46,19 @@ useSeoHead({
       <h2 class="text-xl font-800 text-ink">{{ grp.label }}</h2>
       <ul class="mt-4 grid gap-4 list-none p-0">
         <li v-for="g in grp.items" :key="g.slug">
-          <RouterLink :to="`/guide/${g.slug}/`" class="sticker p-4 block">
-            <div class="font-display font-700 text-ink text-lg">{{ g.title }}</div>
-            <p class="text-sm text-ink/75 font-600 mt-1.5 leading-relaxed">{{ g.description }}</p>
-            <div class="text-xs text-muted font-600 mt-2">最後更新：<time :datetime="g.updated">{{ zhDate(g.updated) }}</time></div>
+          <RouterLink :to="`/guide/${g.slug}/`" class="sticker p-3 md:p-4 flex items-start gap-4">
+            <span class="art-square w-16 h-16 md:w-21 md:h-21"><img :src="img(`guide-${g.slug}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-13 h-13 md:w-18 md:h-18"></span>
+            <span class="min-w-0 block">
+              <span class="block font-800 text-link text-lg leading-snug">{{ g.title }}</span>
+              <span class="block text-ink/75 font-600 mt-1.5 leading-relaxed">{{ g.description }}</span>
+              <span class="block text-sm text-muted font-600 mt-2">最後更新：<time :datetime="g.updated">{{ zhDate(g.updated) }}</time></span>
+            </span>
           </RouterLink>
         </li>
       </ul>
     </section>
 
-    <section class="mt-10 card p-5">
+    <section class="mt-10 bg-white border border-line rounded-2xl p-5">
       <h2 class="text-lg font-800 text-ink">用得到的工具</h2>
       <ul class="mt-3 list-disc pl-5 space-y-1.5 text-ink/80 font-600 leading-relaxed">
         <li><RouterLink to="/" class="text-link underline underline-offset-2 font-700">免費 QR Code 產生器</RouterLink>：網址、WiFi、電子名片等 7 種類型，可加 LOGO、下載 PNG 與 SVG。</li>

@@ -26,11 +26,13 @@ function addReportPath(event: MouseEvent) {
   ;(event.currentTarget as HTMLAnchorElement).href = `${url}&path=${encodeURIComponent(location.pathname)}`
 }
 
-// 頁首導覽：桌機是一排膠囊，手機在標題列下方另起一排（可橫向捲動）。英文版只有三頁。
+// 頁首導覽：1024px 以上排在站名右邊，以下在標題列下方另起一排（可橫向捲動）。英文版只有三頁。
+// 2026-11 改版加上「批次」（站長裁示）：之前批次頁只能從文章連結與頁尾進去。
 const navZh = [
   { to: '/', label: '產生器' },
   { to: '/scan/', label: '掃描器' },
   { to: '/barcode/', label: '條碼' },
+  { to: '/batch/', label: '批次' },
   { to: '/guide/', label: '教學' },
   { to: '/faq/', label: '常見問題' },
 ]
@@ -67,30 +69,35 @@ const footLink = 'flex items-center min-h-11 hover:text-link transition'
 </script>
 <template>
   <div class="min-h-screen flex flex-col">
-    <header class="border-b-3 border-ink bg-pop-sun/90">
-      <div class="max-w-screen-lg mx-auto px-4 h-16 flex items-center justify-between gap-3">
-        <!-- 320 到 359px：站名縮一級，右邊「口袋工具」才不會壓到頁面邊距 -->
-        <RouterLink :to="homeTo" class="flex items-center gap-2.5 max-[359px]:gap-2 font-display font-700 text-xl max-[359px]:text-lg text-ink whitespace-nowrap shrink-0">
-          <img :src="`${base}logo-64.png`" :srcset="`${base}logo-64.png 2x, ${base}logo-96.png 3x`" width="32" height="32" alt="" class="w-8 h-8 shrink-0" data-test="site-logo">
-          <span data-test="site-name">{{ siteName }}</span>
-        </RouterLink>
-        <nav :aria-label="navLabel" class="hidden md:flex items-center gap-1.5 text-sm font-700">
-          <RouterLink v-for="n in nav" :key="n.to" :to="n.to" exact-active-class="!border-ink bg-white"
-            class="px-3 py-1 rounded-full border-2 border-transparent hover:border-ink hover:bg-white transition whitespace-nowrap">{{ n.label }}</RouterLink>
-          <!-- 768 到 1023px 只留圖示（字給報讀器與滑鼠提示），一排才放得下繁中的五個連結加口袋工具 -->
-          <RouterLink :to="props.switchTo" :hreflang="lang.lang" :lang="lang.lang" :title="lang.label" data-test="lang-switch"
-            class="ml-1 inline-flex items-center gap-1 px-3 max-lg:px-2 py-1 rounded-full border-2 border-ink bg-white hover:bg-pop-sky transition whitespace-nowrap"><span class="i-lucide-languages" aria-hidden="true" /><span class="max-lg:sr-only">{{ lang.label }}</span></RouterLink>
-          <a :href="hub.url" class="inline-flex items-center gap-1 px-3 py-1 rounded-full border-2 border-ink bg-white hover:bg-pop-mint transition whitespace-nowrap"><span class="i-lucide-toolbox" aria-hidden="true" />{{ hub.label }}</a>
+    <!--
+      頁首（2026-11 改版，口袋工具家族的樣子）：站徽、站名，下面一行連回口袋工具；右邊是主選單與語言切換。
+      1024px 以下主選單改到標題列下方另起一排（可橫向捲動），語言切換留在標題列右邊。
+    -->
+    <header class="bg-white border-b border-line">
+      <div class="max-w-screen-lg mx-auto px-4 min-h-17 py-2 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- 站徽跟站名連到同一頁：站徽這個連結不進 Tab 順序、報讀器也略過，只留站名那一個 -->
+          <RouterLink :to="homeTo" tabindex="-1" aria-hidden="true" class="shrink-0 flex">
+            <img :src="`${base}logo-64.png`" :srcset="`${base}logo-64.png 2x, ${base}logo-96.png 3x`" width="38" height="38" alt="" class="w-9.5 h-9.5 max-[359px]:w-8 max-[359px]:h-8" data-test="site-logo">
+          </RouterLink>
+          <div class="flex flex-col leading-tight min-w-0">
+            <RouterLink :to="homeTo" class="inline-flex items-center min-h-6 font-800 text-lg md:text-xl max-[359px]:text-base text-ink whitespace-nowrap" data-test="site-name">{{ siteName }}</RouterLink>
+            <a :href="hub.url" class="inline-flex items-center min-h-6 self-start text-muted hover:text-link transition-colors whitespace-nowrap" data-test="hub-link">{{ hub.label }}</a>
+          </div>
+        </div>
+        <nav :aria-label="navLabel" class="hidden lg:flex items-center gap-0.5 font-600">
+          <RouterLink v-for="n in nav" :key="n.to" :to="n.to" exact-active-class="!bg-brand-50 !text-link-700"
+            class="inline-flex items-center min-h-11 px-3 rounded-[10px] text-ink hover:bg-sunk transition-colors whitespace-nowrap">{{ n.label }}</RouterLink>
+          <RouterLink :to="props.switchTo" :hreflang="lang.lang" :lang="lang.lang" data-test="lang-switch"
+            class="ml-2 inline-flex items-center gap-1.5 min-h-11 px-3 rounded-[10px] border border-line bg-white text-ink hover:border-brand transition-colors whitespace-nowrap"><span class="i-lucide-globe" aria-hidden="true" />{{ lang.label }}</RouterLink>
         </nav>
-        <a :href="hub.url" class="md:hidden chip !text-sm !px-2.5 !py-1 bg-white shrink-0"><span class="i-lucide-toolbox" aria-hidden="true" />{{ hub.label }}</a>
+        <RouterLink :to="props.switchTo" :hreflang="lang.lang" :lang="lang.lang" data-test="lang-switch-mobile"
+          class="lg:hidden shrink-0 inline-flex items-center gap-1.5 min-h-11 px-3 rounded-[10px] border border-line bg-white text-ink font-600 hover:border-brand transition-colors whitespace-nowrap"><span class="i-lucide-globe" aria-hidden="true" />{{ lang.label }}</RouterLink>
       </div>
-      <nav :aria-label="navLabel" class="md:hidden border-t-2 border-ink/15">
-        <div class="max-w-screen-lg mx-auto px-4 py-2 flex gap-1.5 overflow-x-auto text-sm font-700 whitespace-nowrap">
-          <RouterLink v-for="n in nav" :key="n.to" :to="n.to" exact-active-class="!bg-white"
-            class="chip !text-sm !px-2.5 !py-1 bg-white/60">{{ n.label }}</RouterLink>
-          <!-- 語言切換排在這一排的最後：手機的標題列在 320px 寬時放不下第三個膠囊 -->
-          <RouterLink :to="props.switchTo" :hreflang="lang.lang" :lang="lang.lang" data-test="lang-switch-mobile"
-            class="chip !text-sm !px-2.5 !py-1 bg-white"><span class="i-lucide-languages" aria-hidden="true" />{{ lang.label }}</RouterLink>
+      <nav :aria-label="navLabel" class="lg:hidden border-t border-line">
+        <div class="max-w-screen-lg mx-auto px-2 py-1 flex gap-0.5 overflow-x-auto font-600 whitespace-nowrap">
+          <RouterLink v-for="n in nav" :key="n.to" :to="n.to" exact-active-class="!bg-brand-50 !text-link-700"
+            class="inline-flex items-center min-h-11 px-3 rounded-[10px] text-ink hover:bg-sunk transition-colors">{{ n.label }}</RouterLink>
         </div>
       </nav>
     </header>

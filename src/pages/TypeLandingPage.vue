@@ -7,7 +7,7 @@ import ToolZone from '@/components/ToolZone.vue'
 import SeoContent from '@/components/SeoContent.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
-import { site } from '@/config/site'
+import { site, publisher } from '@/config/site'
 
 const route = useRoute()
 // qrTypeByPath 同時收錄有/無結尾斜線的 key，故 /wifi 與 /wifi/ 皆可解析
@@ -23,10 +23,16 @@ useSeoHead({
     { name: `${meta.value.label} QR Code`, url: `${site.url}${meta.value.path}/` },
   ],
 })
+// 看得到的導覽路徑（2026-11 改版）：口袋工具 › 本站首頁 › 這一頁
+const crumbs = computed(() => [
+  { label: '口袋工具', href: publisher.url },
+  { label: site.name, to: '/' },
+  { label: `${meta.value.label} QR Code` },
+])
 </script>
 <template>
   <div>
-    <ToolZone :lead="meta.lead">
+    <ToolZone :lead="meta.lead" :art="`type-${meta.type}-160.webp`" deco="deco-stand-240.webp" :crumbs="crumbs" crumbs-label="導覽路徑">
       <template #title>{{ meta.h1 }}</template>
       <GeneratorTool :default-type="meta.type" />
     </ToolZone>

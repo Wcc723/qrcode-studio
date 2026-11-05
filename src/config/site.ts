@@ -31,7 +31,7 @@ export const site = {
     height: 630,
     alt: 'QR Code 製造機：免費 QR Code 產生器，線上製作、不上傳、可加 LOGO，網址、WiFi、名片都能做，可下載 PNG／SVG、永久有效。右邊是口袋裡插著一張 QR Code 卡片的站徽',
   } satisfies OgImage,
-  description: '免費線上 QR Code 產生器，3 步驟製作 QRCode：瀏覽器內即時生成、不傳雲端，可自訂顏色與加入 LOGO，免費下載 PNG 與 SVG 向量檔，永久有效不過期。',
+  description: '免費線上 QR Code 產生器，在瀏覽器即時製作、不傳雲端。支援網址、WiFi 與電子名片等多種類型，可自訂顏色、加入品牌 LOGO，並免費下載高解析 PNG 與 SVG 向量圖檔，產生的 QR Code 永久有效不過期。',
   // 產品名含「QR Code」，頁尾與關於頁都要附這一句註冊商標聲明（DENSO WAVE 官方要求的寫法）。
   trademark: 'QR Code 是 DENSO WAVE INCORPORATED 在日本及其他國家的註冊商標。',
   // 英文版頁尾的同一句聲明

@@ -164,7 +164,7 @@ repo 內**沒有** GitHub Actions（移除經過見 `docs/deploy.md`）。
 工具頁分成上下兩塊（工具區與說明文章），一眼要分得出哪裡是應用程式、哪裡是說明。下面各條的全文（class 名、樣式、例子與測試）見 `docs/ui.md`「工具區與說明文章」。
 
 - **工具區**（`src/components/ToolZone.vue`）直接放在 `<main>` 底下：**不要包進有寬度上限的容器，也不要改用 `100vw`**。
-- **粗框加硬陰影的 `card`／`sticker` 只給工具卡用**，文章裡不要再用。
+- **卡片一律細框**（2026-11 改版）：工具卡 `card`、小卡 `sticker`、文章卡 `.doc-card`，不要再加粗黑框或硬陰影；裝飾插圖 `alt=""`、不取代 Lucide 圖示。
 - **副標只留一行**（30 字以內）。SEO 內文可以移出工具區，但**一個字都不能刪**；`seo:audit` 會對帳。
 - 區塊標示用 `.zone-label` 段落，**不是標題**：各頁的 h1／h2／h3 大綱不因為分區而改變。
 - `main.css` 開頭的框線 reset 不要拿掉；`html`、`body` 的 `overflow-x` 用 `clip`，**不要改回 `hidden`**（`src/styles/main-css.test.ts` 鎖著）。

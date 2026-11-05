@@ -35,10 +35,10 @@ const selected = computed({
           v-model="selected" type="radio" :name="name" class="peer sr-only"
           :value="o.value" :data-test="testId ? `${testId}-${o.value}` : undefined" />
         <span
-          class="px-3.5 py-1.5 rounded-full text-sm font-display font-600 border-2 border-ink transition-all duration-150 whitespace-nowrap peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-brand peer-focus-visible:outline-offset-2"
+          class="px-3.5 py-1.5 rounded-full inline-flex items-center min-h-11 font-700 border transition-colors duration-150 whitespace-nowrap peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-brand peer-focus-visible:outline-offset-2"
           :class="modelValue === o.value
-            ? 'bg-pop-pink text-ink shadow-[3px_3px_0_#16130f] -translate-y-0.5'
-            : 'bg-white text-ink hover:bg-pop-sun hover:shadow-[2px_2px_0_#16130f] hover:-translate-y-0.5'">
+            ? 'bg-brand-50 border-link text-link-700'
+            : 'bg-white border-line text-ink hover:border-brand'">
           {{ o.label }}
         </span>
       </label>

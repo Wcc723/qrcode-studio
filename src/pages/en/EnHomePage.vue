@@ -36,7 +36,7 @@ const faqs = [
 provideUiCopy(uiCopyEn)
 
 useSeoHead({
-  title: 'Free QR Code Generator: Add a Logo, Download SVG or PNG',
+  title: 'Free QR Code Generator with Logo: Download SVG or PNG',
   description: 'Make a QR code for any link in your browser. Add a logo and colors, then download PNG, SVG or JPG for free. No sign-up, no watermark, never expires.',
   path: '/en/',
   appName: site.nameEn,
@@ -48,17 +48,22 @@ useSeoHead({
     alt: 'Free QR Code Generator: Online, no sign-up, add a logo. PNG and SVG downloads, no watermark, never expires. On the right is a QR code card tucked into an orange pocket',
   },
 })
+// Banner pill and checkmarks (2026-11 redesign). Privacy is said once, on the tool card, not here.
+const hero = {
+  pill: 'For business cards, posters and table tents',
+  trust: ['Free, no sign-up', 'No watermark, fine for business use', 'Static QR code, never expires'],
+}
 </script>
 <template>
   <div>
-    <ToolZone lead="Paste a link, add your logo, download PNG or SVG">
+    <ToolZone lead="Paste a link, add your logo, download PNG or SVG" :hero="hero">
       <template #title>Free <span class="px-1 rounded" style="background:linear-gradient(transparent 58%, #FFD12E 58%)">QR Code</span> Generator</template>
       <GeneratorTool default-type="url" only="url" />
     </ToolZone>
 
     <!-- 說明文章：文件樣式，跟上面的工具區分開 -->
     <article class="max-w-[720px] mx-auto px-4 mt-10 text-ink/85 font-600 leading-relaxed" data-test="doc">
-      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>How it works</p>
+      <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>How it works</p>
       <p class="text-lg text-ink" data-test="doc-lead">Make a QR code for your website, menu, form or social profile in seconds: paste the link, pick your colors, add your logo and download a high-resolution PNG or a vector SVG. Everything happens in your browser, nothing is uploaded, and the code never expires.</p>
 
       <h2 class="text-2xl font-800 text-ink mt-8">Make a QR code in three steps</h2>

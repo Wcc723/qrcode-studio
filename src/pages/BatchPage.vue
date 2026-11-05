@@ -2,7 +2,7 @@
 import BatchTool from '@/components/batch/BatchTool.vue'
 import ToolZone from '@/components/ToolZone.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
-import { site } from '@/config/site'
+import { publisher, site } from '@/config/site'
 import { BATCH_MAX_ROWS } from '@/pure/batch/rows'
 import { formatCount } from '@/pure/batch/sequence'
 import { BARCODE_MIN_X_MM, CALIBRATION_MM, PRINTER_EDGE_RANGE } from '@/pure/batch/paper'
@@ -37,7 +37,7 @@ const steps = [
 
 useSeoHead({
   title: '批次產生 QR Code 與條碼｜Excel 貼上，免費下載 ZIP、印標籤紙',
-  description: '免費批次產生 QR Code 與條碼，一次做上千張：從 Excel 貼上清單、設定流水號或套用網址範本，自動補 EAN-13 檢查碼、逐列抓錯，立即下載 PNG 或 SVG 的 ZIP 檔，或直接印在鶴屋、龍德的 A4 標籤紙上，清單不上傳。',
+  description: '免費批次產生 QR Code 與條碼：從 Excel 貼上清單或產生流水號，免註冊、清單不上傳。支援直接列印鶴屋與龍德 A4 標籤紙，或一鍵下載 PNG、SVG 的 ZIP 壓縮檔。自動補 EAN-13 檢查碼並逐列抓錯，單次可處理上千筆。',
   path: '/batch',
   appName: '批次產生 QR Code 與條碼',
   appType: 'WebApplication',
@@ -51,17 +51,23 @@ useSeoHead({
     { name: '批次產生 QR Code 與條碼', url: `${site.url}/batch/` },
   ],
 })
+// 看得到的導覽路徑（2026-11 改版）：口袋工具 › 本站首頁 › 這一頁
+const crumbs = [
+  { label: '口袋工具', href: publisher.url },
+  { label: site.name, to: '/' },
+  { label: '批次產生 QR Code 與條碼' },
+]
 </script>
 
 <template>
   <div>
-    <ToolZone lead="貼上 Excel 清單或連號，下載 ZIP 或印標籤紙">
+    <ToolZone lead="貼上 Excel 清單或連號，下載 ZIP 或印標籤紙" art="tool-batch-160.webp" deco="deco-stand-240.webp" :crumbs="crumbs" crumbs-label="導覽路徑">
       <template #title>批次產生 QR Code 與條碼</template>
       <BatchTool />
     </ToolZone>
 
     <article class="max-w-[720px] mx-auto px-4 mt-10 text-ink/85 font-600 leading-relaxed" data-test="doc">
-      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
+      <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
       <p class="text-lg text-ink" data-test="doc-lead">
         免費線上批次產生 QR Code 與一維條碼：從 Excel 或 Google 試算表貼上清單、每行一筆，或直接設定連號，一次做出上千張，打包成 ZIP 下載。
         支援 QR Code、Code 128、EAN-13、EAN-8、Code 39、ITF-14，自動補上檢查碼（條碼最後一位，用來抓打錯的號碼）、逐列檢查錯誤，清單只在你的瀏覽器裡處理，不會上傳。

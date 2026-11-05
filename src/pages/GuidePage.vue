@@ -30,6 +30,8 @@ useSeoHead({
     { name: g.value.title, url: `${site.url}/guide/${g.value.slug}/` },
   ],
 })
+const base = import.meta.env.BASE_URL
+const img = (name: string) => `${base}img/${name}`
 </script>
 <template>
   <article class="max-w-screen-md mx-auto px-4 py-10">
@@ -38,7 +40,10 @@ useSeoHead({
       <span class="mx-1.5">›</span>
       <RouterLink to="/guide/" class="hover:text-link underline underline-offset-2">教學</RouterLink>
     </nav>
-    <h1 class="text-3xl md:text-4xl font-800 text-ink mt-3">{{ g.title }}</h1>
+    <div class="flex items-center gap-4 mt-3">
+      <span class="art-square w-16 h-16 md:w-20 md:h-20"><img :src="img(`guide-${g.slug}-160.webp`)" alt="" width="160" height="160" class="w-13 h-13 md:w-17 md:h-17"></span>
+      <h1 class="text-3xl md:text-4xl font-800 text-ink min-w-0">{{ g.title }}</h1>
+    </div>
     <p class="text-sm text-muted font-600 mt-3" data-test="guide-byline">
       作者：<a :href="author.url" class="underline underline-offset-2 hover:text-link">{{ author.name }}</a>（<a :href="publisher.url" class="underline underline-offset-2 hover:text-link">口袋工具</a>）
       <span class="mx-1.5">·</span>
@@ -53,7 +58,8 @@ useSeoHead({
       <ul class="mt-4 grid gap-3 sm:grid-cols-3 list-none p-0">
         <li v-for="r in related" :key="r.slug">
           <RouterLink :to="`/guide/${r.slug}/`" class="sticker p-4 block h-full">
-            <div class="font-display font-700 text-ink">{{ r.shortTitle }}</div>
+            <span class="art-square w-12 h-12 mb-2"><img :src="img(`guide-${r.slug}-160.webp`)" alt="" width="160" height="160" loading="lazy" decoding="async" class="w-10 h-10"></span>
+            <div class="font-800 text-link">{{ r.shortTitle }}</div>
             <div class="text-xs text-muted font-600 mt-1.5 leading-snug">{{ r.title }}</div>
           </RouterLink>
         </li>

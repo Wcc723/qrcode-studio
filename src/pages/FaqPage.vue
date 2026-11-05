@@ -63,11 +63,10 @@ const groups: { id: string; title: string; items: Faq[] }[] = [
   },
 ]
 
-const count = groups.reduce((n, g) => n + g.items.length, 0)
 
 useSeoHead({
-  title: `QR Code 產生器常見問題｜${site.name}`,
-  description: `QR Code 產生器的 ${count} 個常見問題：是否免費、會不會過期、資料會不會上傳、加 LOGO 會不會掃不到、PNG 與 SVG 要多大、印多大才掃得到、各類型與掃描方式。`,
+  title: `QR Code 產生器常見問題：會過期嗎？商用與印刷說明｜${site.name}`,
+  description: 'QR Code 產生器常見問題解答：整理是否免費商用、會不會過期、資料是否上傳雲端、加 LOGO 能否掃描、印刷尺寸該印多大，以及動態與靜態差異。並說明向量 SVG 格式與各類型用法，助你避開掃描失敗陷阱。',
   path: '/faq',
   kind: 'page',
   breadcrumbs: [
@@ -81,14 +80,14 @@ useSeoHead({
     <h1 class="text-3xl font-800 text-ink">QR Code 產生器常見問題</h1>
     <p class="text-ink/80 font-600 mt-4 leading-7">使用 {{ site.name }}時最常被問到的問題，依主題分類。想看更完整的說明與圖例，可以到<RouterLink to="/guide/" class="text-link underline underline-offset-2 font-700">教學總覽</RouterLink>。</p>
     <nav aria-label="問題分類" class="mt-5 flex flex-wrap gap-2">
-      <a v-for="g in groups" :key="g.id" :href="`#${g.id}`" class="chip bg-white hover:bg-pop-sun transition">{{ g.title }}</a>
+      <a v-for="g in groups" :key="g.id" :href="`#${g.id}`" class="chip bg-white !text-sm !px-3 !py-1.5 hover:border-brand transition-colors">{{ g.title }}</a>
     </nav>
 
     <section v-for="g in groups" :id="g.id" :key="g.id" class="mt-10 scroll-mt-4">
       <h2 class="text-xl font-800 text-ink">{{ g.title }}</h2>
       <div class="mt-4 space-y-3">
-        <details v-for="(f, i) in g.items" :key="i" class="card p-4">
-          <summary class="font-display font-700 text-ink cursor-pointer select-none">{{ f.q }}</summary>
+        <details v-for="(f, i) in g.items" :key="i" class="bg-white border border-line rounded-2xl p-4">
+          <summary class="font-700 text-ink cursor-pointer select-none min-h-6">{{ f.q }}</summary>
           <p class="text-ink/75 font-600 mt-2 leading-relaxed [&_a]:(text-link underline underline-offset-2 font-700)" v-html="withBase(f.a)" />
         </details>
       </div>

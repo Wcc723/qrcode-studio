@@ -20,7 +20,7 @@ const t = batchCopy[useLocale().value].download
 <template>
   <div>
     <ul class="grid gap-2 list-none p-0 m-0" :class="wide ? 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-6' : 'grid-cols-4 sm:grid-cols-6 lg:grid-cols-8'" data-test="batch-preview">
-      <li v-for="tile in tiles" :key="tile.key" class="min-w-0 rounded-xl border-2 border-ink bg-white p-1.5">
+      <li v-for="tile in tiles" :key="tile.key" class="min-w-0 rounded-xl border border-line bg-white p-1.5">
         <svg
           v-if="tile.kind === 'qr'" :viewBox="tile.viewBox" class="block w-full h-auto" shape-rendering="crispEdges"
           role="img" :aria-label="t.previewQr(tile.line)">

@@ -15,11 +15,11 @@ const t = useUiCopy().privacy
 </script>
 
 <template>
-  <div data-test="privacy-note" class="text-sm font-700 text-ink">
+  <div data-test="privacy-note" class="font-600 text-ink">
     <HelpTip :name="mode === 'scan' ? t.name.scan : t.name.other">
       <template #head>
-        <p class="inline-flex items-center gap-1.5">
-          <span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-lock" aria-hidden="true" /></span>
+        <p class="inline-flex items-center gap-2">
+          <span class="icon-badge-sm bg-pop-mint text-mintd"><span class="i-lucide-lock" aria-hidden="true" /></span>
           {{ mode === 'scan' ? t.line.scan : t.line.other }}
         </p>
       </template>

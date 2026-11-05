@@ -3,7 +3,7 @@ import BarcodeTool from '@/components/barcode/BarcodeTool.vue'
 import ToolZone from '@/components/ToolZone.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
-import { site } from '@/config/site'
+import { publisher, site } from '@/config/site'
 
 const faqs = [
   { q: '一維條碼和 QR Code 有什麼不同？', a: '一維條碼由粗細不同的直條組成，只存得下十幾到二十幾位數字或英數，只存一組商品或零件編號，品名與價格要靠店家的系統查。QR Code 是二維條碼，可直接存放網址、文字、WiFi 密碼與聯絡資訊，能放的內容多得多，也比較耐髒。' },
@@ -22,7 +22,7 @@ const steps = [
 
 useSeoHead({
   title: '條碼產生器｜EAN-13、Code 128 商品條碼線上免費製作',
-  description: '免費線上一維條碼產生器，支援 EAN-13 商品條碼與 Code 128 等格式：輸入數字即時產生條碼，瀏覽器內生成、不傳雲端，自動計算檢查碼，免費下載 PNG 與 SVG 向量檔。',
+  description: '免費線上一維條碼產生器，支援 EAN-13 商品條碼與 Code 128 等格式：輸入編號即時產生條碼，瀏覽器內生成、不傳雲端，自動計算檢查碼，免費下載高解析 PNG 與 SVG 向量檔，適合商品包裝印刷與標籤管理。',
   path: '/barcode',
   appName: '條碼產生器',
   appType: 'WebApplication',
@@ -36,18 +36,24 @@ useSeoHead({
     { name: '條碼產生器', url: `${site.url}/barcode/` },
   ],
 })
+// 看得到的導覽路徑（2026-11 改版）：口袋工具 › 本站首頁 › 這一頁
+const crumbs = [
+  { label: '口袋工具', href: publisher.url },
+  { label: site.name, to: '/' },
+  { label: '條碼產生器' },
+]
 </script>
 
 <template>
   <div>
-    <ToolZone lead="Code 128、EAN-13 等 5 種格式，自動計算檢查碼">
+    <ToolZone lead="Code 128、EAN-13 等 5 種格式，自動計算檢查碼" art="tool-barcode-160.webp" deco="deco-books-240.webp" :crumbs="crumbs" crumbs-label="導覽路徑">
       <template #title>條碼產生器（EAN-13、Code 128）</template>
       <BarcodeTool />
     </ToolZone>
     <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="barcode-below-tool" /></div>
 
     <article class="max-w-[720px] mx-auto px-4 mt-10" data-test="doc">
-      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
+      <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
       <!-- 原本在標題下的兩句說明，移到文章開頭，一個字都不刪 -->
       <p class="text-lg text-ink font-600 leading-relaxed" data-test="doc-lead">
         免費線上製作一維條碼，支援 Code 128、EAN-13、EAN-8、Code 39、ITF-14。

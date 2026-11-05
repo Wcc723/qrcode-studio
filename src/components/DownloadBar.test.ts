@@ -55,12 +55,14 @@ describe('DownloadBar', () => {
     expect(wrapper.find('[data-test="dl-copy"]').exists()).toBe(true)
   })
 
-  it('手機上四顆按鈕至少 44px 高（max-md:min-h-11），桌機不變', () => {
+  it('四顆按鈕在任何寬度都至少 48px 高；PNG 是一整排的實心主按鈕，其他三顆是外框按鈕（2026-11 改版）', () => {
     const wrapper = mount(DownloadBar, { props: { download: vi.fn(), disabled: false } })
-    for (const t of ['dl-png', 'dl-svg', 'dl-jpg', 'dl-copy']) {
+    const png = wrapper.find('[data-test="dl-png"]').classes()
+    expect(png).toEqual(expect.arrayContaining(['btn-primary', 'w-full', 'min-h-13']))
+    for (const t of ['dl-svg', 'dl-jpg', 'dl-copy']) {
       const classes = wrapper.find(`[data-test="${t}"]`).classes()
-      expect(classes).toContain('max-md:min-h-11')
-      expect(classes).not.toContain('min-h-11')
+      expect(classes).toEqual(expect.arrayContaining(['btn-secondary', 'min-h-12']))
+      expect(classes).not.toContain('btn-primary')
     }
   })
 

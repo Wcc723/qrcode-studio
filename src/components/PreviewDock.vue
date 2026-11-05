@@ -80,16 +80,16 @@ onBeforeUnmount(() => {
           <span class="dock-thumb" aria-hidden="true">
             <!-- 收著的時候不重畫（打字時鍵盤開著就是收著），出現時才補畫 -->
             <QrThumb v-if="live" :data="data" :qr-style="qrStyle" :active="visible" />
-            <span class="dock-thumb-zoom icon-badge-sm bg-pop-sun"><span class="i-lucide-maximize-2" aria-hidden="true" /></span>
+            <span class="dock-thumb-zoom icon-badge-sm bg-pop-sun border border-[#f1cf9f]"><span class="i-lucide-maximize-2" aria-hidden="true" /></span>
           </span>
           <!-- 360px 以下只留縮圖，字仍然是按鈕的名稱 -->
           <span class="leading-tight max-[359px]:sr-only">
-            <span class="block font-display font-700 text-sm text-ink">{{ t.dockExpand }}</span><span class="sr-only">{{ t.dockSep }}</span>
+            <span class="block font-700 text-sm text-ink">{{ t.dockExpand }}</span><span class="sr-only">{{ t.dockSep }}</span>
             <span class="block text-xs font-700 text-muted">{{ t.dockFormats }}</span>
           </span>
         </button>
-        <button type="button" data-test="dock-png" class="btn-primary !bg-pop-sun min-h-11 !px-3" :disabled="disabled" @click="download('png')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">{{ t.download }}</span>PNG</button>
-        <button type="button" data-test="dock-copy" class="btn-primary !bg-pop-pink min-h-11 !px-3" :disabled="disabled" @click="copy?.()"><span :class="copyStatus === 'copied' ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />{{ copyStatus === 'copied' ? t.copied : t.copy }}</button>
+        <button type="button" data-test="dock-png" class="btn-primary min-h-11 !px-3" :disabled="disabled" @click="download('png')"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">{{ t.download }}</span>PNG</button>
+        <button type="button" data-test="dock-copy" class="btn-secondary min-h-11 !px-3" :disabled="disabled" @click="copy?.()"><span :class="copyStatus === 'copied' ? 'i-lucide-check' : 'i-lucide-copy'" aria-hidden="true" />{{ copyStatus === 'copied' ? t.copied : t.copy }}</button>
       </div>
     </div>
   </Transition>

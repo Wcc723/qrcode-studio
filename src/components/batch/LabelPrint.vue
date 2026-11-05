@@ -212,7 +212,7 @@ const noticeIcon = { block: 'i-lucide-circle-alert text-rose-600', warn: 'i-luci
       </li>
     </ul>
 
-    <hr class="border-t-2 border-dashed border-ink/15 my-6" />
+    <hr class="border-t border-dashed border-line my-6" />
 
     <!-- 要印什麼、列印 -->
     <HelpTip :name="t.targetName" :id="id('target-help')">
@@ -223,7 +223,7 @@ const noticeIcon = { block: 'i-lucide-circle-alert text-rose-600', warn: 'i-luci
 
     <div class="mt-4 flex flex-wrap items-center gap-3">
       <button
-        type="button" data-test="label-print-btn" class="btn-primary !bg-pop-sun" :disabled="!!L.activeBlocker"
+        type="button" data-test="label-print-btn" class="btn-primary" :disabled="!!L.activeBlocker"
         :aria-describedby="`${id('print-tips')} ${id('print-help')} ${id('print-status')}`" @click="L.print()">
         <span class="i-lucide-printer" aria-hidden="true" />{{ printLabel }}
       </button>

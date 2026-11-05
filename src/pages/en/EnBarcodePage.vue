@@ -8,7 +8,7 @@ import ToolZone from '@/components/ToolZone.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
 import { provideUiCopy } from '@/locales/ui'
 import { uiCopyEn } from '@/locales/ui.en'
-import { site } from '@/config/site'
+import { publisher, site } from '@/config/site'
 
 const faqs = [
   { q: 'What is the difference between a barcode and a QR code?', a: 'A barcode (a linear or 1D barcode) is a row of bars that holds a short ID, usually a dozen or two digits or characters; the item name and price come from the store\'s or warehouse\'s own system. A QR code is a square, two-dimensional code that holds a whole link, text or contact details, so a phone can open it directly. It also holds far more and copes better with damage.' },
@@ -30,8 +30,8 @@ const steps = [
 provideUiCopy(uiCopyEn)
 
 useSeoHead({
-  title: 'Barcode Generator: Free Code 128, EAN-13 and ITF-14 Barcodes',
-  description: 'Make a barcode online: Code 128, EAN-13, EAN-8, Code 39 or ITF-14. The check digit is calculated for you. Download a print-ready PNG or a true-size SVG.',
+  title: 'Free Barcode Generator: Code 128, EAN-13, Download SVG or PNG',
+  description: 'Generate barcodes online for free: Code 128, EAN-13, ITF-14 and more. The check digit is calculated for you. Download a print-ready PNG or true-size SVG.',
   path: '/en/barcode',
   appName: 'Barcode Generator',
   appType: 'WebApplication',
@@ -46,17 +46,23 @@ useSeoHead({
     { name: 'Barcode Generator', url: `${site.url}/en/barcode/` },
   ],
 })
+// Visible breadcrumb (2026-11 redesign): Pocketool › site home › this page
+const crumbs = [
+  { label: publisher.nameEn, href: publisher.urlEn },
+  { label: site.nameEn, to: '/en/' },
+  { label: 'Barcode generator' },
+]
 </script>
 
 <template>
   <div>
-    <ToolZone lead="Code 128, EAN-13 and more, check digits included">
+    <ToolZone lead="Code 128, EAN-13 and more, check digits included" art="tool-barcode-160.webp" deco="deco-books-240.webp" :crumbs="crumbs" crumbs-label="Breadcrumb">
       <template #title>Barcode Generator (Code 128, EAN-13)</template>
       <BarcodeTool />
     </ToolZone>
 
     <article class="max-w-[720px] mx-auto px-4 mt-10" data-test="doc">
-      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>How it works</p>
+      <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>How it works</p>
       <p class="text-lg text-ink font-600 leading-relaxed" data-test="doc-lead">
         Make a barcode for free in Code 128, EAN-13, EAN-8, Code 39 or ITF-14.
         It is drawn right in your browser with nothing uploaded, the check digit is calculated for you, and you can download a PNG or an SVG that is ready to print.

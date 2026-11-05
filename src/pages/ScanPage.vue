@@ -12,7 +12,7 @@ import ScanTool from '@/components/scan/ScanTool.vue'
 import ToolZone from '@/components/ToolZone.vue'
 import AdSlot from '@/components/AdSlot.vue'
 import { useSeoHead } from '@/composables/useSeoHead'
-import { site } from '@/config/site'
+import { publisher, site } from '@/config/site'
 
 // 第一步的按鍵（Ctrl、⌘、V）要包進 <kbd>，所以在模板裡另外寫，這裡只放後兩步
 const steps = [
@@ -48,8 +48,8 @@ const faqs = [
 ]
 
 useSeoHead({
-  title: 'QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR 與條碼',
-  description: '免費線上 QR Code 掃描器與條碼解碼器：上傳圖片、拖放或直接貼上截圖，在瀏覽器內讀取 QR Code 與 Code 128、EAN-13 等一維條碼。圖片不上傳雲端，結果先安全預覽再決定是否開啟。',
+  title: 'QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR Code 與條碼',
+  description: '免費線上 QR Code 與條碼掃描器：免開相機，直接拖放圖片或貼上截圖，在瀏覽器內快速讀取 QR Code 與常見條碼。圖片全程留在本機不上傳雲端，解讀結果先以純文字安全預覽，確認無誤後再決定複製或開啟連結。',
   path: '/scan',
   appName: 'QR Code 掃描器',
   appType: 'WebApplication',
@@ -63,18 +63,24 @@ useSeoHead({
     { name: 'QR Code 掃描器', url: `${site.url}/scan/` },
   ],
 })
+// 看得到的導覽路徑（2026-11 改版）：口袋工具 › 本站首頁 › 這一頁
+const crumbs = [
+  { label: '口袋工具', href: publisher.url },
+  { label: site.name, to: '/' },
+  { label: 'QR Code 掃描器' },
+]
 </script>
 
 <template>
   <div>
-    <ToolZone lead="拖放、選檔或貼上截圖，在瀏覽器內讀出 QR Code 與條碼">
+    <ToolZone lead="拖放、選檔或貼上截圖，在瀏覽器內讀出 QR Code 與條碼" art="tool-scan-160.webp" deco="deco-plant-240.webp" :crumbs="crumbs" crumbs-label="導覽路徑">
       <template #title>QR Code 掃描器：用圖片或截圖讀取</template>
       <ScanTool />
     </ToolZone>
     <div class="max-w-screen-lg mx-auto px-4"><AdSlot slot-id="scan-below-tool" /></div>
 
     <article class="max-w-[720px] mx-auto px-4 mt-10" data-test="doc">
-      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
+      <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>使用說明</p>
       <!-- 原本在標題下的三句說明，移到文章開頭，一個字都不刪 -->
       <p class="text-lg text-ink font-600 leading-relaxed" data-test="doc-lead">
         把電腦或手機裡已經有的圖片丟進來就好：拖放、選檔案，或直接貼上截圖。

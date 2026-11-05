@@ -107,7 +107,7 @@ async function startDownload() {
 
 
 <template>
-  <div class="card p-5 md:p-6" data-test="batch-tool">
+  <div class="card p-4 pt-5 md:p-7" data-test="batch-tool">
     <PrivacyNote mode="batch" class="mb-5" />
 
     <div class="grid gap-6 md:grid-cols-2 md:gap-8">
@@ -318,7 +318,7 @@ async function startDownload() {
       </section>
     </div>
 
-    <hr class="border-t-2 border-dashed border-ink/15 my-6" />
+    <hr class="border-t border-dashed border-line my-6" />
 
     <!-- ③ 檢查結果 -->
     <section :aria-labelledby="id('check-title')" data-test="batch-check">
@@ -371,7 +371,7 @@ async function startDownload() {
       </template>
     </section>
 
-    <hr class="border-t-2 border-dashed border-ink/15 my-6" />
+    <hr class="border-t border-dashed border-line my-6" />
 
     <!-- ④ 預覽與下載（ZIP），或印成標籤紙 -->
     <LabelPrint v-if="output === 'label'" :labels="labels" :line-unit="lineUnit" />
@@ -382,7 +382,7 @@ async function startDownload() {
 
       <div class="mt-4 flex flex-wrap items-center gap-3">
         <button
-          ref="downloadBtn" type="button" data-test="batch-download" class="btn-primary !bg-pop-sun"
+          ref="downloadBtn" type="button" data-test="batch-download" class="btn-primary"
           :disabled="!!blocker || busy" :aria-describedby="id('dl-status')" @click="startDownload">
           <span class="i-lucide-download" aria-hidden="true" />{{ downloadLabel }}
         </button>

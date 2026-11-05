@@ -320,8 +320,8 @@ for (const [f, declared] of ogImages) {
 
 // 有品牌後綴的頁面：title 後綴跟著產品名換（首頁與 7 個類型頁本來就沒有後綴，不動）
 for (const [page, expected] of [
-  ['faq/index.html', `QR Code 產生器常見問題｜${PRODUCT_NAME}`],
-  ['guide/index.html', `QR Code 教學總覽｜${PRODUCT_NAME}`],
+  ['faq/index.html', `QR Code 產生器常見問題：會過期嗎？商用與印刷說明｜${PRODUCT_NAME}`],
+  ['guide/index.html', `QR Code 教學總覽：印刷尺寸、容錯與加 LOGO、電腦掃描｜${PRODUCT_NAME}`],
   ['privacy/index.html', `隱私權政策｜${PRODUCT_NAME}`],
   ['about/index.html', `關於 ${PRODUCT_NAME}｜口袋工具`],
   ['404.html', `找不到頁面｜${PRODUCT_NAME}`],
@@ -335,7 +335,7 @@ for (const [page, expected] of [
 // 值刻意再寫一次、不從頁面推導，改標題時兩邊一起改。
 for (const [page, expectedTitle, expectedH1] of [
   ['barcode/index.html', '條碼產生器｜EAN-13、Code 128 商品條碼線上免費製作', '條碼產生器（EAN-13、Code 128）'],
-  ['scan/index.html', 'QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR 與條碼', 'QR Code 掃描器：用圖片或截圖讀取'],
+  ['scan/index.html', 'QR Code 掃描器｜上傳圖片或截圖，線上讀取 QR Code 與條碼', 'QR Code 掃描器：用圖片或截圖讀取'],
 ]) {
   const file = join(distDir, page)
   const html = existsSync(file) ? readFileSync(file, 'utf8') : ''
@@ -862,9 +862,9 @@ if (siteBase) {
   const CJK_WORDS = /[^\s]*[\p{Script=Han}\u3000-\u303F\uFF00-\uFFEF][^\s]*/gu
   const hasCjk = (text) => CJK.test(text)
   for (const [page, expectedTitle, expectedH1] of [
-    ['en/index.html', 'Free QR Code Generator: Add a Logo, Download SVG or PNG', 'Free QR Code Generator'],
+    ['en/index.html', 'Free QR Code Generator with Logo: Download SVG or PNG', 'Free QR Code Generator'],
     ['en/batch/index.html', 'Bulk QR Code Generator and Barcode Maker from Excel or CSV', 'Bulk QR Code and Barcode Generator'],
-    ['en/barcode/index.html', 'Barcode Generator: Free Code 128, EAN-13 and ITF-14 Barcodes', 'Barcode Generator (Code 128, EAN-13)'],
+    ['en/barcode/index.html', 'Free Barcode Generator: Code 128, EAN-13, Download SVG or PNG', 'Barcode Generator (Code 128, EAN-13)'],
   ]) {
     const file = join(distDir, page)
     const html = existsSync(file) ? readFileSync(file, 'utf8') : ''

@@ -90,26 +90,27 @@ function showFullPreview() {
 </script>
 
 <template>
-  <div class="card p-5 md:p-6">
+  <div class="card p-4 pt-5 md:p-7">
     <PrivacyNote mode="generate" class="mb-5" />
     <!-- 區塊標示是段落不是標題：頁面的 h1／h2／h3 大綱不因為分區而改變 -->
-    <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>{{ t.input }}</p>
+    <!-- 三個區塊標示依序編號（1 輸入內容、2 外觀、3 預覽與下載）；編號是裝飾，報讀器只唸字 -->
+    <p class="zone-label"><span class="step-dot" aria-hidden="true">1</span>{{ t.input }}</p>
     <QrTypeTabs v-if="!only" :model-value="current" @update:model-value="onType" />
-    <div class="grid md:grid-cols-[1fr_auto] gap-6 mt-5">
+    <div class="grid md:grid-cols-[1fr_auto] gap-7 md:gap-8 mt-5">
       <div class="space-y-5 min-w-0">
         <component :is="activeInput" :key="`${current}:${handoffSeq}`" :initial="initial"
           @update:payload="payload = $event" />
-        <hr class="border-t-2 border-dashed border-ink/15" />
+        <hr class="border-t border-dashed border-line" />
         <div>
-          <p class="zone-label"><span class="icon-badge-sm bg-pop-pink"><span class="i-lucide-palette" aria-hidden="true" /></span>{{ t.look }}</p>
+          <p class="zone-label"><span class="step-dot" aria-hidden="true">2</span>{{ t.look }}</p>
           <StylePanel v-model="style" />
         </div>
       </div>
-      <div ref="previewZone" tabindex="-1" class="md:w-72 min-w-0 scroll-mt-4" data-test="preview-zone">
+      <div ref="previewZone" tabindex="-1" class="md:w-78 min-w-0 scroll-mt-4" data-test="preview-zone">
         <!-- 三種格式各在什麼時候用，收在「預覽與下載」旁的「?」；下載鈕的文字不變 -->
         <div class="mb-3">
           <HelpTip :name="t.downloadHelpName" :id="`${uid}-dl-help`">
-            <template #head><p class="zone-label !mb-0"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-qr-code" aria-hidden="true" /></span>{{ t.preview }}</p></template>
+            <template #head><p class="zone-label !mb-0"><span class="step-dot" aria-hidden="true">3</span>{{ t.preview }}</p></template>
             <ul>
               <li v-for="f in t.downloadHelp" :key="f.strong"><strong>{{ f.strong }}</strong>{{ f.text }}</li>
             </ul>

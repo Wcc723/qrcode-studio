@@ -75,12 +75,12 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
 </script>
 
 <template>
-  <div class="card p-5 md:p-6">
+  <div class="card p-4 pt-5 md:p-7">
     <PrivacyNote mode="scan" class="mb-5" />
     <div
       data-test="scan-dropzone"
       class="rounded-2xl border-3 border-dashed p-6 text-center transition"
-      :class="dragging ? 'border-brand bg-pop-sky/30' : 'border-ink/25 bg-white/60'"
+      :class="dragging ? 'border-brand bg-pop-sky' : 'border-line-strong bg-white/70'"
       @dragover.prevent="dragging = true"
       @dragleave.prevent="dragging = false"
       @drop.prevent="onDrop"
@@ -98,7 +98,7 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
 
       <input :id="fileInputId" data-test="scan-file-input" type="file" class="sr-only" aria-describedby="scan-formats-help"
         accept="image/png,image/jpeg,image/webp" @change="onFileChange" />
-      <label :for="fileInputId" class="btn-primary !bg-pop-sun inline-block mt-4 cursor-pointer">
+      <label :for="fileInputId" class="btn-primary inline-block mt-4 cursor-pointer">
         選擇圖片
       </label>
     </div>
@@ -109,14 +109,14 @@ onBeforeUnmount(() => document.removeEventListener('paste', onPaste))
     </p>
 
     <p v-if="status === 'error' && error" data-test="scan-error"
-      class="mt-2 p-3 rounded-xl border-2 border-ink/15 bg-pop-sun/40 text-ink font-600 leading-relaxed">
+      class="mt-2 p-3 rounded-xl border border-line bg-pop-sun/40 text-ink font-600 leading-relaxed">
       {{ error }}
     </p>
 
     <div v-if="previewUrl" class="mt-4">
       <p class="text-sm text-muted font-600">你選的圖</p>
       <img data-test="scan-preview" :src="previewUrl" alt="你選擇的圖片預覽"
-        class="mt-1 max-h-48 rounded-xl border-2 border-ink/15 bg-white" />
+        class="mt-1 max-h-48 rounded-xl border border-line bg-white" />
     </div>
 
     <ScanResultView v-if="status === 'done' && outcome" :outcome="outcome" @regenerate="onRegenerate" />

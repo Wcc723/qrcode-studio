@@ -37,7 +37,7 @@ const png = computed(() => pngSize(scale.value))
 </script>
 
 <template>
-  <div class="card p-5 md:p-6">
+  <div class="card p-4 pt-5 md:p-7">
     <PrivacyNote mode="barcode" class="mb-5" />
     <p class="zone-label"><span class="icon-badge-sm bg-pop-sun"><span class="i-lucide-pencil" aria-hidden="true" /></span>{{ t.input }}</p>
     <SymbologyPicker v-model="sym" />
@@ -48,7 +48,7 @@ const png = computed(() => pngSize(scale.value))
         :live-message="liveMessage" @flush="flushMessage" />
     </div>
 
-    <hr class="border-t-2 border-dashed border-ink/15 my-5" />
+    <hr class="border-t border-dashed border-line my-5" />
 
     <p class="zone-label"><span class="icon-badge-sm bg-pop-mint"><span class="i-lucide-barcode" aria-hidden="true" /></span>{{ t.preview }}</p>
 
@@ -71,9 +71,9 @@ const png = computed(() => pngSize(scale.value))
     </p>
 
     <div class="grid grid-cols-2 gap-2 mt-4">
-      <button data-test="dl-png" class="btn-primary !bg-pop-sun" :disabled="!canDownload"
+      <button data-test="dl-png" class="btn-primary" :disabled="!canDownload"
         @click="downloadPng(scale)"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">{{ t.download }}</span>PNG</button>
-      <button data-test="dl-svg" class="btn-primary !bg-pop-mint" :disabled="!canDownload"
+      <button data-test="dl-svg" class="btn-secondary" :disabled="!canDownload"
         @click="downloadSvg()"><span class="i-lucide-download" aria-hidden="true" /><span class="sr-only">{{ t.download }}</span>SVG</button>
     </div>
   </div>

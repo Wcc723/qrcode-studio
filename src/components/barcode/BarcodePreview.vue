@@ -21,7 +21,7 @@ const t = barcodeCopy[useLocale().value]
       內容撐開而把整頁推寬（祖先的 overflow 也救不了）。
     -->
     <div
-      class="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border-2 border-ink bg-white p-3 flex items-center justify-center min-h-[132px]">
+      class="w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-line bg-white p-3 flex items-center justify-center min-h-[132px]">
       <p v-if="!pattern && !error" class="text-muted text-sm font-600"><span class="i-lucide-pencil mr-1" aria-hidden="true" />{{ t.hint }}</p>
 
       <div v-else-if="error" class="flex flex-col items-center justify-center gap-2 p-4 text-center">

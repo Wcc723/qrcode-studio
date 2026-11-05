@@ -48,7 +48,7 @@ provideUiCopy(uiCopyEn)
 
 useSeoHead({
   title: 'Bulk QR Code Generator and Barcode Maker from Excel or CSV',
-  description: 'Free bulk QR code and barcode generator: paste from Excel or CSV, download a ZIP of PNG or SVG files, or print labels on Avery-size sheets. No upload.',
+  description: 'Free bulk QR code and barcode generator: paste from Excel or CSV, download a ZIP of PNG or SVG files, or print Avery-size labels. 100% in-browser, no sign-up.',
   path: '/en/batch',
   appName: 'Bulk QR Code and Barcode Generator',
   appType: 'WebApplication',
@@ -63,17 +63,23 @@ useSeoHead({
     { name: 'Bulk QR Code and Barcode Generator', url: `${site.url}/en/batch/` },
   ],
 })
+// Visible breadcrumb (2026-11 redesign): Pocketool › site home › this page
+const crumbs = [
+  { label: publisher.nameEn, href: publisher.urlEn },
+  { label: site.nameEn, to: '/en/' },
+  { label: 'Bulk QR code generator' },
+]
 </script>
 
 <template>
   <div>
-    <ToolZone lead="Paste from Excel or CSV, get a ZIP or print labels">
+    <ToolZone lead="Paste from Excel or CSV, get a ZIP or print labels" art="tool-batch-160.webp" deco="deco-stand-240.webp" :crumbs="crumbs" crumbs-label="Breadcrumb">
       <template #title>Bulk QR Code and Barcode Generator</template>
       <BatchTool />
     </ToolZone>
 
     <article class="max-w-[720px] mx-auto px-4 mt-10 text-ink/85 font-600 leading-relaxed" data-test="doc">
-      <p class="zone-label"><span class="icon-badge-sm bg-pop-sky"><span class="i-lucide-book-open" aria-hidden="true" /></span>How it works</p>
+      <p class="zone-label !text-muted !text-base !font-700"><span class="icon-badge-sm bg-pop-sun text-[#8a5a00]"><span class="i-lucide-book-open" aria-hidden="true" /></span>How it works</p>
       <p class="text-lg text-ink" data-test="doc-lead">
         Turn a whole list into QR codes or barcodes in one go. Paste cells from Excel, Google Sheets or a CSV file, enter one item per line, or number a sequence, then download every code as a PNG or SVG file in a single ZIP.
         This free bulk barcode generator also handles Code 128, EAN-13, EAN-8, Code 39 and ITF-14, adds check digits for you and flags problem rows before you print. Your list is processed in your browser and never uploaded.

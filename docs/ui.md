@@ -9,12 +9,22 @@
 
 工具頁（首頁、7 個類型頁、`/scan/`、`/barcode/`、`/batch/`）分成上下兩塊，一眼要分得出哪裡是應用程式、哪裡是說明：
 
-- **工具區**（`src/components/ToolZone.vue`）：h1、一行副標、工具卡，整條鋪淡薄荷底 `#E6F7EE`，
-  下緣一條整寬黑線。它直接放在 `<main>` 底下，本來就是整個視窗寬；**不要包進有寬度上限的容器，
+- **工具區**（`src/components/ToolZone.vue`）：標題區、一行副標、工具卡，整條鋪暖杏色底（`uno.config.ts` 的 `zone`，`#fff4e6`），
+  下緣一條整寬細線（`line`）。它直接放在 `<main>` 底下，本來就是整個視窗寬；**不要包進有寬度上限的容器，
   也不要改用 `100vw`**（會把捲軸寬度算進去，造成水平溢出）。
-- **說明文章**（`SeoContent.vue` 與各頁的 `<article data-test="doc">`）：維持頁面底色、閱讀寬度 720px，
-  文件樣式（`main.css` 的 `.doc-steps`、`.doc-faq`、`.doc-links`、`.doc-chips`）。**粗框加硬陰影的
-  `card`／`sticker` 只給工具卡用**，文章裡不要再用，否則整頁又會看起來都像工具。
+  - 標題區兩種（2026-11 改版）：首頁傳 `hero`（右邊水彩橫幅 `.zone-hero`、小標籤、h1、副標、三個打勾，工具卡用 `.zone-overlap` 往上疊進橫幅），
+    其他工具頁傳 `crumbs`（看得到的導覽路徑，最後一項是這一頁、`aria-current="page"`）、`art`（h1 左邊的圓底插圖）與 `deco`（右邊的裝飾，640px 以下不顯示）。
+    英文頁的小標籤、打勾與導覽路徑的字由英文頁自己傳進去，不寫在元件裡（英文字串不進 entry chunk）。
+  - 工具卡的區塊編號用 `.step-dot`（橘色圓底數字，`aria-hidden`），後面接 `.zone-label` 段落。
+- **說明文章**（`SeoContent.vue` 與各頁的 `<article data-test="doc">`）：維持頁面底色；段落閱讀寬度 720px（`.doc-p`），
+  卡片列與圖可以寬到內容寬（`max-w-screen-lg`）。文件樣式在 `main.css`：`.doc-h2`（h2 加虛線底與右邊的裝飾插圖）、
+  `.doc-card`（有插圖的細框連結卡）、`.doc-steps-art`（步驟配圖）、`.doc-figure`（概念圖與圖說）、`.doc-faq`、`.doc-links`、`.doc-chips`。
+- **卡片一律細框**（2026-11 改版前是粗黑框加硬陰影）：工具卡用 `card`（1px `line` 框、20px 圓角、柔和的暖色陰影），
+  可點的小卡用 `sticker`，文章裡用 `.doc-card`。**不要再加粗黑框或位移的硬陰影**，那是改版前的風格。
+  工具卡要比文章卡片醒目，靠的是陰影與暖杏色底，不是框線粗細。
+- **按鈕**：同一個畫面只有一個主要動作用實心的 `btn-primary`（產生器與條碼的 PNG、掃描器的選擇圖片、
+  批次的下載 ZIP 或列印標籤、掃描結果的「用這個內容再做一張」），
+  其他動作用 `btn-secondary`（白底細框）。不要再用 `!bg-pop-*` 把按鈕染成糖果色。
 - **副標只留一行**（30 字以內，類型頁在 `qr-types.ts` 的 `lead`）。原本標題下那段完整說明放在說明文章
   第一段（`data-test="doc-lead"`）。SEO 內文可以移出工具區，但**一個字都不能刪**；
   `seo:audit` 會對帳這些句子仍在預渲染 HTML 的說明文章裡、不在工具區。
@@ -48,13 +58,26 @@
   `i-lucide-<名稱>` class，建置時轉成 CSS，顏色跟著 `currentColor`。`presetIcons` **不得設 `cdn`、
   不得開 `autoInstall`**：瀏覽器執行時不向任何第三方取圖。
 - 圖示一律 `aria-hidden="true"`；只有圖示的按鈕要補文字（例如 sr-only 的「下載」）。
-  需要顏色時放進糖果色圓底徽章（`uno.config.ts` 的 `icon-badge`、`icon-badge-sm`、`icon-badge-lg`，底色加 `bg-pop-*`）。
+  需要顏色時放進圓底徽章（`uno.config.ts` 的 `icon-badge`、`icon-badge-sm`、`icon-badge-lg`，底色加 `bg-pop-*`；
+  2026-11 起 `pop-*` 是淡色，徽章沒有框線）。
 - 標題（h1／h2／h3）裡不放圖示或 emoji。`⌘` 是按鍵上的字，要包在 `<kbd>` 裡。
 - UnoCSS 預設不掃一般的 `.ts`，所以 `uno.config.ts` 另外把 `src/config/*.ts` 加進掃描範圍（類型圖示寫在
   `qr-types.ts` 的 `icon`）。圖示 class 放在其他 `.ts` 檔時，要一起加進去。
 - `src/no-emoji.test.ts` 掃元件、設定與教學本文（`©`、`™`、`®` 例外，測試檔不掃）；`seo:audit` 驗
   各頁內容沒有 emoji、用到的 `i-lucide-*` 在 CSS 裡都有規則（圖示集沒裝時 class 會靜默失效）、
   產物沒有連到線上圖示服務。新增圖示時 `NOTICE.md` 不必改，Lucide 的授權已經寫在那裡。
+
+### 裝飾插圖（2026-11 改版）
+
+- 插圖是 `public/img/` 的 WebP（首頁水彩橫幅、WiFi 概念圖、類型與工具的軟陶圖示、教學縮圖、三步驟圖、裝飾小物），
+  用 Codex 生圖產生，原檔與配方放在口袋工具 workspace，不放這個 repo。
+- **插圖是裝飾，不取代介面圖示**：分頁、按鈕、「?」仍是 Lucide。插圖一律 `alt=""`，只有說明文章裡帶圖說的概念圖
+  （`.doc-figure`）寫替代文字。h1／h2／h3 裡不放插圖（`.doc-h2` 的插圖在 h2 外面）。
+- 網址一律用 `import.meta.env.BASE_URL` 組（`ToolZone.vue` 的 `img()`）；`qr-types.ts` 的 `body` 裡寫 `/img/...`，
+  由 `withBase()` 補前綴。`seo:audit` 擋沒有 `/qrcode-studio/` 前綴的 `src`。
+- 首屏的橫幅與標題區小圖不延遲載入（橫幅加 `fetchpriority="high"`），首屏以下的一律 `loading="lazy" decoding="async"`，
+  並寫上 `width`、`height` 免得版面跳動。
+- 字型用系統字，不載 webfont。
 
 ## 用字：白話優先
 

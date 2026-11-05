@@ -52,11 +52,11 @@ const ecLabel = t.ecLabel
       </HelpTip>
       <div role="group" :aria-labelledby="`${uid}-color`" :aria-describedby="`${uid}-color-help`" class="flex items-center gap-2.5 flex-wrap mt-1.5">
         <label :for="`${uid}-dot`" class="text-sm font-600 text-ink">{{ t.dotColor }}</label>
-        <input :id="`${uid}-dot`" data-test="dotColor" type="color" class="w-9 h-9 rounded-lg border-2 border-ink cursor-pointer p-0 bg-white" :value="modelValue.dotColor" @input="patch({ dotColor: ($event.target as HTMLInputElement).value })" />
+        <input :id="`${uid}-dot`" data-test="dotColor" type="color" class="w-11 h-11 rounded-[10px] border border-line-strong cursor-pointer p-0 bg-white" :value="modelValue.dotColor" @input="patch({ dotColor: ($event.target as HTMLInputElement).value })" />
         <label :for="`${uid}-bg`" class="text-sm font-600 text-ink ml-1">{{ t.bgColor }}</label>
-        <input :id="`${uid}-bg`" type="color" class="w-9 h-9 rounded-lg border-2 border-ink cursor-pointer p-0 bg-white disabled:opacity-40" :value="modelValue.bgColor === 'transparent' ? '#ffffff' : modelValue.bgColor" :disabled="transparent" @input="patch({ bgColor: ($event.target as HTMLInputElement).value })" />
+        <input :id="`${uid}-bg`" type="color" class="w-11 h-11 rounded-[10px] border border-line-strong cursor-pointer p-0 bg-white disabled:opacity-40" :value="modelValue.bgColor === 'transparent' ? '#ffffff' : modelValue.bgColor" :disabled="transparent" @input="patch({ bgColor: ($event.target as HTMLInputElement).value })" />
         <label class="flex items-center gap-1 text-sm font-600 text-ink ml-1 cursor-pointer">
-          <input data-test="transparent" type="checkbox" class="accent-brand w-4 h-4" v-model="transparent" />{{ t.transparent }}
+          <input data-test="transparent" type="checkbox" class="accent-link w-5 h-5" v-model="transparent" />{{ t.transparent }}
         </label>
       </div>
       <!-- 條件式提醒一律看得到，不收進「?」：勾了透明才出現 -->
@@ -64,9 +64,9 @@ const ecLabel = t.ecLabel
     </div>
 
     <label class="flex items-center gap-2 text-sm font-600 text-ink cursor-pointer">
-      <input v-model="useGradient" data-test="useGradient" type="checkbox" class="accent-brand w-4 h-4" />
+      <input v-model="useGradient" data-test="useGradient" type="checkbox" class="accent-link w-5 h-5" />
       {{ t.gradient }}
-      <input v-if="modelValue.useGradient" type="color" :aria-label="t.gradientColor" class="w-9 h-9 rounded-lg border-2 border-ink cursor-pointer p-0 bg-white" :value="modelValue.gradientColor" @input="patch({ gradientColor: ($event.target as HTMLInputElement).value })" />
+      <input v-if="modelValue.useGradient" type="color" :aria-label="t.gradientColor" class="w-11 h-11 rounded-[10px] border border-line-strong cursor-pointer p-0 bg-white" :value="modelValue.gradientColor" @input="patch({ gradientColor: ($event.target as HTMLInputElement).value })" />
     </label>
 
     <div>
@@ -75,7 +75,7 @@ const ecLabel = t.ecLabel
         <p>{{ t.logoHelp }}</p>
         <p>{{ t.logoHelp2.before }}<RouterLink v-if="t.logoHelp2.link" :to="t.logoHelp2.link.to">{{ t.logoHelp2.link.text }}</RouterLink>{{ t.logoHelp2.after }}</p>
       </HelpTip>
-      <input :id="`${uid}-logo`" type="file" accept="image/*" :aria-describedby="`${uid}-logo-help`" class="block mt-1.5 text-sm text-muted file:(mr-2 px-3 py-1.5 rounded-lg border-2 border-ink bg-pop-sun font-700 text-ink cursor-pointer)" @change="onLogo" />
+      <input :id="`${uid}-logo`" type="file" accept="image/*" :aria-describedby="`${uid}-logo-help`" class="block mt-1.5 text-sm text-muted file:(mr-2 px-4 py-2 min-h-11 rounded-xl border border-dashed border-link bg-white font-700 text-link-700 cursor-pointer)" @change="onLogo" />
       <button v-if="modelValue.logoDataUrl" type="button" class="chip bg-white mt-2 hover:bg-pop-pink transition" @click="patch({ logoDataUrl: null })"><span class="i-lucide-x" aria-hidden="true" />{{ t.removeLogo }}</button>
     </div>
 
@@ -95,7 +95,7 @@ const ecLabel = t.ecLabel
         <template #head><label :for="`${uid}-size`" class="text-sm font-700 text-ink">{{ t.size(modelValue.width).label }}<span class="text-link">{{ t.size(modelValue.width).value }}</span></label></template>
         <p>{{ t.sizeHelp }}</p>
       </HelpTip>
-      <input :id="`${uid}-size`" type="range" min="200" max="2000" step="100" :aria-describedby="`${uid}-size-help`" class="w-full mt-1.5 accent-brand" :value="modelValue.width" @input="patch({ width: Number(($event.target as HTMLInputElement).value) })" />
+      <input :id="`${uid}-size`" type="range" min="200" max="2000" step="100" :aria-describedby="`${uid}-size-help`" class="w-full mt-1.5 accent-link h-8" :value="modelValue.width" @input="patch({ width: Number(($event.target as HTMLInputElement).value) })" />
     </div>
   </div>
 </template>
