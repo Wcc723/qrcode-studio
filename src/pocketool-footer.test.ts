@@ -148,7 +148,7 @@ describe('英文頁尾', () => {
     ])
   })
 
-  it('互連列用英文站名，QR Code Maker 與 Office Tools 連英文版，本站標 aria-current；沒有英文版的站連繁中並標 hreflang', () => {
+  it('互連列用英文站名，QR Code Maker 與 Kaomoji Garden 連英文版，本站標 aria-current；英文版不放的站連繁中並標 hreflang', () => {
     const footer = footerOf(mountWith('en'))
     const sites = footer.querySelector('nav[aria-label="Pocketool sites"]')!
     expect(sites.querySelectorAll('a')).toHaveLength(9)
@@ -158,12 +158,17 @@ describe('英文頁尾', () => {
     expect(current[0]!.querySelector('.ptf-site__name')!.textContent).toBe(site.nameEn)
     expect(current[0]!.getAttribute('href')).toBe('https://www.pocketool.app/qrcode-studio/en/')
     expect(current[0]!.hasAttribute('hreflang')).toBe(false)
-    // 行政小幫手有英文版（共用頁尾 1.1.0 起）：連英文版、不標 hreflang
-    const officeTools = sites.querySelector('a[href="https://www.pocketool.app/office-tools/en/"]')!
+    // 行政小幫手的英文版是 noindex，不放（共用頁尾 1.2.0 起）：連繁中版、標 hreflang，站名照用英文
+    const officeTools = sites.querySelector('a[href="https://www.pocketool.app/office-tools/"]')!
     expect(officeTools.querySelector('.ptf-site__name')!.textContent).toBe('Office Tools')
-    expect(officeTools.querySelector('.ptf-site__desc')!.textContent).toBe('Dates, time cards and time zones')
-    expect(officeTools.hasAttribute('hreflang')).toBe(false)
-    expect(sites.querySelector('a[href="https://www.pocketool.app/office-tools/"]')).toBeNull()
+    expect(officeTools.querySelector('.ptf-site__name')!.hasAttribute('lang')).toBe(false)
+    expect(officeTools.querySelector('.ptf-site__desc')!.textContent).toBe('Admin tools for Taiwan offices')
+    expect(officeTools.getAttribute('hreflang')).toBe('zh-Hant')
+    expect(sites.querySelector('a[href="https://www.pocketool.app/office-tools/en/"]')).toBeNull()
+    // 顏文字花園有英文版：連英文版、不標 hreflang
+    const kaomoji = sites.querySelector('a[href="https://www.pocketool.app/kaomoji/en"]')!
+    expect(kaomoji.querySelector('.ptf-site__name')!.textContent).toBe('Kaomoji Garden')
+    expect(kaomoji.hasAttribute('hreflang')).toBe(false)
     const pocketTime = sites.querySelector('a[href="https://www.pocketool.app/time/zh-tw/"]')!
     expect(pocketTime.querySelector('.ptf-site__name')!.textContent).toBe('Pocket Time')
     expect(pocketTime.getAttribute('hreflang')).toBe('zh-Hant')

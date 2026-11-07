@@ -1,4 +1,4 @@
-// 此檔由共用頁尾正本同步（版本 1.1.0），不要在這裡改。
+// 此檔由共用頁尾正本同步（版本 1.2.0），不要在這裡改。
 // pocketool-footer-data.mjs 的型別（給 TypeScript 的站；實作與註解在 .mjs）。
 
 export type PocketoolFooterLocale = 'zh-Hant' | 'zh-Hans' | 'en' | 'ja' | 'ko'

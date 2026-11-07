@@ -1,4 +1,4 @@
-// 此檔由共用頁尾正本同步（版本 1.1.0），不要在這裡改。
+// 此檔由共用頁尾正本同步（版本 1.2.0），不要在這裡改。
 // 口袋工具共用頁尾的資料（契約見共用頁尾文件）。
 // 純資料加純函式、零相依：元件 PocketoolFooter.vue 與建置稽核 pocketool-footer.audit.mjs 都讀這一份，Node 可以直接 import。
 //
@@ -7,12 +7,12 @@
 //   共用的區塊（互連列、字標與網站資訊、版權句）標 lang="zh-Hant"，本站專屬區不標。
 // - 連結目標：有同語系版本就連過去，沒有就連繁中版，<a> 標 hreflang（文字不是頁面語言時另標 lang）。
 // - 站名用各站的正式名稱；某語系沒有正式名稱時先用英文名，沒有英文名才用繁中名。
-// - 網址只放可以索引的最終網址（不經轉址）。noindex 的語系版本不放，那些語系一律連繁中版。
+// - 網址只放可以索引的最終網址（不經轉址）。noindex 的語系版本不放（只對 Google 標 noindex 的也算），那些語系一律連繁中版。
 // - 語系列（選用）：本站有好幾種語言時，站把「這一頁在各語言的去處」傳進來（languages），版權句上面畫一列；
 //   去處由站自己算（每站的對應規則不同），這裡只檢查格式、決定 hreflang 與標記。
 
 /** 改這個資料夾的任何一個檔都要升版：minor 是加站、加語系、加欄位，patch 是改字或改樣式，major 是改結構或屬性 */
-export const POCKETOOL_FOOTER_VERSION = '1.1.0'
+export const POCKETOOL_FOOTER_VERSION = '1.2.0'
 
 export const POCKETOOL_ORIGIN = 'https://www.pocketool.app'
 
@@ -60,15 +60,17 @@ export const POCKETOOL_SITES = [
   },
   {
     key: 'compound-calculator',
-    name: { 'zh-Hant': '社畜人生計算機', en: 'Office Life Calculator', ja: 'Pocketool 計算ツール', ko: 'Pocketool 계산기' },
-    href: { 'zh-Hant': '/compound-calculator/', ja: '/compound-calculator/ja', ko: '/compound-calculator/ko' },
-    desc: { 'zh-Hant': '薪資、勞退、房貸試算', en: 'Taiwan pay and loan calculators', ja: '坪・平米の換算', ko: '평수 계산' },
+    // 只放繁中版（日文、韓文版是 noindex）
+    name: { 'zh-Hant': '社畜人生計算機', en: 'Office Life Calculator' },
+    href: { 'zh-Hant': '/compound-calculator/' },
+    desc: { 'zh-Hant': '薪資、勞退、房貸試算', en: 'Taiwan pay and loan calculators', ja: '台湾の給与・ローン計算', ko: '대만 급여·대출 계산' },
   },
   {
     key: 'office-tools',
-    name: { 'zh-Hant': '行政小幫手', en: 'Office Tools', ja: '事務ツール', ko: '사무 도우미' },
-    href: { 'zh-Hant': '/office-tools/', en: '/office-tools/en/', ja: '/office-tools/ja/', ko: '/office-tools/ko/' },
-    desc: { 'zh-Hant': '行事曆、民國日期、桌牌', en: 'Dates, time cards and time zones', ja: '和暦変換・祝日一覧', ko: '날짜·만 나이·음력·시차 계산' },
+    // 英文、韓文版是 noindex，不放（那些語系連繁中版）；日文版是獨立的日本市場，照放
+    name: { 'zh-Hant': '行政小幫手', en: 'Office Tools', ja: '事務ツール' },
+    href: { 'zh-Hant': '/office-tools/', ja: '/office-tools/ja/' },
+    desc: { 'zh-Hant': '行事曆、民國日期、桌牌', en: 'Admin tools for Taiwan offices', ja: '和暦変換・祝日一覧', ko: '대만 사무 도구' },
   },
   {
     key: 'taiwan-zipcode',
@@ -85,9 +87,9 @@ export const POCKETOOL_SITES = [
   },
   {
     key: 'kaomoji-garden',
-    // zh-hans 版不放（noindex）
-    name: { 'zh-Hant': '顏文字花園', en: 'Kaomoji Garden', ja: '顔文字ガーデン', ko: '카오모지 가든' },
-    href: { 'zh-Hant': '/kaomoji/zh', en: '/kaomoji/en', ja: '/kaomoji/ja', ko: '/kaomoji/ko' },
+    // zh-hans、日文、韓文版不放（noindex）
+    name: { 'zh-Hant': '顏文字花園', en: 'Kaomoji Garden' },
+    href: { 'zh-Hant': '/kaomoji/zh', en: '/kaomoji/en' },
     desc: { 'zh-Hant': '顏文字、符號、Emoji', en: 'Kaomoji, symbols and emoji', ja: '顔文字・特殊文字・絵文字', ko: '카오모지·특수문자·이모지' },
   },
   {
