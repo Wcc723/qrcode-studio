@@ -3,6 +3,19 @@
 本檔記錄使用者感知得到的改版。版本號與 `package.json` 的 `version` 一致，
 tag 在部署成功且線上驗過之後才打。
 
+## [1.14.1] - 2026-11-07
+
+### 變更
+
+- 頁尾的口袋工具站群連結加上口袋單字王（共用頁尾 1.3.0）：互連列最後多一站，連 `https://www.pocketool.app/vocab/zh-tw/`。
+  口袋單字王只有繁中版，英文頁也連繁中版並標 `hreflang="zh-Hant"`，站名與短說明用英文（Pocket Word King）。
+  語系列、網址、title、description、JSON-LD 與教學的更新日都沒有變。
+
+### 技術
+
+- `src/shared/pocketool-footer/` 從正本同步到 1.3.0（資料檔加一站、檔頭版本）。
+- `src/pocketool-footer.test.ts` 的互連列改成十站，英文頁加口袋單字王連繁中版、標 `hreflang` 的檢查；`scripts/seo/audit.mjs` 的說明跟著改。
+
 ## [1.14.0] - 2026-11-07
 
 ### 變更

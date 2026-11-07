@@ -1,7 +1,7 @@
 /**
  * 頁尾換成口袋工具站群共用頁尾（src/shared/pocketool-footer/，同步來的拷貝）：中英兩種頁尾各掛一次，
  * 先跑它附的 pocketoolFooterProblems（互連列、網站資訊、版權句、署名的字與網址都照它的資料檔對），
- * 再鎖住本站自己的幾件事：互連列九站的順序與網址、本站標 aria-current、英文頁的字、
+ * 再鎖住本站自己的幾件事：互連列十站的順序與網址、本站標 aria-current、英文頁的字、
  * 語系列（中文、English，去處跟頁首的語言切換相同）、
  * 本站專屬區放站內連結與回報問題與商標聲明，跟共用部分重複的東西（連回口袋工具、聯絡、版權句、署名）不再出現第二份。
  * 英文頁頁尾「沒有中文」的檢查跟 seo:audit 用同一支（scripts/seo/footer-languages.mjs），這裡另外驗它的例外只放行語系列的語名。
@@ -77,7 +77,7 @@ describe('繁中頁尾', () => {
     expect(footer.hasAttribute('lang')).toBe(false)
   })
 
-  it('互連列是九個站，QR Code 製造機標 aria-current="true"（頁尾的連結只有這一個；另一個是語系列的目前語言）', () => {
+  it('互連列是十個站，QR Code 製造機標 aria-current="true"（頁尾的連結只有這一個；另一個是語系列的目前語言）', () => {
     const footer = footerOf(mountWith('zh-TW'))
     const sites = footer.querySelector('nav[aria-label="口袋工具的站"]')!
     expect(pairs(sites.querySelectorAll('a'))).toEqual([
@@ -90,6 +90,7 @@ describe('繁中頁尾', () => {
       ['顏文字花園', 'https://www.pocketool.app/kaomoji/zh'],
       ['Pixel Smith', 'https://www.pocketool.app/pixel-smith/'],
       ['Device Tester', 'https://www.pocketool.app/device-tester/zh-tw/'],
+      ['口袋單字王', 'https://www.pocketool.app/vocab/zh-tw/'],
     ])
     const current = footer.querySelectorAll('a[aria-current]')
     expect(current).toHaveLength(1)
@@ -151,7 +152,7 @@ describe('英文頁尾', () => {
   it('互連列用英文站名，QR Code Maker 與 Kaomoji Garden 連英文版，本站標 aria-current；英文版不放的站連繁中並標 hreflang', () => {
     const footer = footerOf(mountWith('en'))
     const sites = footer.querySelector('nav[aria-label="Pocketool sites"]')!
-    expect(sites.querySelectorAll('a')).toHaveLength(9)
+    expect(sites.querySelectorAll('a')).toHaveLength(10)
     const current = footer.querySelectorAll('a[aria-current]')
     expect(current).toHaveLength(1)
     expect(current[0]!.getAttribute('aria-current')).toBe('true')
@@ -176,6 +177,11 @@ describe('英文頁尾', () => {
     const zipcode = sites.querySelector('a[href="https://www.pocketool.app/zipcode/"]')!
     expect(zipcode.getAttribute('hreflang')).toBe('zh-Hant')
     expect(zipcode.querySelector('.ptf-site__name')!.getAttribute('lang')).toBe('zh-Hant')
+    // 口袋單字王只有繁中版（共用頁尾 1.3.0 起）：連繁中版、標 hreflang，站名照用英文
+    const vocab = sites.querySelector('a[href="https://www.pocketool.app/vocab/zh-tw/"]')!
+    expect(vocab.querySelector('.ptf-site__name')!.textContent).toBe('Pocket Word King')
+    expect(vocab.querySelector('.ptf-site__name')!.hasAttribute('lang')).toBe(false)
+    expect(vocab.getAttribute('hreflang')).toBe('zh-Hant')
   })
 
   it('除了標 lang="zh-Hant" 的站名、署名與語系列的「中文」，頁尾沒有中文與全形標點', () => {

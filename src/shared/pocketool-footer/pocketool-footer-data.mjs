@@ -1,4 +1,4 @@
-// 此檔由共用頁尾正本同步（版本 1.2.0），不要在這裡改。
+// 此檔由共用頁尾正本同步（版本 1.3.0），不要在這裡改。
 // 口袋工具共用頁尾的資料（契約見共用頁尾文件）。
 // 純資料加純函式、零相依：元件 PocketoolFooter.vue 與建置稽核 pocketool-footer.audit.mjs 都讀這一份，Node 可以直接 import。
 //
@@ -12,7 +12,7 @@
 //   去處由站自己算（每站的對應規則不同），這裡只檢查格式、決定 hreflang 與標記。
 
 /** 改這個資料夾的任何一個檔都要升版：minor 是加站、加語系、加欄位，patch 是改字或改樣式，major 是改結構或屬性 */
-export const POCKETOOL_FOOTER_VERSION = '1.2.0'
+export const POCKETOOL_FOOTER_VERSION = '1.3.0'
 
 export const POCKETOOL_ORIGIN = 'https://www.pocketool.app'
 
@@ -104,6 +104,13 @@ export const POCKETOOL_SITES = [
     name: { 'zh-Hant': 'Device Tester', en: 'Device Tester' },
     href: { 'zh-Hant': '/device-tester/zh-tw/', en: '/device-tester/en/' },
     desc: { 'zh-Hant': '滑鼠、鍵盤、鏡頭測試', en: 'Mouse, keyboard and webcam tests', ja: 'マウス・キーボード・カメラのテスト', ko: '마우스·키보드·웹캠 테스트' },
+  },
+  {
+    key: 'vocab',
+    // 只有繁中版；單字頁與遊戲畫面不給索引，連首頁
+    name: { 'zh-Hant': '口袋單字王', en: 'Pocket Word King' },
+    href: { 'zh-Hant': '/vocab/zh-tw/' },
+    desc: { 'zh-Hant': '英文單字遊戲與模擬考', en: 'English word games and mock tests', ja: '英単語ゲームと模擬試験', ko: '영어 단어 게임과 모의고사' },
   },
 ]
 

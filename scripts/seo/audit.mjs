@@ -959,7 +959,7 @@ if (siteBase) {
 
 // 頁尾：口袋工具站群共用頁尾（src/shared/pocketool-footer/，同步來的拷貝），最後一行是經營者署名。
 // 逐頁驗（含 404.html），再加上資產根的 404.html（scripts/gen-sitemap.mjs 從 404 複製過去，/qrcode-studio-foo 這類網址拿到的是那一份）。
-// - 共用頁尾：每一個有 <footer> 的 HTML 都跑它附的 pocketoolFooterProblems（互連列九站與 aria-current、字標、網站資訊、語系列、
+// - 共用頁尾：每一個有 <footer> 的 HTML 都跑它附的 pocketoolFooterProblems（互連列十站與 aria-current、字標、網站資訊、語系列、
 //   版權句、署名在最後），語系照 <html lang>：zh-Hant-TW 是 zh-Hant、en 是 en，其他的值當成問題報。
 //   語系列逐筆對：中文、English 兩筆（footer-languages.mjs），這一頁的語言是 <span aria-current>，另一個語言連到
 //   switchTargetOf 算的去處（跟頁首語言切換的檢查同一個），所以頁尾與頁首連到同一頁
@@ -1007,7 +1007,7 @@ function ownerLineProblems(html) {
     // 這一頁該有的語系列；拿不到子路徑前綴（sitemap 壞了，上面已經報）時只查格式
     const languages = basePath ? expectedFooterLanguages(isEnPage(name) ? 'en' : 'zh-Hant-TW', `${basePath}${switchTargetOf(name).slice(1)}`) : undefined
     const shared = locale ? pocketoolFooterProblems(html, { site: FOOTER_SITE, locale, languages }) : [`<html lang> 是 ${lang ?? '（沒有）'}，對不到共用頁尾的語系`]
-    add(`[${name}] 共用頁尾照契約（互連列九站、本站 aria-current、網站資訊、語系列${languages ? `連到 ${switchTargetOf(name)}` : '只查格式'}、版權句，語系 ${locale ?? '?'}）`, shared.length === 0, shared.slice(0, 5).join('；'))
+    add(`[${name}] 共用頁尾照契約（互連列十站、本站 aria-current、網站資訊、語系列${languages ? `連到 ${switchTargetOf(name)}` : '只查格式'}、版權句，語系 ${locale ?? '?'}）`, shared.length === 0, shared.slice(0, 5).join('；'))
     if (isEnPage(name)) {
       const chinese = englishFooterChinese(html)
       add(`[${name}] 英文頁的頁尾除了署名、沒有英文名的站名與語系列的「中文」，沒有中文與全形標點`, chinese.length === 0, chinese.slice(0, 5).join(' '))
